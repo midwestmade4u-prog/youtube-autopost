@@ -1,0 +1,73 @@
+name: YouTube Auto-Post
+
+on:
+  schedule:
+    # 12 PM CST = 18:00 UTC
+    - cron: '0 18 * * *'
+    # 7 PM CST = 01:00 UTC
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  autopost-bsg:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flask edge-tts Pillow openai google-api-python-client google-auth-httplib2 google-auth-oauthlib requests
+
+      - name: Create config.json
+        run: |
+          cat > config.json << 'INNEREOF'
+          {
+            "openai_api_key": "${{ secrets.OPENAI_API_KEY }}",
+            "elevenlabs_api_key": "${{ secrets.ELEVENLABS_API_KEY }}",
+            "fal_api_key": "${{ secrets.FAL_API_KEY }}"
+          }
+          INNEREOF
+
+      - name: Create YouTube token files
+        run: |
+          echo '${{ secrets.YT_TOKEN_BSG }}' > youtube_token_bsg.json
+          echo '${{ secrets.YT_TOKEN_TMF }}' > youtube_token_tmf.json
+
+      - name: Run Bible Story Garden auto-post
+        run: python3 auto_post.py --channel bsg
+        continue-on-error: true
+
+      - name: Run The Mind Files auto-post
+        run: python3 auto_post.py --channel tmf
+        continue-on-error: true
+
+      - name: Commit results
+        run: |
+          git config --local user.email "automation@youtube.local"
+          git config --local user.name "YouTube AutoPost Bot"
+          git add auto_post_log.json auto_trigger_*.json 2>/dev/null || true
+          git commit -m "Auto-post videos - $(date)" || true
+          git push || true
+
+      - name: Upload logs to artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: autopost-logs
+          path: |
+            watcher.log
+            auto_post_log.json
+          retention-days: 7
