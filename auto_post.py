@@ -326,6 +326,60 @@ def load_trigger_file(path: str) -> dict:
 
 # ── Run Pipeline via Server ────────────────────────────────────────────────────
 
+def run_headless(channel: str, topic: str, script: dict) -> str:
+    """Generate and upload video directly without Flask server (CI mode)."""
+    label  = CHANNEL_LABELS[channel]
+    voice  = CHANNEL_VOICES[channel]
+    title  = script["title"]
+    scenes = script["scenes"]
+
+    print(f"  Title : {title}")
+    print(f"  Scenes: {len(scenes)}")
+
+    # Import video generation from video_app.py directly
+    try:
+        from video_app import run_video_job
+        import urllib.request
+    except ImportError as e:
+        print(f"❌ Could not import video generation: {e}")
+        sys.exit(1)
+
+    print(f"\n🎬 Creating video...")
+    try:
+        # Run video job directly (no Flask server needed)
+        video_path = run_video_job(
+            title=title,
+            scenes=scenes,
+            voice=voice,
+            fmt="vertical",
+            channel=channel
+        )
+        print(f"  ✅ Video created: {Path(video_path).name}")
+    except Exception as e:
+        print(f"❌ Video generation failed: {e}")
+        sys.exit(1)
+
+    print(f"\n📤 Uploading to YouTube ({label})...")
+    yt_meta = build_yt_metadata(channel, title)
+    try:
+        # Use the Flask server's upload endpoint via direct import
+        from video_app import youtube_upload as yt_upload_func
+        upload_result = yt_upload_func(
+            channel=channel,
+            video_path=str(Path(video_path).name),
+            title=title,
+            description=yt_meta["description"],
+            tags=yt_meta["tags"],
+            privacy="public"
+        )
+        yt_url = upload_result.get("url", f"https://youtube.com/@{channel}")
+        print(f"  ✅ Uploaded: {yt_url}")
+        return yt_url
+    except Exception as e:
+        print(f"❌ Upload failed: {e}")
+        sys.exit(1)
+
+
 def run_via_server(channel: str, topic: str, script: dict) -> str:
     """Send pre-generated script to the running video server. Returns video URL."""
     label  = CHANNEL_LABELS[channel]
@@ -467,9 +521,12 @@ def main():
     # ── Start server if needed ────────────────────────────────────────────────
     server_proc        = None
     server_was_running = server_running()
+    in_ci_environment  = os.getenv("GITHUB_ACTIONS") == "true"
 
     if server_was_running:
         print("\n🔌 Video server already running — using it.")
+    elif in_ci_environment:
+        print("\n🌐 Running in CI environment (GitHub Actions) — using headless mode.")
     else:
         print("\n🚀 Starting video server...")
         server_proc = subprocess.Popen(
@@ -478,12 +535,8 @@ def main():
             stderr=subprocess.DEVNULL,
         )
         if not wait_for_server(timeout=90):
-            print("❌ Server failed to start within 90 seconds. Aborting.")
-            if script:
-                tf = write_trigger_file(channel, topic, script)
-                print(f"\n📁 Trigger file saved: {tf.name}")
-                print("   Run auto_watcher.sh on your Mac or start video_app.py manually.")
-            sys.exit(1)
+            print("⚠️ Server failed to start within 90 seconds. Attempting headless mode...")
+            in_ci_environment = True  # Fall back to headless mode
 
     try:
         # ── Generate or use pre-generated script ──────────────────────────────
@@ -510,7 +563,10 @@ def main():
 
         # ── Run the pipeline ──────────────────────────────────────────────────
         print(f"\n✍️  Script ready: {title}")
-        video_url = run_via_server(channel, topic, script)
+        if in_ci_environment:
+            video_url = run_headless(channel, topic, script)
+        else:
+            video_url = run_via_server(channel, topic, script)
 
         print(f"  ✅ Posted! {video_url}")
 
