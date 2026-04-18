@@ -414,8 +414,17 @@ def api_post(path: str, data: dict, timeout: int = 600) -> dict:
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read())
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        # Show the actual error response from Flask
+        error_body = e.read().decode()
+        try:
+            error_json = json.loads(error_body)
+            raise RuntimeError(f"Flask error: {error_json.get('error', error_body)}")
+        except:
+            raise RuntimeError(f"Flask error (HTTP {e.code}): {error_body[:200]}")
 
 
 def api_get(path: str, timeout: int = 30) -> dict:
