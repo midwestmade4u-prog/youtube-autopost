@@ -62,12 +62,27 @@ def load_config():
     return {}
 
 def get_openai_key():
+    # Check environment variable first (for GitHub Actions CI)
+    env_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if env_key:
+        return env_key
+    # Fall back to config file (for local development)
     return load_config().get("openai_api_key", "").strip()
 
 def get_elevenlabs_key():
+    # Check environment variable first (for GitHub Actions CI)
+    env_key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
+    if env_key:
+        return env_key
+    # Fall back to config file (for local development)
     return load_config().get("elevenlabs_api_key", "").strip()
 
 def get_fal_key():
+    # Check environment variable first (for GitHub Actions CI)
+    env_key = os.environ.get("FAL_API_KEY", "").strip()
+    if env_key:
+        return env_key
+    # Fall back to config file (for local development)
     return load_config().get("fal_api_key", "").strip()
 
 # ── Brand Colors ──────────────────────────────────────────────────────────────

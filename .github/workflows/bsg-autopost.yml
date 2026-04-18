@@ -31,24 +31,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install flask edge-tts Pillow openai google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib requests
 
-      - name: Create config.json
-        run: |
-          cat > config.json << 'INNEREOF'
-          {
-            "openai_api_key": "${{ secrets.OPENAI_API_KEY }}",
-            "elevenlabs_api_key": "${{ secrets.ELEVENLABS_API_KEY }}",
-            "fal_api_key": "${{ secrets.FAL_API_KEY }}"
-          }
-          INNEREOF
-          echo "✅ config.json created"
-          test -f config.json && echo "✅ File exists" || echo "❌ File missing"
-          wc -c < config.json && echo "bytes"
-
       - name: Create YouTube token files
         run: |
           echo '${{ secrets.YT_TOKEN_BSG }}' > youtube_token_bsg.json
 
       - name: Run Bible Story Garden auto-post
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
         run: python3 auto_post.py --channel bsg
         continue-on-error: true
 
