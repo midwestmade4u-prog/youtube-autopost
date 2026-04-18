@@ -195,7 +195,10 @@ def generate_script_for_topic(topic: str, channel: str, num_scenes: int = 8) -> 
 
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        raise ValueError("OPENAI_API_KEY environment variable not set")
+        raise ValueError("OPENAI_API_KEY not found. Check GitHub secrets are set correctly.")
+
+    if not api_key.strip():
+        raise ValueError("OPENAI_API_KEY is empty. Check GitHub secret value.")
 
     # Channel-specific instructions
     if channel == "tmf":
@@ -241,7 +244,9 @@ Rules:
 
     try:
         import openai
+        print(f"    Connecting to OpenAI API...")
         client = openai.OpenAI(api_key=api_key)
+        print(f"    Making script generation request...")
         resp = client.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -251,6 +256,7 @@ Rules:
             max_tokens=2000,
             temperature=0.8,
         )
+        print(f"    ✅ OpenAI responded")
         raw = resp.choices[0].message.content.strip()
 
         # Strip markdown code fences if present
@@ -262,9 +268,12 @@ Rules:
         script = json.loads(raw.strip())
         return script
     except json.JSONDecodeError as e:
-        raise ValueError(f"OpenAI response was not valid JSON: {str(e)[:100]}")
+        raise ValueError(f"OpenAI returned invalid JSON: {str(e)[:100]}")
+    except ConnectionError as e:
+        raise RuntimeError(f"Network error connecting to OpenAI: {str(e)[:120]}")
     except Exception as e:
-        raise RuntimeError(f"Script generation failed: {str(e)[:120]}")
+        error_type = type(e).__name__
+        raise RuntimeError(f"Script generation failed ({error_type}): {str(e)[:150]}")
 
 
 def append_to_google_sheets(channel: str, title: str, url: str) -> None:
