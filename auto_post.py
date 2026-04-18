@@ -521,12 +521,15 @@ def main():
     # ── Start server if needed ────────────────────────────────────────────────
     server_proc        = None
     server_was_running = server_running()
-    in_ci_environment  = os.getenv("GITHUB_ACTIONS") == "true"
+
+    # Detect CI environment (GitHub Actions sets GITHUB_ACTIONS to "true")
+    github_actions_var = os.getenv("GITHUB_ACTIONS")
+    in_ci_environment  = bool(github_actions_var)  # More robust check
 
     if server_was_running:
         print("\n🔌 Video server already running — using it.")
     elif in_ci_environment:
-        print("\n🌐 Running in CI environment (GitHub Actions) — using headless mode.")
+        print(f"\n🌐 Running in CI environment (GITHUB_ACTIONS={github_actions_var}) — using headless mode.")
     else:
         print("\n🚀 Starting video server...")
         server_proc = subprocess.Popen(
