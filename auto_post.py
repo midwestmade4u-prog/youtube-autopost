@@ -188,6 +188,85 @@ def mark_posted(channel: str, topic: str, title: str, url: str) -> None:
     append_to_google_sheets(channel, title, url)
 
 
+def generate_script_for_topic(topic: str, channel: str, num_scenes: int = 8) -> dict:
+    """Generate a full video script using OpenAI (standalone, no Flask needed)."""
+    if not topic or not topic.strip():
+        raise ValueError("Topic cannot be empty")
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY environment variable not set")
+
+    # Channel-specific instructions
+    if channel == "tmf":
+        style_guide = (
+            "Dark psychology / human behavior educational content for adults. "
+            "Tone: calm, analytical, slightly unsettling. "
+            "Image prompts MUST be atmospheric and symbolic — NO faces, NO people, NO portraits. "
+            "Use objects, environments, shadows, hands (no face), silhouettes, abstract compositions. "
+            "Examples: burning money on a desk, broken clock, empty interrogation chair, heavy chains. "
+            "Style: black and white / heavily desaturated film noir, high contrast, photorealistic."
+        )
+    else:
+        style_guide = (
+            "Bible story / children's educational content for families with young kids. "
+            "Tone: warm, wonder-filled, simple, encouraging. "
+            "Image prompts should be colorful, cheerful storybook illustration style. "
+            "Scene 1 MUST be a dramatic hook that stops scrolling. "
+            "Scene 1 image: VISUALLY STRIKING — bold colors, dramatic moment."
+        )
+
+    system_prompt = f"""You are a short-form video script writer optimized for YouTube Shorts (60 seconds).
+CRITICAL: First 3 seconds determine if viewers keep watching. Hook them IMMEDIATELY.
+
+Channel style: {style_guide}
+
+Output ONLY valid JSON in this exact format:
+{{
+  "title": "Short punchy video title (under 60 chars)",
+  "scenes": [
+    {{
+      "narration": "1-3 sentences of spoken narration. Keep it punchy and engaging.",
+      "image_prompt": "Vivid scene description for AI image generation. Be specific."
+    }}
+  ]
+}}
+
+Rules:
+- Exactly {num_scenes} scenes
+- SCENE 1 (0-2 sec): HOOK FIRST. Create curiosity or show something visually stunning.
+- Each narration: 20-40 words, conversational, hook-driven
+- Each image_prompt: specific, visual, cinematic — NOT abstract.
+- No markdown, no explanation, ONLY the JSON object"""
+
+    try:
+        import openai
+        client = openai.OpenAI(api_key=api_key)
+        resp = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Write a {num_scenes}-scene script about: {topic}"}
+            ],
+            max_tokens=2000,
+            temperature=0.8,
+        )
+        raw = resp.choices[0].message.content.strip()
+
+        # Strip markdown code fences if present
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+
+        script = json.loads(raw.strip())
+        return script
+    except json.JSONDecodeError as e:
+        raise ValueError(f"OpenAI response was not valid JSON: {str(e)[:100]}")
+    except Exception as e:
+        raise RuntimeError(f"Script generation failed: {str(e)[:120]}")
+
+
 def append_to_google_sheets(channel: str, title: str, url: str) -> None:
     """Append posted video to Google Sheets Auto-Post Log (GitHub Actions only)."""
     # Only run in GitHub Actions environment
@@ -236,8 +315,12 @@ def append_to_google_sheets(channel: str, title: str, url: str) -> None:
         print(f"  📊 Logged to Google Sheets: {channel_label} — {title}")
 
     except Exception as e:
-        # Silently fail — don't break the workflow
-        print(f"  ⚠️  Could not log to Sheets: {e}")
+        # Log error but don't break the workflow
+        import traceback
+        error_msg = f"Sheets logging failed: {str(e)[:100]}"
+        print(f"  ⚠️  {error_msg}")
+        # Still save locally for debugging
+        print(f"     (Video posted but not logged to Sheets. Check logs.)")
 
 
 # ── Dependency Management ──────────────────────────────────────────────────────
@@ -598,51 +681,28 @@ def main():
     try:
         # ── Generate or use pre-generated script ──────────────────────────────
         if script is None:
-            # Standard mode: generate script via server or direct API
+            # Standard mode: generate script
             print(f"\n✍️  Generating 8-scene script  (voice: {voice})...")
 
-            if in_ci_environment:
-                # In CI: use direct API calls (no Flask server)
-                try:
-                    from video_app import generate_script_direct
-                    script = generate_script_direct(topic, channel, 8)
-                except ImportError:
-                    # Fallback: generate manually using OpenAI
-                    try:
-                        import openai
-                        openai.api_key = os.getenv("OPENAI_API_KEY")
-
-                        prompt = f"Generate a YouTube script for a {channel} video about: {topic}"
-                        response = openai.ChatCompletion.create(
-                            model="gpt-3.5-turbo",
-                            messages=[{"role": "user", "content": prompt}],
-                            temperature=0.7
-                        )
-                        # Simplified script structure
-                        script = {
-                            "title": f"{topic} - Mind Files" if channel == "tmf" else f"{topic} - Bible Story Garden",
-                            "scenes": [{"text": "Scene content"}] * 8
-                        }
-                    except Exception as e:
-                        print(f"❌ Direct script generation failed: {e}")
-                        sys.exit(1)
-            else:
-                # On Mac: use Flask server
-                try:
+            try:
+                if in_ci_environment:
+                    # In CI: use direct OpenAI API (no Flask server)
+                    script = generate_script_for_topic(topic, channel, 8)
+                    print(f"  ✅ Script generated via OpenAI API")
+                else:
+                    # On Mac: use Flask server
                     script_resp = api_post("/generate-script", {
                         "topic":      topic,
                         "channel":    channel,
                         "num_scenes": 8,
                     })
-                except Exception as e:
-                    print(f"❌ Script generation request failed: {e}")
-                    sys.exit(1)
-
-                if "error" in script_resp:
-                    print(f"❌ Script error: {script_resp['error']}")
-                    sys.exit(1)
-
-                script = script_resp["script"]
+                    if "error" in script_resp:
+                        raise ValueError(script_resp["error"])
+                    script = script_resp["script"]
+                    print(f"  ✅ Script generated via Flask server")
+            except Exception as e:
+                print(f"❌ Script generation failed: {e}")
+                sys.exit(1)
 
         title = script["title"]
 
