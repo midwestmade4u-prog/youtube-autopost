@@ -668,14 +668,8 @@ def main():
     server_proc        = None
     server_was_running = server_running()
 
-    # Detect CI environment (GitHub Actions sets GITHUB_ACTIONS to "true")
-    github_actions_var = os.getenv("GITHUB_ACTIONS")
-    in_ci_environment  = bool(github_actions_var)  # More robust check
-
     if server_was_running:
         print("\n🔌 Video server already running — using it.")
-    elif in_ci_environment:
-        print(f"\n🌐 Running in CI environment (GITHUB_ACTIONS={github_actions_var}) — using headless mode.")
     else:
         print("\n🚀 Starting video server...")
         server_proc = subprocess.Popen(
@@ -684,31 +678,23 @@ def main():
             stderr=subprocess.DEVNULL,
         )
         if not wait_for_server(timeout=90):
-            print("⚠️ Server failed to start within 90 seconds. Attempting headless mode...")
-            in_ci_environment = True  # Fall back to headless mode
+            print("❌ Server failed to start within 90 seconds.")
+            sys.exit(1)
 
     try:
         # ── Generate or use pre-generated script ──────────────────────────────
         if script is None:
-            # Standard mode: generate script
+            # Generate script via Flask server
             print(f"\n✍️  Generating 8-scene script  (voice: {voice})...")
-
             try:
-                if in_ci_environment:
-                    # In CI: use direct OpenAI API (no Flask server)
-                    script = generate_script_for_topic(topic, channel, 8)
-                    print(f"  ✅ Script generated via OpenAI API")
-                else:
-                    # On Mac: use Flask server
-                    script_resp = api_post("/generate-script", {
-                        "topic":      topic,
-                        "channel":    channel,
-                        "num_scenes": 8,
-                    })
-                    if "error" in script_resp:
-                        raise ValueError(script_resp["error"])
-                    script = script_resp["script"]
-                    print(f"  ✅ Script generated via Flask server")
+                script_resp = api_post("/generate-script", {
+                    "topic":      topic,
+                    "channel":    channel,
+                    "num_scenes": 8,
+                })
+                if "error" in script_resp:
+                    raise ValueError(script_resp["error"])
+                script = script_resp["script"]
             except Exception as e:
                 print(f"❌ Script generation failed: {e}")
                 sys.exit(1)
@@ -717,10 +703,7 @@ def main():
 
         # ── Run the pipeline ──────────────────────────────────────────────────
         print(f"\n✍️  Script ready: {title}")
-        if in_ci_environment:
-            video_url = run_headless(channel, topic, script)
-        else:
-            video_url = run_via_server(channel, topic, script)
+        video_url = run_via_server(channel, topic, script)
 
         print(f"  ✅ Posted! {video_url}")
 
