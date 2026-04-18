@@ -29,6 +29,7 @@ import time
 import urllib.request
 import urllib.error
 from pathlib import Path
+from datetime import datetime
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).parent
@@ -184,6 +185,59 @@ def mark_posted(channel: str, topic: str, title: str, url: str) -> None:
         "posted_at": time.strftime("%Y-%m-%d %H:%M:%S"),
     })
     save_log(log)
+    append_to_google_sheets(channel, title, url)
+
+
+def append_to_google_sheets(channel: str, title: str, url: str) -> None:
+    """Append posted video to Google Sheets Auto-Post Log (GitHub Actions only)."""
+    # Only run in GitHub Actions environment
+    if not os.getenv("GITHUB_ACTIONS"):
+        return
+
+    try:
+        from google.oauth2 import service_account
+        from google.auth.transport.requests import Request
+        from googleapiclient.discovery import build
+    except ImportError:
+        print("⚠️  Google API libraries not available for Sheets logging")
+        return
+
+    try:
+        # Load service account credentials from GitHub secret
+        creds_json = os.getenv("GOOGLE_SHEETS_KEY")
+        if not creds_json:
+            return
+
+        creds_dict = json.loads(creds_json)
+        creds = service_account.Credentials.from_service_account_info(
+            creds_dict,
+            scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        )
+
+        # Build Sheets API client
+        service = build("sheets", "v4", credentials=creds)
+        spreadsheet_id = "1JKlBnYdv-_r3FcjozBtpRxLNRiAoA1ezLRz2W-7vVWI"
+        sheet_name = "Auto-Post Log"
+
+        # Prepare row data
+        channel_label = CHANNEL_LABELS.get(channel, channel)
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        row = [timestamp, channel_label, title, "Success", url, ""]
+
+        # Append to sheet
+        service.spreadsheets().values().append(
+            spreadsheetId=spreadsheet_id,
+            range=f"{sheet_name}!A:G",
+            valueInputOption="USER_ENTERED",
+            body={"values": [row]}
+        ).execute()
+
+        print(f"  📊 Logged to Google Sheets: {channel_label} — {title}")
+
+    except Exception as e:
+        # Silently fail — don't break the workflow
+        print(f"  ⚠️  Could not log to Sheets: {e}")
 
 
 # ── Dependency Management ──────────────────────────────────────────────────────
