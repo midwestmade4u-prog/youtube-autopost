@@ -42,6 +42,9 @@ jobs:
             "fal_api_key": "${{ secrets.FAL_API_KEY }}"
           }
           INNEREOF
+          echo "✅ config.json created"
+          test -f config.json && echo "✅ File exists" || echo "❌ File missing"
+          wc -c < config.json && echo "bytes"
 
       - name: Create YouTube token files
         run: |
