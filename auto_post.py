@@ -93,47 +93,66 @@ BSG_TOPICS = [
     "Deborah the Judge — A Woman Who DEFEATED an Entire Army",
 ]
 
+# Topic mix is intentionally weighted:
+#   ~55% dark-behavior / personality / manipulation (1.3%+ sub conversion in Apr data)
+#   ~30% cognitive biases reframed with relational or behavioral stakes
+#   ~15% classic experiments and uncomfortable-truth topics
+# Weak-converting topics from the original list (Mere Exposure, Cocktail Party,
+# Illusion of Transparency, abstract bias labels) have been dropped.
+
 TMF_TOPICS = [
+    # ── Dark behavior / personality / manipulation (high sub conversion) ──
+    "The Dark Triad — Why Some People Charm You While Planning to Hurt You",
+    "How to Spot a Psychopath in the First 5 Minutes",
+    "What Narcissists, Psychopaths and Sociopaths Actually Want From You",
+    "Gaslighting — The Manipulation Most Victims Never See Coming",
+    "Love Bombing — The Red Flag That Feels Like Romance",
+    "Why Narcissists Target Empaths (And How They Pick Them)",
+    "How Trauma Bonds Trap Victims With Their Abusers",
+    "Why Charming People Are Often the Most Dangerous",
+    "Why Abusers Always Apologize Before They Do It Again",
+    "The 4 Tactics Every Cult Leader Uses On Their Followers",
+    "Microexpressions — The Faces That Reveal What People Really Think",
+    "The Psychology of Liars — 4 Tells That Give Them Away",
+    "Dehumanization — How Ordinary People Become Capable of Cruelty",
+    "Why Good People Do Evil Things (Moral Disengagement)",
+    "The Milgram Experiment — Why 65% of People Will Hurt a Stranger",
+    "The Stanford Prison Experiment — What Power Does to Good People",
+    "How People Justify Cheating, Stealing, and Lying to Themselves",
+    "Why You're Drawn to People Who Treat You Poorly",
+    "The Hidden Reason Some People Enjoy Others' Failure",
+    "How Predators Test You Before They Hurt You",
+
+    # ── Cognitive biases reframed with behavioral stakes ──
     "Why One Bad Thing Erases Ten Good Things You've Done",
-    "The Framing Effect — How Words CHANGE Your Decisions",
+    "Why the Least Skilled People Are the Most Confident",
+    "Why You Can't Let Go of Bad Decisions You've Already Made",
+    "Why Facts Make People Believe Their Lies Even Harder",
+    "Why You Think Everyone Secretly Agrees With You",
     "Why You Feel Guilty for Things That Aren't Your Fault",
-    "The False Consensus Effect — Why You Think EVERYONE Agrees With You",
-    "Why Good People Lie (And How They Justify It)",
     "Why You Care What Strangers Think (Even Though You Shouldn't)",
-    "The Sunk Cost Fallacy — Why You Can't Let Go of Bad Decisions",
     "Why You Overestimate How Much Others Notice Your Mistakes",
-    "The Backfire Effect — Why Facts Make People BELIEVE HARDER in False Beliefs",
     "Why You Feel Obligated to People Who Are Mean to You",
-    "Impostor Syndrome — Why High Achievers Think They're Frauds",
-    "Why You Make Worse Decisions When You're Tired (The Science)",
-    "The Spotlight Effect — Why You Think Everyone's Watching You",
-    "Why You're Nicer to Strangers Than People You Love",
-    "The Planning Fallacy — Why You Always Underestimate How Long Things Take",
-    "Why You Feel Annoyed by People Who Are Similar to You",
-    "Dunning-Kruger Effect — Why Incompetent People Think They're Experts",
-    "Why You Can't Stop Checking Your Phone (The Science Behind Addiction)",
-    "The Mere Exposure Effect — Why Familiarity Makes You Like Things More",
+    "Why You're Nicer to Strangers Than to People You Love",
+    "Why You Always Underestimate How Long Things Will Take",
     "Why You Regret Things You DIDN'T Do More Than Things You Did",
-    "The Bystander Effect — Why You Don't Help (Even Though You Want To)",
-    "Why You Act Differently Around Different People (The Real Reason)",
-    "Authority Bias — Why You Obey People in Positions of Power",
-    "Why You're More Likely to Help Someone Who Looks Like You",
-    "The Decoy Effect — How Stores TRICK You Into Buying More",
-    "Why You're Attracted to People (The Psychology Behind It)",
-    "The Halo Effect — How One Good Thing Makes You OVERLOOK Bad Things",
-    "Why You Procrastinate (And Why Understanding It Doesn't Help)",
-    "Confirmation Bias — Why You Only See Evidence That Proves You Right",
-    "Why People WHO KNOW BETTER Still Make Bad Choices",
-    "The Anchoring Effect — Why The First Number You Hear CHANGES Everything",
-    "Why You Feel Compelled to Return Favors (Even Unwanted Ones)",
-    "The Recency Bias — Why You Remember Recent Events Better",
-    "Why You Feel Obligated to Finish Things You Started (Even Bad Things)",
-    "The Availability Heuristic — Why You Overestimate Dangerous Things",
-    "Why You Judge Others Harsher Than You Judge Yourself",
-    "The Cocktail Party Effect — Why You Hear Your Name Across a Crowded Room",
-    "Why You're Kinder to Yourself When You're Sad (The Comfort Trap)",
-    "The Illusion of Transparency — Why You Think Others Know What You're Thinking",
-    "Why You're More Likely to Succeed When You DON'T Think Too Hard",
+    "Why You Don't Help Even When You Want To (Bystander Effect)",
+    "Why You Obey People in Positions of Power — Even Bad Ones",
+    "Why The First Number You Hear Changes Every Decision You Make",
+    "Why You Only See Evidence That Proves You Right",
+    "Why You Judge Other People Harsher Than You Judge Yourself",
+    "Why You Feel Compelled to Return Favors — Even From Bad People",
+    "Why Your Brain Only Sees What It Wants To See",
+    "Why You Keep Going Back to Things You Know Are Bad For You",
+
+    # ── Uncomfortable-truth / experimental ──
+    "Why Most People Will Lie to Your Face and Believe They're Honest",
+    "Why High Achievers Secretly Think They're Frauds",
+    "Why You Can't Stop Checking Your Phone (It's Not Your Fault)",
+    "Why You Make Worse Decisions When You're Even Slightly Tired",
+    "Why You Act Like a Completely Different Person Around Different People",
+    "The Real Reason You Procrastinate (It's Not Laziness)",
+    "Why Smart People Still Make The Same Dumb Mistake Twice",
 ]
 
 # ── Topic Log ──────────────────────────────────────────────────────────────────
@@ -219,26 +238,74 @@ def generate_script_for_topic(topic: str, channel: str, num_scenes: int = 8) -> 
             "Scene 1 image: VISUALLY STRIKING — bold colors, dramatic moment."
         )
 
-    system_prompt = f"""You are a short-form video script writer optimized for YouTube Shorts (60 seconds).
-CRITICAL: First 3 seconds determine if viewers keep watching. Hook them IMMEDIATELY.
+    # TMF-specific retention/title rules. These are data-backed from the Mar 22 – Apr 18
+    # analytics: top 6 videos = 56% of all views; pure-jargon titles avg ~20 views;
+    # 90+ sec videos avg ~40 views; False Consensus had 78.7% swipe-away at 0:32 of 1:16.
+    if channel == "tmf":
+        channel_rules = """
+TITLE RULES (strict — titles drive 20× view differences in this channel):
+- Must start with "Why", "The dark/hidden/real reason", or a shocking claim — NEVER with an effect name.
+- Effect name, if used at all, goes AFTER a colon or em-dash, not at the start.
+- Must describe an OBSERVABLE BEHAVIOR, not a textbook term. Under 60 chars.
+- GOOD examples (these hit 400+ views):
+  • "Why One Bad Thing Erases Ten Good Ones"
+  • "Why the Least Skilled People Are Most Confident"
+  • "Why You Can't Leave — The Sunk Cost Fallacy"
+  • "Dehumanization: The Psychology Behind Cruelty"
+- BAD examples (these got <30 views):
+  • "The Pseudocertainty Effect Unveiled"
+  • "Anchoring Bias: The Invisible Mind Trap"
+  • "The Barnum Effect: Why Horoscopes Feel Accurate"  ← starts with effect
+  • "Negativity Bias: The Brain's Darker Focus"       ← same concept as winner #1, got 20× fewer views
+- If your draft title starts with an article + effect name ("The X Effect..."), REWRITE it.
+
+HOOK RULES (78.7% of viewers currently swipe away — this is the #1 fix):
+- Scene 1 narration = ONE shocking claim or uncomfortable question. 10–18 words MAX.
+- NO context. NO "Did you know." NO "Imagine." NO naming the effect. Drop them in mid-tension.
+- Scene 2 must DEEPEN or PAY OFF the hook, not pivot or define a term.
+- Never name the academic effect until scene 4 or later (if at all).
+- GOOD hook: "Most people will lie to your face and genuinely believe they're being honest."
+- BAD hook: "The false consensus effect is when people assume others share their views."
+
+BODY & PAYOFF:
+- Sentences average 10–14 words. Short, punchy, spoken rhythm.
+- Use the word "you" at least 3 times across the full script — create personal confrontation.
+- Final scene = an uncomfortable reframe. NOT a motivational quote. NOT a call to action.
+- Leave the viewer slightly disturbed, thinking, re-examining their own behavior.
+"""
+    else:
+        channel_rules = """
+TITLE RULES:
+- Warm, wonder-filled, under 60 chars. Create curiosity for kids + parents.
+- Example: "Noah's Ark — Why God Chose ONE Man to Save All Life"
+
+HOOK RULES:
+- Scene 1: a dramatic moment or question that stops the scroll.
+- Scene 2: deepen the stakes, introduce the problem.
+"""
+
+    system_prompt = f"""You are a short-form video script writer for YouTube Shorts.
+
+TARGET LENGTH: 72–82 seconds. NEVER over 85 seconds.
+- Total narration across ALL scenes combined: 200–230 words. Do not exceed 235.
+- 90+ second Shorts on this channel avg ~40 views vs 400+ for 70–85s. This matters.
 
 Channel style: {style_guide}
-
+{channel_rules}
 Output ONLY valid JSON in this exact format:
 {{
-  "title": "Short punchy video title (under 60 chars)",
+  "title": "Title following TITLE RULES above",
   "scenes": [
     {{
-      "narration": "1-3 sentences of spoken narration. Keep it punchy and engaging.",
+      "narration": "Spoken narration, 20–32 words, sentences averaging 10–14 words.",
       "image_prompt": "Vivid scene description for AI image generation. Be specific."
     }}
   ]
 }}
 
-Rules:
+Structural rules:
 - Exactly {num_scenes} scenes
-- SCENE 1 (0-2 sec): HOOK FIRST. Create curiosity or show something visually stunning.
-- Each narration: 20-40 words, conversational, hook-driven
+- SCENE 1 follows HOOK RULES above — shortest scene, highest tension
 - Each image_prompt: specific, visual, cinematic — NOT abstract.
 - No markdown, no explanation, ONLY the JSON object"""
 
