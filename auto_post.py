@@ -294,8 +294,10 @@ def append_to_google_sheets(channel: str, title: str, url: str) -> None:
         # Load service account credentials from GitHub secret
         creds_json = os.getenv("GOOGLE_SHEETS_KEY")
         if not creds_json:
+            print("  ❌ GOOGLE_SHEETS_KEY secret is EMPTY or not set in GitHub")
             return
 
+        print(f"  ✓ GOOGLE_SHEETS_KEY found ({len(creds_json)} chars)")
         creds_dict = json.loads(creds_json)
         creds = service_account.Credentials.from_service_account_info(
             creds_dict,
