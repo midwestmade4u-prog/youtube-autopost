@@ -1266,6 +1266,12 @@ YT_TOKEN_FILES = {
     "tmf": BASE_DIR / "youtube_token_tmf.json",
 }
 
+# YouTube Channel IDs for each channel (required to upload to the correct channel)
+YT_CHANNEL_IDS = {
+    "bsg": "UCcyBf84Mc-evMSYZlqh3zVA",
+    "tmf": "UC0O6KbbHKW4_a7d9epNo93A",
+}
+
 # Store active OAuth flow objects between /youtube-connect and /youtube-callback
 # (needed to preserve the PKCE code_verifier across the redirect)
 _yt_flows = {}
@@ -1379,10 +1385,16 @@ def youtube_upload():
     data    = request.get_json()
     channel = data.get("channel", "bsg")
 
+    # DEBUG: Log the channel being requested
+    print(f"\n🔍 UPLOAD DEBUG: channel requested = '{channel}'")
+
     creds = _load_yt_credentials(channel)
     if not creds:
         label = "Bible Story Garden" if channel == "bsg" else "The Mind Files"
         return jsonify({"error": f"{label} YouTube channel is not connected. Go to Settings → YouTube Auto-Post and connect it first."}), 401
+
+    # DEBUG: Log that credentials were loaded
+    print(f"✅ UPLOAD DEBUG: credentials loaded for channel '{channel}'")
 
     video_path  = data.get("video_path", "")
     title       = data.get("title", "My Video")
@@ -1421,10 +1433,27 @@ def youtube_upload():
 
         media = MediaFileUpload(str(vid_file), chunksize=-1, resumable=True,
                                 mimetype="video/mp4")
+
+        # Expected channel ID for this brand channel — used only as a post-upload sanity check.
+        expected_channel_id = YT_CHANNEL_IDS.get(channel)
+
+        # DEBUG
+        print(f"🔍 UPLOAD DEBUG: Expected channel ID for '{channel}' = {expected_channel_id}")
+        print(f"🔍 UPLOAD DEBUG: Video title = {title}")
+        print(f"🔍 UPLOAD DEBUG: Privacy status = {privacy}")
+
+        # NOTE: We intentionally do NOT pass onBehalfOfContentOwnerChannel here.
+        # That parameter is only honored for YouTube Partner / CMS accounts and is
+        # silently IGNORED for regular creator accounts. With it, non-CMS uploads
+        # just go to whatever channel the OAuth token is bound to — which made
+        # mis-routed BSG uploads (going to TMF) look like they "succeeded."
+        # Routing is now entirely determined by the per-channel token file.
+        print(f"🔍 UPLOAD DEBUG: Calling youtube.videos().insert() — routing by token identity only")
+
         request_obj = youtube.videos().insert(
             part="snippet,status",
             body=body,
-            media_body=media
+            media_body=media,
         )
 
         response = None
@@ -1433,10 +1462,46 @@ def youtube_upload():
 
         video_id  = response["id"]
         video_url = f"https://www.youtube.com/shorts/{video_id}"
+
+        # SAFEGUARD: confirm the upload actually landed on the channel we expected.
+        # If the token is bound to the wrong channel, fail loudly instead of silently
+        # posting to a sibling channel. Better to error than to pollute the wrong feed.
+        try:
+            me = youtube.channels().list(part="id,snippet", mine=True).execute()
+            actual_channel_id = (me.get("items") or [{}])[0].get("id")
+            actual_channel_title = (me.get("items") or [{}])[0].get("snippet", {}).get("title", "?")
+        except Exception as verify_err:
+            actual_channel_id = None
+            actual_channel_title = "(verify failed)"
+            print(f"⚠️  Could not verify destination channel: {verify_err}")
+
+        if expected_channel_id and actual_channel_id and actual_channel_id != expected_channel_id:
+            msg = (
+                f"Upload went to WRONG channel. "
+                f"Expected {channel} ({expected_channel_id}) but token is bound to "
+                f"'{actual_channel_title}' ({actual_channel_id}). "
+                f"Regenerate youtube_token_{channel}.json — at Google's channel picker, "
+                f"choose the correct brand channel."
+            )
+            print(f"❌ {msg}")
+            # Return error so auto_post.py marks it as failed rather than marking the
+            # topic as "posted" in the log.
+            return jsonify({"error": msg, "video_id": video_id, "actual_channel": actual_channel_id}), 500
+
+        print(f"✅ UPLOAD DEBUG: Video uploaded and verified on '{actual_channel_title}' ({actual_channel_id})")
+        print(f"   Video ID: {video_id}")
+        print(f"   URL: {video_url}\n")
+
         return jsonify({"status": "uploaded", "video_id": video_id, "url": video_url})
 
     except Exception as e:
-        return jsonify({"error": f"Upload failed: {str(e)[:200]}"}), 500
+        error_msg = str(e)
+        print(f"❌ UPLOAD DEBUG: Exception occurred!")
+        print(f"   Error type: {type(e).__name__}")
+        print(f"   Error message: {error_msg}\n")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Upload failed: {error_msg[:200]}"}), 500
 
 
 @app.route("/youtube-disconnect", methods=["POST"])
