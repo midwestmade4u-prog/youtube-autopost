@@ -1418,6 +1418,30 @@ def youtube_upload():
 
         youtube = build("youtube", "v3", credentials=creds)
 
+        # PRE-UPLOAD SAFEGUARD: verify the token is bound to the expected channel
+        # BEFORE we call videos().insert(). Post-upload verification doesn't work —
+        # by the time we'd detect a mismatch, the video is already live on YouTube.
+        # If the token is bound to the wrong channel, refuse to upload at all.
+        expected_channel_id = YT_CHANNEL_IDS.get(channel)
+        try:
+            me = youtube.channels().list(part="id,snippet", mine=True).execute()
+            actual_channel_id = (me.get("items") or [{}])[0].get("id")
+            actual_channel_title = (me.get("items") or [{}])[0].get("snippet", {}).get("title", "?")
+        except Exception as verify_err:
+            return jsonify({"error": f"Could not verify channel identity before upload: {verify_err}"}), 500
+
+        if expected_channel_id and actual_channel_id and actual_channel_id != expected_channel_id:
+            msg = (
+                f"Refusing to upload. Token for '{channel}' is bound to "
+                f"'{actual_channel_title}' ({actual_channel_id}), not the expected "
+                f"{expected_channel_id}. Regenerate youtube_token_{channel}.json "
+                f"while signed in as the correct brand channel."
+            )
+            print(f"❌ PRE-UPLOAD BLOCK: {msg}")
+            return jsonify({"error": msg, "actual_channel": actual_channel_id}), 400
+
+        print(f"✅ PRE-UPLOAD CHECK: token for '{channel}' correctly bound to '{actual_channel_title}' ({actual_channel_id})")
+
         body = {
             "snippet": {
                 "title":       title[:100],
@@ -1433,9 +1457,6 @@ def youtube_upload():
 
         media = MediaFileUpload(str(vid_file), chunksize=-1, resumable=True,
                                 mimetype="video/mp4")
-
-        # Expected channel ID for this brand channel — used only as a post-upload sanity check.
-        expected_channel_id = YT_CHANNEL_IDS.get(channel)
 
         # DEBUG
         print(f"🔍 UPLOAD DEBUG: Expected channel ID for '{channel}' = {expected_channel_id}")
@@ -1463,32 +1484,7 @@ def youtube_upload():
         video_id  = response["id"]
         video_url = f"https://www.youtube.com/shorts/{video_id}"
 
-        # SAFEGUARD: confirm the upload actually landed on the channel we expected.
-        # If the token is bound to the wrong channel, fail loudly instead of silently
-        # posting to a sibling channel. Better to error than to pollute the wrong feed.
-        try:
-            me = youtube.channels().list(part="id,snippet", mine=True).execute()
-            actual_channel_id = (me.get("items") or [{}])[0].get("id")
-            actual_channel_title = (me.get("items") or [{}])[0].get("snippet", {}).get("title", "?")
-        except Exception as verify_err:
-            actual_channel_id = None
-            actual_channel_title = "(verify failed)"
-            print(f"⚠️  Could not verify destination channel: {verify_err}")
-
-        if expected_channel_id and actual_channel_id and actual_channel_id != expected_channel_id:
-            msg = (
-                f"Upload went to WRONG channel. "
-                f"Expected {channel} ({expected_channel_id}) but token is bound to "
-                f"'{actual_channel_title}' ({actual_channel_id}). "
-                f"Regenerate youtube_token_{channel}.json — at Google's channel picker, "
-                f"choose the correct brand channel."
-            )
-            print(f"❌ {msg}")
-            # Return error so auto_post.py marks it as failed rather than marking the
-            # topic as "posted" in the log.
-            return jsonify({"error": msg, "video_id": video_id, "actual_channel": actual_channel_id}), 500
-
-        print(f"✅ UPLOAD DEBUG: Video uploaded and verified on '{actual_channel_title}' ({actual_channel_id})")
+        print(f"✅ UPLOAD DEBUG: Video uploaded successfully")
         print(f"   Video ID: {video_id}")
         print(f"   URL: {video_url}\n")
 

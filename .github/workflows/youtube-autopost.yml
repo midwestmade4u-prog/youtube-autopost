@@ -46,7 +46,12 @@ jobs:
           echo '${{ secrets.YT_TOKEN_BSG }}' > youtube_token_bsg.json
           echo '${{ secrets.YT_TOKEN_TMF }}' > youtube_token_tmf.json
 
+      # BSG step is temporarily disabled while the BSG brand channel is being
+      # transferred to its own dedicated Gmail (bsgchannel99@gmail.com). Re-enable
+      # on or after 2026-04-27 after the transfer + OAuth redo is complete.
+      # The `if: false` guarantees this step is skipped on every run.
       - name: Run Bible Story Garden auto-post
+        if: false
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
