@@ -47,10 +47,14 @@ jobs:
           echo '${{ secrets.YT_TOKEN_TMF }}' > youtube_token_tmf.json
 
       - name: Run Bible Story Garden auto-post
+        env:
+          GOOGLE_SHEETS_KEY: ${{ secrets.GOOGLE_SHEETS_KEY }}
         run: python3 auto_post.py --channel bsg
         continue-on-error: true
 
       - name: Run The Mind Files auto-post
+        env:
+          GOOGLE_SHEETS_KEY: ${{ secrets.GOOGLE_SHEETS_KEY }}
         run: python3 auto_post.py --channel tmf
         continue-on-error: true
 
