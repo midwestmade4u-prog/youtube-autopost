@@ -30,6 +30,7 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).parent
@@ -378,7 +379,8 @@ def append_to_google_sheets(channel: str, title: str, url: str) -> None:
 
         # Prepare row data
         channel_label = CHANNEL_LABELS.get(channel, channel)
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Central Time (auto-handles CDT/CST switch twice a year)
+        timestamp = datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d %H:%M:%S")
 
         row = [timestamp, channel_label, title, "Success", url, ""]
 
