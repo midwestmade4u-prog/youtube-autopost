@@ -1,0 +1,105 @@
+name: YouTube Auto-Post - Minute Zero
+
+# Phase 1 (Day 1-14): only 9 AM CT fires (one daily Format A Short).
+# Phase 2 onward: uncomment the evening slot to add Format B/C.
+# CT → UTC mapping uses CDT (UTC-5) during daylight saving — matches TMF pattern.
+on:
+  schedule:
+    # 9 AM CT  = 14:00 UTC (CDT)
+    - cron: '0 14 * * *'
+    # 7 PM CT = 00:00 UTC next day (CDT)  — PHASE 2; leave disabled until Day 15
+    # - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      format:
+        description: 'Force format (A|B|C). Leave blank for auto-rotation.'
+        required: false
+        default: ''
+      topic:
+        description: 'Override topic string (optional).'
+        required: false
+        default: ''
+      dry_run:
+        description: 'Render only, skip YouTube upload.'
+        required: false
+        default: 'false'
+
+jobs:
+  autopost-mz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install edge-tts Pillow openai anthropic requests \
+            google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib
+
+      - name: Create YouTube token file
+        # Per project_tmf_token_drift memory: token MUST match the one in the
+        # local youtube_token_mz.json. After any local re-OAuth, repaste secret.
+        run: |
+          echo '${{ secrets.YT_TOKEN_MZ }}' > youtube_token_mz.json
+
+      - name: Run Minute Zero auto-post
+        # Per project_sheets_logging_fixed memory: GH secrets MUST be exposed as
+        # env here. Do not assume auto-injection.
+        env:
+          # Script generation — default to OpenAI; flip MZ_MODEL_BACKEND to use Claude.
+          MZ_MODEL_BACKEND: ${{ vars.MZ_MODEL_BACKEND || 'openai' }}
+          OPENAI_API_KEY:   ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Pexels footage sourcing (v3 pipeline requirement)
+          PEXELS_API_KEY:   ${{ secrets.PEXELS_API_KEY }}
+          # TTS voice override (optional)
+          MZ_VOICE:         ${{ vars.MZ_VOICE || 'en-US-ChristopherNeural' }}
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.format }}" ]; then
+            ARGS="$ARGS --format ${{ github.event.inputs.format }}"
+          fi
+          if [ -n "${{ github.event.inputs.topic }}" ]; then
+            ARGS="$ARGS --topic \"${{ github.event.inputs.topic }}\""
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          echo "Running: python3 auto_post_mz.py $ARGS"
+          eval "python3 auto_post_mz.py $ARGS"
+        continue-on-error: true
+
+      - name: Commit results
+        # `pexels_used_mz.json` is the per-channel dedup ledger written by
+        # video_mz.render_video() after every successful render. Committing it
+        # back is what makes dedup actually work in the cron — the GH Actions
+        # container is ephemeral, so without git persistence the ledger would
+        # reset to empty on every run and clips would silently re-pull.
+        run: |
+          git config --local user.email "automation@youtube.local"
+          git config --local user.name "YouTube AutoPost Bot"
+          git add auto_post_log.json auto_trigger_mz_*.json pexels_used_mz.json 2>/dev/null || true
+          git commit -m "Auto-post video (MZ) - $(date)" || true
+          git push || true
+
+      - name: Upload logs to artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mz-autopost-logs
+          path: |
+            auto_post_log.json
+            auto_trigger_mz_*.json
+          retention-days: 7

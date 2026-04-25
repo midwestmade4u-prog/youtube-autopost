@@ -33,7 +33,7 @@ import urllib.request
 import webbrowser
 from pathlib import Path
 
-from flask import Flask, Response, jsonify, render_template_string, request, send_file
+from flask import Flask, Response, jsonify, redirect, render_template_string, request, send_file
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR   = Path(__file__).parent
@@ -1264,12 +1264,14 @@ YT_SCOPES       = ["https://www.googleapis.com/auth/youtube.upload",
 YT_TOKEN_FILES = {
     "bsg": BASE_DIR / "youtube_token_bsg.json",
     "tmf": BASE_DIR / "youtube_token_tmf.json",
+    "mz":  BASE_DIR / "youtube_token_mz.json",   # Minute Zero — OAuth pending
 }
 
 # YouTube Channel IDs for each channel (required to upload to the correct channel)
 YT_CHANNEL_IDS = {
     "bsg": "UCcyBf84Mc-evMSYZlqh3zVA",
     "tmf": "UC0O6KbbHKW4_a7d9epNo93A",
+    "mz":  "UCMVhjR4HetJctXeYkuPgg6w",   # Minute Zero — @theminutezero (filled 2026-04-25 post-OAuth)
 }
 
 # Store active OAuth flow objects between /youtube-connect and /youtube-callback
@@ -1318,9 +1320,9 @@ def youtube_status():
 
 @app.route("/youtube-connect")
 def youtube_connect():
-    """Start the OAuth2 flow for a specific channel — ?channel=bsg or ?channel=tmf."""
+    """Start the OAuth2 flow for a specific channel — ?channel=bsg, tmf, or mz."""
     channel = request.args.get("channel", "bsg")
-    if channel not in ("bsg", "tmf"):
+    if channel not in ("bsg", "tmf", "mz"):
         return jsonify({"error": "Invalid channel."}), 400
     if not _yt_libs_available():
         return jsonify({"error": "Google libraries not installed. Run: pip3 install google-api-python-client google-auth-httplib2 google-auth-oauthlib"}), 400
@@ -1336,7 +1338,9 @@ def youtube_connect():
         auth_url, _ = flow.authorization_url(prompt="consent", access_type="offline")
         # Store the flow so the callback can reuse it (preserves PKCE code_verifier)
         _yt_flows[channel] = flow
-        return jsonify({"auth_url": auth_url})
+        # Redirect straight to Google instead of returning JSON — UX is much
+        # cleaner: one click instead of "parse JSON, copy auth_url, paste".
+        return redirect(auth_url)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -1366,7 +1370,11 @@ def youtube_callback():
         creds = flow.credentials
         token_file.write_text(creds.to_json())
         _yt_flows.pop(channel, None)   # Clean up stored flow
-        label = "Bible Story Garden" if channel == "bsg" else "The Mind Files"
+        label = {
+            "bsg": "Bible Story Garden",
+            "tmf": "The Mind Files",
+            "mz":  "Minute Zero",
+        }.get(channel, channel.upper())
         return f"""<html><body style="font-family:sans-serif;padding:40px;background:#FAF4EC;">
             <h2 style="color:#2D6A4F;">✅ {label} Connected!</h2>
             <p style="margin-top:12px;color:#444;">Your YouTube channel is now linked. You can close this tab and return to the Video Studio.</p>
@@ -1390,7 +1398,11 @@ def youtube_upload():
 
     creds = _load_yt_credentials(channel)
     if not creds:
-        label = "Bible Story Garden" if channel == "bsg" else "The Mind Files"
+        label = {
+            "bsg": "Bible Story Garden",
+            "tmf": "The Mind Files",
+            "mz":  "Minute Zero",
+        }.get(channel, channel.upper())
         return jsonify({"error": f"{label} YouTube channel is not connected. Go to Settings → YouTube Auto-Post and connect it first."}), 401
 
     # DEBUG: Log that credentials were loaded
