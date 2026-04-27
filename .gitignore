@@ -1,0 +1,22 @@
+# macOS metadata
+.DS_Store
+**/.DS_Store
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Local env / secrets
+.env
+.env.local
+*.env
+
+# Render output (large mp4s — keep out of git)
+MZ_Output/
+TMF_Output/
+BSG_Output/
+
+# Local work artifacts (auto_trigger_*.json IS tracked by the workflow,
+# don't gitignore — TMF/BSG already commit these per-run)
+*_work/
