@@ -41,7 +41,7 @@ HARD RULES — NON-NEGOTIABLE
    (d) the_fall (8–15 sec)         — the aftermath and scale
 
 3. **HOOK TEMPLATE — GENERATE 3 VARIANTS.** Return all three styles below. Pipeline picks which to render:
-   - **bold_claim**: "[Company] used to be [superlative]." Example: "Knight Capital used to be one of the most feared trading firms on Wall Street."
+   - **bold_claim**: Lead with the superlative or impact, then the company. Example: "$440 million vanished in 12 minutes — and Knight Capital, once one of the most feared trading firms on Wall Street, was gone."
    - **curiosity_gap**: Opens with a statement that violates expectations. Example: "No one noticed the twelve minutes that killed a $1 billion firm."
    - **time_anchor**: Opens with a specific date/time that recontextualizes what's coming. Example: "August 1st, 2012. 9:29 AM. Knight Capital has 45 minutes to live."
 
@@ -72,6 +72,15 @@ HARD RULES — NON-NEGOTIABLE
 11. **NO PROFANITY.** Zero tolerance. Even in quoted dialogue — redact with "[expletive]". Applies even if the real historical record contained profanity.
 
 12. **US ENGLISH.** All spellings, idioms, date formats (MM/DD/YYYY), currency phrasing in US English. Never British spellings.
+
+13. **FIRST-WORD PAYOFF RULE (v3.1 — added Apr 28 2026 after GM/Wirecard analytics):** Whichever hook variant is rendered, the first 3 spoken words MUST include at least one of: a dollar figure ("$440 million..."), a precise number/time ("12 minutes..."), a date ("June 18, 2020..."), OR a punch superlative as a sentence fragment ("GONE.", "BANKRUPT.", "ERASED."). NEVER lead with the company name + "was/used to be" — that's setup framing, and the on-screen karaoke caption renders the first 3 spoken words in the first second of video, where ~78% of Shorts viewers decide to swipe.
+    - GOOD: "$82 billion saved General Motors from collapse."
+    - GOOD: "12 minutes. $440 million. Knight Capital was gone."
+    - GOOD: "June 18, 2020. Wirecard's auditors made one admission."
+    - BAD: "Wirecard was once Germany's largest fintech." (first 3 words = setup)
+    - BAD: "General Motors used to dominate American manufacturing." (first 3 words = setup)
+    - BAD: "How one bailout saved GM." ("How" framing = setup, no punch)
+    Update bold_claim variant to lead with the superlative or impact, then the company — not the company first. Update curiosity_gap and time_anchor to keep their existing payoff-first structure.
 
 ═══════════════════════════════════════════
 FORMAT-SPECIFIC INSTRUCTIONS
