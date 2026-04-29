@@ -2,6 +2,7 @@
 """Create Auto-Post Log sheet in Google Sheets (one-time setup)"""
 
 import json
+import os
 import sys
 
 def create_log_sheet():
@@ -12,13 +13,22 @@ def create_log_sheet():
         print("❌ Install required: pip install google-auth google-api-python-client")
         return False
 
-    # Load service account key from file
-    try:
-        with open("video-studio-493020-05e03c3a1b8c.json") as f:
-            creds_dict = json.load(f)
-    except FileNotFoundError:
-        print("❌ Service account key file not found")
-        return False
+    # Load service account key from environment or file
+    creds_json = os.getenv("GOOGLE_SHEETS_KEY")
+
+    if creds_json:
+        # Use environment variable (from GitHub secrets)
+        creds_dict = json.loads(creds_json)
+    else:
+        # Try to load from local file
+        try:
+            with open("video-studio-493020-05e03c3a1b8c.json") as f:
+                creds_dict = json.load(f)
+        except FileNotFoundError:
+            print("❌ Please either:")
+            print("   1. Save the JSON key file to this folder, OR")
+            print("   2. Set environment: export GOOGLE_SHEETS_KEY='<paste JSON here>'")
+            return False
 
     creds = service_account.Credentials.from_service_account_info(
         creds_dict,

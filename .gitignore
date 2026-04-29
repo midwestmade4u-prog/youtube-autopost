@@ -12,6 +12,12 @@ __pycache__/
 .env.local
 *.env
 
+# OAuth tokens + service account keys — NEVER commit these
+config.json
+youtube_token_*.json
+youtube_client_secrets.json
+video-studio-*.json
+
 # Render output (large mp4s — keep out of git)
 MZ_Output/
 TMF_Output/

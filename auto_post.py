@@ -104,7 +104,6 @@ BSG_TOPICS = [
 TMF_TOPICS = [
     # ── Dark behavior / personality / manipulation (high sub conversion) ──
     "The Dark Triad — Why Some People Charm You While Planning to Hurt You",
-    "How to Spot a Psychopath in the First 5 Minutes",
     "What Narcissists, Psychopaths and Sociopaths Actually Want From You",
     "Gaslighting — The Manipulation Most Victims Never See Coming",
     "Love Bombing — The Red Flag That Feels Like Romance",
@@ -113,16 +112,14 @@ TMF_TOPICS = [
     "Why Charming People Are Often the Most Dangerous",
     "Why Abusers Always Apologize Before They Do It Again",
     "The 4 Tactics Every Cult Leader Uses On Their Followers",
-    "Microexpressions — The Faces That Reveal What People Really Think",
     "The Psychology of Liars — 4 Tells That Give Them Away",
     "Dehumanization — How Ordinary People Become Capable of Cruelty",
-    "Why Good People Do Evil Things (Moral Disengagement)",
     "The Milgram Experiment — Why 65% of People Will Hurt a Stranger",
     "The Stanford Prison Experiment — What Power Does to Good People",
     "How People Justify Cheating, Stealing, and Lying to Themselves",
     "Why You're Drawn to People Who Treat You Poorly",
     "The Hidden Reason Some People Enjoy Others' Failure",
-    "How Predators Test You Before They Hurt You",
+    "Why Predators Always Test You Before They Strike",
 
     # ── Cognitive biases reframed with behavioral stakes ──
     "Why One Bad Thing Erases Ten Good Things You've Done",
@@ -149,7 +146,7 @@ TMF_TOPICS = [
     # ── Uncomfortable-truth / experimental ──
     "Why Most People Will Lie to Your Face and Believe They're Honest",
     "Why High Achievers Secretly Think They're Frauds",
-    "Why You Can't Stop Checking Your Phone (It's Not Your Fault)",
+    # "Why You Can't Stop Checking Your Phone" — published twice (Apr 21 + Apr 23) and underperformed; retired from the rotation.
     "Why You Make Worse Decisions When You're Even Slightly Tired",
     "Why You Act Like a Completely Different Person Around Different People",
     "The Real Reason You Procrastinate (It's Not Laziness)",
@@ -206,6 +203,125 @@ def mark_posted(channel: str, topic: str, title: str, url: str) -> None:
     })
     save_log(log)
     append_to_google_sheets(channel, title, url)
+
+
+# ── Validators (post-generation guardrails) ──────────────────────────────────
+# These exist because the LLM frequently violates the system-prompt rules.
+# We catch the violations in code rather than trusting the model.
+
+import re as _re
+
+# Effect/jargon nouns the model tends to slap at the start of a title.
+# If the FIRST word of a title (after "The ") matches one of these, reject.
+_TMF_BANNED_LEAD_NOUNS = {
+    "halo", "anchoring", "bystander", "barnum", "pseudocertainty", "negativity",
+    "dunning", "confirmation", "framing", "availability", "spotlight",
+    "pratfall", "ikea", "hindsight", "recency", "primacy", "endowment",
+    "illusion", "mere", "cocktail", "mind",
+}
+
+def _normalize_title(t: str) -> str:
+    """Lowercase + strip punctuation/whitespace for fuzzy comparison."""
+    s = (t or "").lower()
+    s = _re.sub(r"[^a-z0-9 ]+", " ", s)
+    return _re.sub(r"\s+", " ", s).strip()
+
+def title_passes_tmf_rules(title: str) -> tuple[bool, str]:
+    """
+    Returns (ok, reason). False reason gets fed back into the retry prompt.
+    Mirrors the TITLE RULES inside the system prompt — these are enforced here
+    because gpt-4o regularly ignores them otherwise.
+    """
+    if not title or not title.strip():
+        return False, "empty title"
+    t = title.strip()
+
+    if len(t) > 65:
+        return False, f"title too long ({len(t)} chars; keep under 60)"
+
+    # First word check: "Why" / shocking-claim verbs allowed; effect-name leads banned.
+    first = _re.split(r"\s+", t, maxsplit=1)[0].lower()
+    if first == "the":
+        # "The X..." — reject if X looks like an effect/jargon noun.
+        second = _re.split(r"\s+", t, maxsplit=2)[1].lower() if len(t.split()) > 1 else ""
+        second = _re.sub(r"[^a-z]", "", second)
+        if second in _TMF_BANNED_LEAD_NOUNS:
+            return False, f'starts with effect name "The {second.title()}..." — rewrite as "Why ..." behavior claim'
+    if first == "how":
+        # "How Predators Test You" / "How to Spot..." both flopped.
+        return False, 'starts with "How" — rewrite as "Why ..." behavior claim'
+
+    # Effect-name with colon at the start: "Microexpressions:" / "Mind Trap:"
+    head = t.split("—")[0].split("-")[0]  # everything before any em-dash/hyphen split
+    if ":" in head:
+        before_colon = head.split(":", 1)[0].strip()
+        # If the words before the colon are all-cap-or-titlecase short jargon (≤3 words),
+        # this is the effect-name-colon pattern.
+        words_before = before_colon.split()
+        if 1 <= len(words_before) <= 3 and not before_colon.lower().startswith(("why", "the dark", "the hidden", "the real")):
+            return False, f'effect name before colon ("{before_colon}: ...") — rewrite as "Why ..."'
+
+    return True, ""
+
+def script_word_count_ok(script: dict) -> tuple[bool, int]:
+    """Total narration words must land in 180–235 (≈72–82 sec at TMF voice rate)."""
+    total = 0
+    for scene in script.get("scenes", []):
+        total += len((scene.get("narration") or "").split())
+    return (180 <= total <= 235), total
+
+def title_already_published(title: str, channel: str) -> bool:
+    """Fuzzy-match the candidate title against past posts in auto_post_log.json."""
+    log = load_log()
+    norm = _normalize_title(title)
+    if not norm:
+        return False
+    for post in log.get("posts", []):
+        if post.get("channel") != channel:
+            continue
+        if _normalize_title(post.get("title", "")) == norm:
+            return True
+    return False
+
+# Per-channel daily cap. The cron schedule already targets these counts;
+# this guard exists to stop manual workflow_dispatch / re-runs from stacking
+# 5–7 videos on a single day, which Apr 2026 analytics showed dilutes the
+# algorithm and tanks per-video views.
+DAILY_POST_CAPS = {
+    "tmf": 3,
+    "bsg": 2,
+    "mz":  2,
+}
+
+def posts_today_count(channel: str) -> int:
+    """Number of successful posts for `channel` today (America/Chicago)."""
+    log = load_log()
+    today = datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d")
+    n = 0
+    for post in log.get("posts", []):
+        if post.get("channel") != channel:
+            continue
+        posted_at = post.get("posted_at", "")
+        # posted_at format: "%Y-%m-%d %H:%M:%S" (server local). Treat the date prefix as the date.
+        if posted_at.startswith(today):
+            n += 1
+    return n
+
+def burst_guard_or_exit(channel: str) -> None:
+    """Refuse to publish if today's count is already at the daily cap. Exits 0."""
+    cap = DAILY_POST_CAPS.get(channel)
+    if not cap:
+        return
+    today_n = posts_today_count(channel)
+    if today_n >= cap:
+        label = CHANNEL_LABELS.get(channel, channel)
+        print(
+            f"\n🛑 Burst-guard: {label} already has {today_n} successful posts today "
+            f"(cap = {cap}). Skipping this run to protect algorithmic distribution.\n"
+            f"   To override (rare — e.g., recovering from a failed run), set "
+            f"BURST_GUARD_OVERRIDE=1 in env."
+        )
+        sys.exit(0)
 
 
 def generate_script_for_topic(topic: str, channel: str, num_scenes: int = 8) -> dict:
@@ -314,27 +430,83 @@ Structural rules:
         import openai
         print(f"    Connecting to OpenAI API...")
         client = openai.OpenAI(api_key=api_key)
-        print(f"    Making script generation request...")
-        resp = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Write a {num_scenes}-scene script about: {topic}"}
-            ],
-            max_tokens=2000,
-            temperature=0.8,
+
+        user_msg = f"Write a {num_scenes}-scene script about: {topic}"
+        extra_constraints = ""  # accumulated feedback for retries
+        last_script: dict | None = None
+        last_title_reason = ""
+        last_word_count = 0
+
+        # Up to 3 attempts (1 original + 2 retries) for TMF.
+        # BSG validates only word count loosely; title is far less viral-sensitive there.
+        max_attempts = 3 if channel == "tmf" else 1
+
+        for attempt in range(1, max_attempts + 1):
+            print(f"    Making script generation request (attempt {attempt}/{max_attempts})...")
+            messages = [
+                {"role": "system", "content": system_prompt + extra_constraints},
+                {"role": "user", "content": user_msg},
+            ]
+            resp = client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                max_tokens=2000,
+                temperature=0.8,
+            )
+            raw = resp.choices[0].message.content.strip()
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            script = json.loads(raw.strip())
+            last_script = script
+
+            # ── Channel-specific guardrails ──
+            if channel == "tmf":
+                title_ok, title_reason = title_passes_tmf_rules(script.get("title", ""))
+                wc_ok, word_count = script_word_count_ok(script)
+                dup = title_already_published(script.get("title", ""), channel)
+
+                problems = []
+                if not title_ok:
+                    problems.append(f"TITLE FAIL: {title_reason}")
+                    last_title_reason = title_reason
+                if not wc_ok:
+                    problems.append(
+                        f"LENGTH FAIL: total narration is {word_count} words "
+                        f"(must be 180–235; current = ~{int(word_count/2.7)}s, target 72–82s)"
+                    )
+                    last_word_count = word_count
+                if dup:
+                    problems.append(
+                        f'DUPLICATE FAIL: title "{script.get("title")}" already published — pick a different angle.'
+                    )
+
+                if not problems:
+                    print(f"    ✅ Script passed validators (title + {word_count}w + unique)")
+                    return script
+
+                print(f"    ⚠️  Validator problems on attempt {attempt}: {' | '.join(problems)}")
+                extra_constraints = (
+                    "\n\nIMPORTANT — your previous draft was REJECTED for these reasons:\n- "
+                    + "\n- ".join(problems)
+                    + "\nFix ALL of them in this next draft. The title MUST start with \"Why\" "
+                      "and describe an observable behavior, not name an effect. "
+                      "Total narration MUST be 180–235 words across all scenes combined."
+                )
+            else:
+                # BSG: keep behavior — accept first valid JSON.
+                print(f"    ✅ OpenAI responded")
+                return script
+
+        # All retries exhausted: return last script with a warning so the run still completes.
+        print(
+            f"    🚨 All {max_attempts} attempts failed validators — "
+            f"posting last draft anyway (title issue: {last_title_reason or 'n/a'}, "
+            f"word count: {last_word_count or 'n/a'})."
         )
-        print(f"    ✅ OpenAI responded")
-        raw = resp.choices[0].message.content.strip()
+        return last_script  # type: ignore[return-value]
 
-        # Strip markdown code fences if present
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-
-        script = json.loads(raw.strip())
-        return script
     except json.JSONDecodeError as e:
         raise ValueError(f"OpenAI returned invalid JSON: {str(e)[:100]}")
     except ConnectionError as e:
@@ -722,6 +894,11 @@ def main():
 
     label = CHANNEL_LABELS[channel]
     voice = CHANNEL_VOICES[channel]
+
+    # ── Burst-publishing guard ────────────────────────────────────────────────
+    # Stop manual re-runs / workflow_dispatch from stacking >cap videos in a day.
+    if not os.getenv("BURST_GUARD_OVERRIDE"):
+        burst_guard_or_exit(channel)
 
     if not args.trigger_file:
         print(f"\n{'═' * 60}")
