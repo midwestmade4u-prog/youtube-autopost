@@ -67,9 +67,12 @@ jobs:
           # TTS voice override (optional)
           MZ_VOICE:         ${{ vars.MZ_VOICE || 'en-US-ChristopherNeural' }}
         run: |
-          ARGS=""
+          # Phase 1: hardcode --format A so cron always picks ONE_BAD_DAY topics
+          # regardless of what time GH Actions actually fires. Remove this line
+          # when graduating to Phase 2 (2/day) and re-enable time-based rotation.
+          ARGS="--format A"
           if [ -n "${{ github.event.inputs.format }}" ]; then
-            ARGS="$ARGS --format ${{ github.event.inputs.format }}"
+            ARGS="--format ${{ github.event.inputs.format }}"
           fi
           if [ -n "${{ github.event.inputs.topic }}" ]; then
             ARGS="$ARGS --topic \"${{ github.event.inputs.topic }}\""
