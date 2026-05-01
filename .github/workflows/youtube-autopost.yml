@@ -60,7 +60,10 @@ jobs:
         run: python3 auto_post.py --channel bsg
         continue-on-error: true
 
+      # TMF is now handled exclusively by tmf-autopost.yml (dedicated workflow).
+      # Disabled here to prevent double-posting. Do not re-enable.
       - name: Run The Mind Files auto-post
+        if: false
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
