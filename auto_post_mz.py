@@ -67,26 +67,28 @@ ONE_BAD_DAY_TOPICS = [
     "Theranos — Oct 16, 2015 — WSJ story drops",
     "FTX — Nov 2, 2022 — CoinDesk leaks the Alameda balance sheet",
     "Long-Term Capital Management — Aug 17, 1998 — Russia defaults",
-    "Barings Bank — Feb 23, 1995 — Nick Leeson's hidden account #88888 discovered",
-    "Société Générale — Jan 24, 2008 — Jerome Kerviel's €4.9B position unwound",
-    "Swissair — Oct 2, 2001 — fleet grounded at 3:02 PM",
     "Arthur Andersen — Oct 23, 2001 — the shredding-party memo",
     "Borders — 2001 — signing the deal to hand their website to Amazon",
-    "General Motors — 2001 — the 57¢ ignition switch cost-cut decision",
-    "Volkswagen — 2006 — the 'defeat device' engineering decision",
     "Wells Fargo — The 2011 sales mandate memo ('eight is great')",
     "Boeing — The MCAS single-sensor design call (737 MAX)",
-    "MySpace — 2006 — refusing to copy Facebook's feature set",
-    "Friendster — 2004 — choosing not to fix the 40-second page load",
-    "Polaroid — 1998 — CEO Gary DiCamillo's anti-digital strategy memo",
+    "MySpace — Jul 19, 2005 — News Corp pays $580M and hands it to people who saw it as a billboard, not a platform",
     "Bear Stearns — Mar 13, 2008 — the midnight call admitting insolvency",
     "Lehman Brothers — Sep 14, 2008 — the weekend Paulson refused to bail them out",
     "MF Global — Oct 2011 — Jon Corzine's Euro bond doubling-down call",
-    "Sears — 2005 — Eddie Lampert's decision to split Sears into 30+ internal companies",
+    "Sears — Mar 24, 2005 — Eddie Lampert merges Kmart and Sears, announces he'll run the combined company like a hedge fund",
     "Groupon — 2011 — the pre-IPO 'accounting correction' announcement",
     "WeWork — Aug 14, 2019 — the S-1 filing that killed the IPO",
     "RJR Nabisco — 1988 — the 'Premier' smokeless cigarette launch call",
+    # Moved to end — same company as GM bailout (already posted Apr 28); space these out
+    "General Motors — 2001 — the 57¢ ignition switch cost-cut decision",
 ]
+# Removed from ONE_BAD_DAY (Apr 30 2026 cleanup):
+# - Barings Bank (UK), Société Générale (France), Swissair (Switzerland),
+#   Volkswagen (Germany) → moved to UNKNOWN_FAILURE pool (Format B only)
+# - Friendster → cut entirely (too obscure, no emotional pull for US audience)
+# - Polaroid → moved to NEAR_DEATH_TOPICS (better fit: invented digital, shelved it)
+# - MySpace reframed: News Corp acquisition (Jul 19 2005) is the real minute zero
+# - Sears reframed: Lampert merger announcement (Mar 24 2005) is the real minute zero
 
 # Tier 1 (fire first) then Tier 2 — kill criterion applies after first 10 publish
 UNKNOWN_FAILURE_TOPICS_TIER1 = [
@@ -98,6 +100,11 @@ UNKNOWN_FAILURE_TOPICS_TIER1 = [
     "HMV UK — Jan 15, 2013 — administration at flagship Oxford Street store",
     "Sharp (Japan) — Feb 2016 — Foxconn takeover signing",
     "Flybe (UK) — Mar 5, 2020 — the 2 AM insolvency email",
+    # Moved from ONE_BAD_DAY Apr 30 2026 — foreign companies belong in Format B
+    "Barings Bank (UK) — Feb 23, 1995 — Nick Leeson's hidden account #88888 discovered",
+    "Société Générale (France) — Jan 24, 2008 — Jerome Kerviel's €4.9B position unwound",
+    "Swissair (Switzerland) — Oct 2, 2001 — fleet grounded at 3:02 PM",
+    "Volkswagen (Germany) — 2006 — the 'defeat device' engineering decision",
 ]
 UNKNOWN_FAILURE_TOPICS_TIER2 = [
     "Carillion (UK) — Jan 15, 2018 — liquidation announced",
@@ -135,6 +142,8 @@ NEAR_DEATH_TOPICS = [
     "GM — Jun 1, 2009 — Chapter 11, $82B federal bailout",
     "Continental Airlines — 1983 & 1990 — double bankruptcy survival",
     "Harrods — 1985 — Mohammed Al-Fayed's last-minute Takeover win",
+    # Moved from ONE_BAD_DAY Apr 30 2026 — better as near-death/missed opportunity
+    "Polaroid — 1975 — engineers invent the digital camera, management shelves it; Polaroid files bankruptcy 26 years later having never shipped it",
 ]
 
 
