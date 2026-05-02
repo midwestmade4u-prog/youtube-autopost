@@ -90,37 +90,36 @@ ONE_BAD_DAY_TOPICS = [
 # - MySpace reframed: News Corp acquisition (Jul 19 2005) is the real minute zero
 # - Sears reframed: Lampert merger announcement (Mar 24 2005) is the real minute zero
 
-# Tier 1 (fire first) then Tier 2 — kill criterion applies after first 10 publish
+# ── FORMAT B: US FRAUD & SCANDAL (pivoted Apr 30 2026) ───────────────────────
+# Old "Unknown Failure" foreign-company list replaced entirely.
+# New premise: the FRAUD IS the story. US only. Hook rule: for lesser-known
+# companies, the hook MUST lead with the most unbelievable fact — not the name.
+# These are also long-form candidates: any Short that breaks out gets a
+# 10-12 min deep-dive version later.
+
+# Tier 1 — household names, fire first
 UNKNOWN_FAILURE_TOPICS_TIER1 = [
-    "Wirecard (Germany) — Jun 18, 2020 — the €1.9B 'doesn't exist' admission",
-    "Thomas Cook (UK) — Sep 23, 2019 — 178 years of travel ends at midnight",
-    "Olympus (Japan) — Oct 14, 2011 — CEO Michael Woodford fired for asking questions",
-    "Parmalat (Italy) — Dec 2003 — the €3.95B Bank of America 'deposit' is fake",
-    "Satyam (India) — Jan 7, 2009 — Chairman's fraud confession letter",
-    "HMV UK — Jan 15, 2013 — administration at flagship Oxford Street store",
-    "Sharp (Japan) — Feb 2016 — Foxconn takeover signing",
-    "Flybe (UK) — Mar 5, 2020 — the 2 AM insolvency email",
-    # Moved from ONE_BAD_DAY Apr 30 2026 — foreign companies belong in Format B
-    "Barings Bank (UK) — Feb 23, 1995 — Nick Leeson's hidden account #88888 discovered",
-    "Société Générale (France) — Jan 24, 2008 — Jerome Kerviel's €4.9B position unwound",
-    "Swissair (Switzerland) — Oct 2, 2001 — fleet grounded at 3:02 PM",
-    "Volkswagen (Germany) — 2006 — the 'defeat device' engineering decision",
+    "Bernie Madoff — Dec 10, 2008 — confesses to sons Mark and Andrew; they call the FBI; $65B Ponzi scheme hidden 48 years unravels in one conversation",
+    "WorldCom — Jun 25, 2002 — internal auditor Cynthia Cooper walks into the board meeting with proof of $3.8B in fake entries; Bernie Ebbers' empire gone in one afternoon",
+    "Tyco International / Dennis Kozlowski — Jun 3, 2002 — resigns after DA reveals $1M art sales tax dodge; the $2M company-funded birthday party for his wife then surfaces",
+    "HealthSouth / Richard Scrushy — Mar 19, 2003 — FBI raids at 5:30 AM; $2.7B fraud; Scrushy had sold $75M in stock two days prior",
+    "ImClone / Martha Stewart — Dec 27, 2001 — sells 3,928 shares on an insider tip; $228K saved; ends with 5 months in federal prison",
+    "Washington Mutual — Sep 25, 2008 — FDIC seizes the bank at 6 PM, sells it to JPMorgan for $1.9B by midnight; $307B in assets gone in one night",
+    "Countrywide / Angelo Mozilo — 2008 — internal emails surface where Mozilo calls his own mortgage products 'toxic' and 'poison' while selling them to customers",
+    "Adelphia / Rigas family — Jul 24, 2002 — John Rigas and son Timothy arrested at their Manhattan apartment; secretly borrowed $2.3B from their own public company",
 ]
+
+# Tier 2 — lesser-known names, stories are insane; hook must lead with the unbelievable fact
 UNKNOWN_FAILURE_TOPICS_TIER2 = [
-    "Carillion (UK) — Jan 15, 2018 — liquidation announced",
-    "Woolworths UK — Dec 26, 2008 — the Boxing Day closing-down sale",
-    "BHS (UK) — Apr 25, 2016 — administration filing",
-    "Debenhams (UK) — Dec 1, 2020 — liquidation announced",
-    "Arcadia Group (UK) — Nov 30, 2020 — Philip Green's empire collapses",
-    "Monarch Airlines (UK) — Oct 2, 2017 — 4 AM grounding",
-    "Ansett Australia — Sep 14, 2001 — grounding announcement",
-    "Sanlu (China) — Sep 2008 — melamine detected in baby formula",
-    "Laker Airways (UK) — Feb 5, 1982 — cash pulled by creditors",
-    "Kirch Media (Germany) — Apr 8, 2002 — €6.5B insolvency filing",
-    "OneTel (Australia) — May 28, 2001 — administrators appointed",
-    "HIH Insurance (Australia) — Mar 15, 2001 — provisional liquidation",
-    "Jessops (UK) — Jan 9, 2013 — administration, all 192 stores gone overnight",
-    "Comet (UK) — Nov 2, 2012 — administration",
+    "ZZZZ Best / Barry Minkow — May 1987 — LA Times reporter finds no record of the $7M carpet cleaning job; a 16-year-old's $300M empire was entirely fictional",
+    "Crazy Eddie — 1987 — SEC freezes assets; Eddie Antar had inflated inventory for a decade then fled to Israel; 'insane prices' was insane fraud",
+    "Cendant — Apr 15, 1998 — accounting fraud discovered THREE WEEKS after the merger closed; stock drops 47% in a single day, $14B in market cap gone",
+    "Global Crossing — Jan 28, 2002 — $12B bankruptcy; CEO Gary Winnick had already pocketed $700M while employees' pensions were wiped out",
+    "Sunbeam / Chainsaw Al Dunlap — Jun 9, 1998 — board fires the CEO celebrated for saving companies; he'd been destroying them through accounting fraud the entire time",
+    "MicroStrategy — Mar 20, 2000 — $66M restatement announced the same week as the IPO celebration; CEO Michael Saylor loses $6B in a single day",
+    "Qwest / Joseph Nacchio — 2002 — CEO convicted of 19 counts of insider trading; sold $52M in stock while publicly hyping a company he knew was collapsing",
+    "Symbol Technologies — 2004 — CEO Tomo Razmilovic flees to Sweden to avoid arrest for $230M fraud; FBI has to extradite him back",
+    "Rite Aid — Jun 2003 — CEO Martin Grass sentenced to 8 years; $1.6B accounting fraud at the nation's third-largest drugstore chain",
 ]
 
 NEAR_DEATH_TOPICS = [

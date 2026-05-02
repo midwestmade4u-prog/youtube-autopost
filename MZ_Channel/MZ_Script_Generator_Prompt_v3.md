@@ -93,10 +93,12 @@ The topic you receive will be tagged [ONE_BAD_DAY], [UNKNOWN_FAILURE], or [NEAR_
 - Emotional beat: "If this one thing hadn't happened, they'd still be here."
 - **Tighter runtime (55–65s)** — the compression IS the emotion.
 
-**[UNKNOWN_FAILURE]** — Corporate collapses English-speaking viewers don't know.
-- Must open with the scale you're revealing ("Germany's biggest corporate fraud was never Volkswagen — it was...").
-- Include the country clearly — it's part of the hook.
-- Emotional beat: "And most of the world never heard of it."
+**[UNKNOWN_FAILURE]** — US corporate fraud and scandal. The crime, cover-up, or betrayal IS the story.
+- All topics are US companies/people.
+- **Hook rule (critical):** For lesser-known companies, the hook MUST lead with the most unbelievable fact — NOT the company name. The name is irrelevant until the viewer is already hooked. Example: "A 16-year-old built a $300M empire. It was entirely fake." — THEN name the company.
+- For well-known names (Madoff, Martha Stewart), the name can lead but must be followed immediately by the most shocking number or fact.
+- Emotional beat: "The audacity. The scale. The fact that nobody stopped it sooner."
+- These are also long-form candidates — write as if the story could expand to a 10-minute deep-dive.
 
 **[NEAR_DEATH]** — Survival stories reframed as near-misses.
 - Structure shifts: the_fall beat becomes the rescue. minute_zero is the lowest point.
