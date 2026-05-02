@@ -124,8 +124,6 @@ UNKNOWN_FAILURE_TOPICS_TIER2 = [
 
 NEAR_DEATH_TOPICS = [
     "Apple — Aug 6, 1997 — Steve Jobs announces Microsoft's $150M lifeline",
-    "LEGO — 2003 — the emergency board meeting, near-liquidation vote",
-    "Marvel — Dec 1996 — Chapter 11 filing",
     "IBM — 1993 — Lou Gerstner's first board meeting, $8B loss",
     "Chrysler — 1979 — the $1.5B loan guarantee vote in Congress",
     "Disney — 1984 — Bass brothers rescue from Saul Steinberg's raid",
@@ -133,17 +131,24 @@ NEAR_DEATH_TOPICS = [
     "Starbucks — Jan 2008 — Schultz returns, closes 600 stores in one weekend",
     "Harley-Davidson — 1981 — the buyout from AMF, 13 executives' personal savings",
     "Ford — Nov 2006 — mortgaging the blue oval logo + all assets for $23.6B",
-    "Nintendo — 1985 — post-video-game-crash, betting everything on the NES launch",
     "Converse — 2001 — Chapter 11, sold to Nike",
     "American Express — 1963 — Salad Oil Scandal, $150M exposure",
     "Delta Air Lines — Sep 14, 2005 — Chapter 11 filing at 5:30 AM",
-    "J.Crew — May 4, 2020 — COVID bankruptcy filing",
-    "GM — Jun 1, 2009 — Chapter 11, $82B federal bailout",
     "Continental Airlines — 1983 & 1990 — double bankruptcy survival",
-    "Harrods — 1985 — Mohammed Al-Fayed's last-minute Takeover win",
+    "Best Buy — 2012 — CEO sex scandal, stock at $11, everyone wrote them off to Amazon; Hubert Joly's turnaround saves the company",
+    "Netflix — Sep 18, 2011 — Qwikster split announced; 800K subscribers leave; stock drops 77%; Hastings reverses the decision",
+    "Domino's — 2009 — viral 'gross ingredients' video destroys the brand; CEO goes on camera and admits the pizza was bad; radical honesty saves the company",
+    "Airbnb — Mar 2020 — COVID cancels $1B in bookings overnight; company nearly collapses; pivots to Online Experiences and survives",
     # Moved from ONE_BAD_DAY Apr 30 2026 — better as near-death/missed opportunity
     "Polaroid — 1975 — engineers invent the digital camera, management shelves it; Polaroid files bankruptcy 26 years later having never shipped it",
+    # Moved to end — GM bailout already posted Apr 28; space same-company stories out
+    "GM — Jun 1, 2009 — Chapter 11, $82B federal bailout",
 ]
+# Removed from NEAR_DEATH (Apr 30 2026 cleanup):
+# - Marvel → already posted Apr 28, removed to prevent duplicate
+# - LEGO (Danish), Nintendo (Japanese), Harrods (UK) → foreign companies cut
+# - J.Crew → weak story, "COVID hit retail" has no compelling human element
+# - GM moved to end (same company as Apr 28 bailout video — space them out)
 
 
 # ─── Rotation logic ──────────────────────────────────────────────────────────
