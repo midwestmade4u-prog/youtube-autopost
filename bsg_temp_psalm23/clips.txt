@@ -1,7 +1,0 @@
-file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_psalm23/scene_00_clip.mp4'
-file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_psalm23/scene_01_clip.mp4'
-file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_psalm23/scene_02_clip.mp4'
-file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_psalm23/scene_03_clip.mp4'
-file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_psalm23/scene_04_clip.mp4'
-file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_psalm23/scene_05_clip.mp4'
-file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_psalm23/scene_06_clip.mp4'

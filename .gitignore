@@ -26,3 +26,23 @@ BSG_Output/
 # Local work artifacts (auto_trigger_*.json IS tracked by the workflow,
 # don't gitignore — TMF/BSG already commit these per-run)
 *_work/
+
+# Temp render folders (scene-by-scene build artifacts)
+bsg_temp_*/
+tmf_temp_*/
+mz_temp_*/
+
+# Local voice files
+bsg_voices/
+tmf_voices/
+mz_voices/
+
+# Log files
+*.log
+watcher.log
+watcher_error.log
+
+# Local watcher / launch agent files
+start.sh
+*.plist
+com.*.autopost-watcher.plist
