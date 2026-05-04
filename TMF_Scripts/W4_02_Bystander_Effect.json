@@ -1,0 +1,33 @@
+{
+  "title": "No One Will Help You",
+  "scenes": [
+    {
+      "narration": "A woman screams. Thirty-eight people watch. No one calls for help. She dies. This actually happened in New York, 1964.",
+      "image_prompt": "A woman falling backward in a dark urban street at night, arms raised in distress, blurred silhouettes of people watching from windows above and street level, cold streetlight casting harsh shadows, black and white photorealistic, dramatic composition"
+    },
+    {
+      "narration": "The autopsy showed nothing unusual. No injury that would have killed her. What killed her was your silence.",
+      "image_prompt": "A person visible behind a darkened window, face pressed against glass showing anguish, other shadowy figures watching from different windows, nighttime urban setting, black and white moody lighting, photorealistic, vertical frame"
+    },
+    {
+      "narration": "Psychologist John Darley proved it in the lab. The more people present, the less likely anyone helps. It's counterintuitive and it's measurable.",
+      "image_prompt": "Multiple people standing in a semicircle around a fallen figure in the center, all looking down but no one reaching out, dark background, clinical cold lighting, black and white photorealistic, geometric composition"
+    },
+    {
+      "narration": "Your brain has a built-in excuse. When others are present, you assume someone else will act. Someone more qualified. Someone braver.",
+      "image_prompt": "A group of men and women in dim indoor lighting, all motionless with blank expressions, looking at something off-camera with indifference, eerie uniformity in their detachment, black and white photorealistic, haunting composition"
+    },
+    {
+      "narration": "But you know something the experiments revealed. Alone with someone in distress, you help. Almost every time. Your morality doesn't change with an audience.",
+      "image_prompt": "A single person reaching out one hand in darkness, another hand barely visible reaching back from the shadows, intimate isolation, dramatic contrast lighting, black and white photorealistic, vulnerable connection"
+    },
+    {
+      "narration": "You become a witness by accident. Your inaction becomes conspiracy by committee. Responsibility dissolves when it's shared.",
+      "image_prompt": "Shadows of multiple people cast on a wall, all merging together into one blurred shadow, individual profiles barely distinguishable, dark room, black and white photorealistic, eerie perspective, vertical composition"
+    },
+    {
+      "narration": "The question isn't whether you're moral. It's whether you're alone.",
+      "image_prompt": "A lone person in an urban plaza at night, distant figures visible but looking away, isolated in a crowded space, cold nighttime lighting with overhead lamps, black and white cinematic, photorealistic, melancholic depth"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "How love bombing works and why victims do not see it",
+  "script": {
+    "title": "Why Being Loved Too Fast Is Dangerous",
+    "scenes": [
+      {
+        "narration": "Someone who adores you within a week is not falling in love. They're installing control.",
+        "image_prompt": "A single lit cigarette burning all the way down to ash in one frame, dramatic close-up, stark black and white film noir, heavy shadows, smoke curling, vintage cinematic lighting"
+      },
+      {
+        "narration": "The gifts come first. The constant messages. They say you're different from anyone they've ever met. You feel chosen. You feel finally seen.",
+        "image_prompt": "A bouquet of dark roses dropped on a polished marble floor, petals scattered, a single brass key lying among them, black and white film noir, dramatic side lighting, deep shadows"
+      },
+      {
+        "narration": "That overwhelming rush isn't chemistry. It's a flooding strategy. Your brain gets hit with so much intensity, you can't step back and ask basic questions.",
+        "image_prompt": "An overflowing crystal champagne glass on a polished bar, liquid spilling onto a dark surface and pooling, deep shadows, black and white film noir, high contrast lighting"
+      },
+      {
+        "narration": "Psychologists call it love bombing. It's the grooming phase of coercive control. The goal isn't to love you. It's to make you feel unlovable anywhere else.",
+        "image_prompt": "A small bird trapped inside an ornate gilded cage, the cage door locked with a thick chain, low angle, black and white film noir, single beam of light through window blinds"
+      },
+      {
+        "narration": "Then the second phase begins. Small criticisms. Sudden coldness. A withdrawal of the attention that made you feel alive. You chase it. You try to earn it back.",
+        "image_prompt": "An empty wine glass knocked over on an elegant dinner table, dark wine pooling across white linen, candle blown out with smoke rising, black and white film noir, moody atmosphere"
+      },
+      {
+        "narration": "You are now inside the bond. The high of their approval. The crash of their absence. Your nervous system is addicted to someone who is no longer safe.",
+        "image_prompt": "A bare hand reaching out in the darkness toward a single flickering bare lightbulb hanging on a chain, fingers stretched, black and white film noir, harsh chiaroscuro lighting"
+      },
+      {
+        "narration": "By the time friends warn you, you've already started defending them. You confuse panic for passion. You call chaos connection. The trap is emotional, not logical.",
+        "image_prompt": "A cracked vintage mirror on a dark wall with wilted roses lying on the floor in front, broken glass shards scattered, black and white film noir, deep shadows, vintage cinematic"
+      },
+      {
+        "narration": "Real love doesn't flood. It arrives slowly and leaves you calmer, not more anxious. If someone's affection feels like a drug, trust that feeling. You're not being loved. You're being captured.",
+        "image_prompt": "A heavy iron chain wrapped tightly around a bouquet of dark roses on a stone floor, padlock visible, dramatic shadows, black and white film noir, close-up high contrast"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-19 19:26",
+  "status": "pending"
+}

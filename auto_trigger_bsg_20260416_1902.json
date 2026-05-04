@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "Noah's Ark and the Great Flood",
+  "script": {
+    "title": "Noah's Ark and the Great Flood \ud83c\udf08 | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "Long ago, the world was full of people who had forgotten God. But there was one good man named Noah, who loved God with all his heart.",
+        "image_prompt": "Colorful children's storybook illustration of Noah, a kind bearded man in simple robes, standing on a hillside at sunrise, looking up at a bright sky, warm and cheerful style, bright colors, family-friendly"
+      },
+      {
+        "narration": "One day, God spoke to Noah. He said, 'Build a giant boat called an ark. A great flood is coming, but I will keep you safe!'",
+        "image_prompt": "Cheerful storybook illustration of Noah kneeling with hands clasped in prayer, golden light from heaven shining down on him, peaceful meadow background, warm bright colors, children's book style"
+      },
+      {
+        "narration": "Noah obeyed God right away. He worked hard with his family, hammering and sawing, building the biggest boat anyone had ever seen.",
+        "image_prompt": "Colorful illustration of Noah and his three sons building a massive wooden ark, hammers and tools in hand, sawdust flying, smiling faces, bright sunny day, cheerful children's book style"
+      },
+      {
+        "narration": "Then something amazing happened! Animals began to come, two by two. Lions, elephants, giraffes, and tiny mice, all walking together into the ark.",
+        "image_prompt": "Joyful storybook illustration of pairs of animals (lions, elephants, giraffes, zebras, mice, birds) walking in a line toward a giant wooden ark, rainbow sky, colorful grass and flowers, children's book style"
+      },
+      {
+        "narration": "When everyone was safely inside, the rain began to fall. It rained and rained for forty days and forty nights. But Noah trusted God.",
+        "image_prompt": "Cheerful yet wonder-filled illustration of a large wooden ark floating on stormy waters, gentle rain falling, animals peeking through ark windows, soft blue and grey tones with warm golden light inside the ark, children's book style"
+      },
+      {
+        "narration": "Inside the ark, Noah cared for all the animals. You can imagine how noisy it was! But God was watching over them every single day.",
+        "image_prompt": "Warm interior scene of Noah feeding animals inside the ark, happy lions, elephants, monkeys, and birds, wooden beams, lantern light, cozy atmosphere, children's book illustration style"
+      },
+      {
+        "narration": "Finally, the rain stopped. Noah sent out a dove, and it came back with a little olive leaf. Dry land was near at last!",
+        "image_prompt": "Bright illustration of Noah standing at the ark window, holding out his hand as a white dove carrying a green olive branch flies toward him, blue sky breaking through clouds, peaceful and hopeful, children's book style"
+      },
+      {
+        "narration": "When they stepped onto dry land, God painted a beautiful rainbow in the sky. It was His promise to always love and protect His children. You are loved too!",
+        "image_prompt": "Glorious colorful rainbow arching over Mount Ararat, Noah's family and animals stepping out of the ark onto green grass, flowers blooming, bright sunshine, joyful celebration, cheerful children's storybook illustration"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-16 19:02",
+  "status": "pending"
+}

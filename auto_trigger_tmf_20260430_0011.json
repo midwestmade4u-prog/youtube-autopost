@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why people obey authority even when they should not \u2014 Milgram",
+  "script": {
+    "title": "Why Your Brain Obeys Even When It Shouldn't",
+    "scenes": [
+      {
+        "narration": "Sixty-five percent of ordinary people delivered what they believed were lethal electric shocks to a stranger. They weren't monsters. They were just following orders.",
+        "image_prompt": "Black and white film noir \u2014 a large mechanical lever being pulled down by a gloved hand, dramatic shadows on a concrete wall, stark overhead lighting, no faces"
+      },
+      {
+        "narration": "1962. Yale University. Stanley Milgram wanted to know how far obedience to authority would stretch. What he discovered shook the entire field of psychology.",
+        "image_prompt": "Black and white film noir \u2014 an empty institutional corridor with numbered doors, a single bare light bulb swinging, long shadows stretching down the hallway, ominous atmosphere"
+      },
+      {
+        "narration": "Volunteers were told to administer electric shocks each time someone gave a wrong answer. Each wrong answer meant more voltage. The screams started at 150 volts.",
+        "image_prompt": "Black and white film noir \u2014 a row of switches and dials on a heavy control panel, gloved hands hovering above them, industrial aesthetic, deep contrast shadows"
+      },
+      {
+        "narration": "There were no real shocks. The screams were recorded. But the volunteers didn't know that. Many were visibly trembling. Some wept. Yet they kept going.",
+        "image_prompt": "Black and white film noir \u2014 a telephone receiver lying off the hook on a desk, a single teardrop on polished wood, an empty chair nearby, melancholy lighting"
+      },
+      {
+        "narration": "When the authority figure said 'please continue,' most did. Your brain interprets authority as a signal that someone else holds the moral responsibility. Not you.",
+        "image_prompt": "Black and white film noir \u2014 a towering shadow of a figure in a lab coat cast on a brick wall, a pointing gesture, the shadow looming large, no actual person visible"
+      },
+      {
+        "narration": "This is called the agentic state. You shift from acting as an individual to being an instrument of someone else's will. It happens faster than you think.",
+        "image_prompt": "Black and white film noir \u2014 a marionette puppet hanging from strings against a pitch-dark background, strings disappearing into darkness above, hands limp and lifeless"
+      },
+      {
+        "narration": "Milgram's experiments explain how ordinary soldiers commit atrocities. How employees cover up corporate fraud. How good people do terrible things inside institutions.",
+        "image_prompt": "Black and white film noir \u2014 a stack of official documents with stamps and signatures, a pen lying diagonally across them, harsh directional light creating deep dramatic shadows"
+      },
+      {
+        "narration": "The most chilling part? When you're inside the system, you rarely feel like you're doing anything wrong. You feel like you're just doing your job.",
+        "image_prompt": "Black and white film noir \u2014 an empty institutional chair under a single bright spotlight, leather restraining straps visible, surrounded by absolute impenetrable darkness"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-30 00:11",
+  "status": "pending"
+}

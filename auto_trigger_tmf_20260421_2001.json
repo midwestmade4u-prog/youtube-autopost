@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why narcissists are so charming at first",
+  "script": {
+    "title": "Why Narcissists Are So Charming At First",
+    "scenes": [
+      {
+        "narration": "The most dangerous person you will ever meet will not look dangerous. They will look like the answer to every problem you have ever had.",
+        "image_prompt": "black and white film noir style, empty ornate chair in a spotlight, swirling fog around it, shadows creeping from edges, cinematic, high contrast"
+      },
+      {
+        "narration": "Narcissists are not charming by accident. Charm is a weapon. And psychology research shows they deploy it with surgical precision in the first ninety days.",
+        "image_prompt": "black and white film noir style, a silver dagger wrapped in red velvet ribbon, dramatic side lighting, rich textures, moody shadows"
+      },
+      {
+        "narration": "They mirror you. Your hobbies, your wounds, your dreams. Suddenly this stranger feels like the soulmate you have been waiting your entire life to find.",
+        "image_prompt": "black and white film noir style, cracked antique mirror reflecting a single empty silhouette, dust in the air, harsh directional light"
+      },
+      {
+        "narration": "This is called love bombing. An overwhelming flood of attention, gifts, and intimacy designed to short-circuit your judgment before you notice anything is wrong.",
+        "image_prompt": "black and white film noir style, wilted roses piled on a dark wooden floor, single candle burning low, smoke drifting upward, atmospheric"
+      },
+      {
+        "narration": "Researchers call the second phase devaluation. The compliments vanish. The warmth turns cold. And you start chasing the version of them you met on day one.",
+        "image_prompt": "black and white film noir style, an hourglass on a cracked marble table, sand draining fast, long shadow stretched across the wall"
+      },
+      {
+        "narration": "The trap is chemical. Your brain releases dopamine chasing unpredictable affection. That is the same neural pattern that makes slot machines addictive.",
+        "image_prompt": "black and white film noir style, vintage slot machine handle gripped by a gloved hand, reels spinning, neon glare cutting through darkness"
+      },
+      {
+        "narration": "By the time you see it clearly, you are bonded to someone who never actually existed. The charming stranger was a performance. You were the audience.",
+        "image_prompt": "black and white film noir style, empty theater stage with velvet curtains half closed, single spotlight on a discarded mask on the floor"
+      },
+      {
+        "narration": "If someone feels too perfect too fast, that is not chemistry. That is choreography. The people who love you quietly rarely arrive in a flood.",
+        "image_prompt": "black and white film noir style, a single small flickering candle beside a closed leather journal, quiet stillness, soft moody shadows"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-21 20:01",
+  "status": "pending"
+}

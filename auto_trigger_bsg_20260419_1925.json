@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "Daniel in the Lions Den",
+  "script": {
+    "title": "Daniel in the Lions' Den \ud83e\udd81 | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "In the kingdom of Babylon, there lived a wise and faithful man named Daniel. Every day, three times a day, he prayed to God by his open window.",
+        "image_prompt": "Cheerful storybook illustration of Daniel, a kind bearded man in flowing robes, kneeling in prayer beside an open arched window in an ancient Babylonian palace room, golden sunlight streaming in, bright and family-friendly colors"
+      },
+      {
+        "narration": "King Darius loved Daniel and chose him to help lead the kingdom. But the other leaders grew jealous and began plotting against him.",
+        "image_prompt": "Colorful storybook illustration of King Darius on his throne with a kind smile, placing his hand on Daniel's shoulder, while jealous advisors whisper in the shadows, ornate Babylonian palace, bright cheerful storybook style"
+      },
+      {
+        "narration": "They tricked the king into making a new law: anyone who prayed to anyone but the king would be thrown into the lions' den. Daniel heard the news.",
+        "image_prompt": "Bright storybook illustration of King Darius signing a royal scroll with a feather quill, sneaky advisors smiling beside him, a worried Daniel in the doorway, family-friendly colorful art style"
+      },
+      {
+        "narration": "But Daniel did not stop praying. He went home, opened his window toward Jerusalem, and thanked God just like he always did.",
+        "image_prompt": "Warm storybook illustration of Daniel kneeling at his open window, hands folded in prayer, soft golden light from heaven shining down, peaceful smile on his face, cheerful and reverent children's book style"
+      },
+      {
+        "narration": "The jealous men ran to tell the king. Sad and sorry, King Darius had to keep his law. Daniel was lowered into the den of hungry lions.",
+        "image_prompt": "Colorful storybook illustration of Daniel being gently lowered into a stone pit with several large friendly-looking lions, the sad king watching from above, torchlight glowing, family-friendly art style, not scary"
+      },
+      {
+        "narration": "All night, the king could not sleep. He worried for his friend Daniel. At sunrise, he hurried to the den and called out with a trembling voice.",
+        "image_prompt": "Cheerful storybook illustration of King Darius in nightclothes and crown rushing across a palace courtyard at sunrise, pink and golden sky, worried face, bright children's book style"
+      },
+      {
+        "narration": "From inside the den came Daniel's voice: God sent His angel to shut the lions' mouths! The king laughed with joy as Daniel was lifted out, safe and sound.",
+        "image_prompt": "Bright storybook illustration of Daniel inside the lions' den surrounded by peaceful sleeping lions, a glowing angel beside him, golden divine light filling the pit, joyful and warm family-friendly art style"
+      },
+      {
+        "narration": "King Darius told the whole kingdom: Daniel's God is the living God! And Daniel learned that no matter what, God always hears us when we pray.",
+        "image_prompt": "Heartwarming storybook illustration of Daniel and King Darius standing together in front of a cheering crowd, sunshine and doves above, golden glow, joyful family-friendly children's book style"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-19 19:25",
+  "status": "pending"
+}

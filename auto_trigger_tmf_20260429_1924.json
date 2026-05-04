@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why people obey authority even when they should not \u2014 Milgram",
+  "script": {
+    "title": "Why You'd Obey Even When You Shouldn't",
+    "scenes": [
+      {
+        "narration": "In 1961, Stanley Milgram ran an experiment that disturbed the world. He wasn't studying cruelty. He was studying something far more common \u2014 obedience.",
+        "image_prompt": "Black and white film noir: a heavy iron door with a padlock, a single bare bulb swinging overhead casting hard shadows, institutional corridor"
+      },
+      {
+        "narration": "Participants were told to administer electric shocks to a stranger in the next room. The shocks weren't real. But the screams were convincingly recorded.",
+        "image_prompt": "Black and white film noir: a pair of hands hovering over a control panel of switches and dials, fingers trembling, deep shadows across the frame"
+      },
+      {
+        "narration": "When the voltage reached dangerous levels, most participants hesitated. They sweated. They protested. Then they turned the dial anyway \u2014 because an authority figure told them to.",
+        "image_prompt": "Black and white film noir: a dial turned to maximum, cracked and worn, reflected in a fractured mirror, shadows pooling beneath it"
+      },
+      {
+        "narration": "65% delivered what they believed were lethal shocks to a complete stranger. Not monsters. Ordinary people \u2014 teachers, clerks, fathers \u2014 just following instructions.",
+        "image_prompt": "Black and white film noir: an empty chair with leather restraint straps, single spotlight, the rest of the room swallowed by darkness"
+      },
+      {
+        "narration": "Milgram identified the key: when you feel like a cog in a larger system, your sense of personal responsibility nearly disappears. You stop asking 'Is this right?' and start asking 'Is this my job?'",
+        "image_prompt": "Black and white film noir: interlocking gears, one smaller gear being crushed between two massive ones, harsh rim lighting"
+      },
+      {
+        "narration": "This is called the agentic state \u2014 the psychological shift where you see yourself as an instrument of authority rather than an autonomous person.",
+        "image_prompt": "Black and white film noir: a marionette hanging from strings attached to an unseen hand above, the puppet's shadow elongated and distorted on the floor"
+      },
+      {
+        "narration": "The Milgram effect is alive today. It explains why soldiers follow illegal orders. Why workers falsify records. Why bystanders do nothing when a boss is abusive.",
+        "image_prompt": "Black and white film noir: a long line of identical closed doors receding into darkness, each with a small peephole, light seeping from under only one"
+      },
+      {
+        "narration": "The most terrifying finding wasn't that evil people do evil things. It's that good people do terrible things the moment someone with a clipboard tells them to.",
+        "image_prompt": "Black and white film noir: a clipboard and pen resting on a desk, a single key beside it, hard shadows splitting the image diagonally, window bars reflected on the wall"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-29 19:24",
+  "status": "pending"
+}

@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why intelligent people believe conspiracy theories",
+  "script": {
+    "title": "Why Smart People Fall for Conspiracies",
+    "scenes": [
+      {
+        "narration": "The smartest person you know might believe something completely insane. And research shows their intelligence is exactly why they cannot see it.",
+        "image_prompt": "black and white film noir, a single chess king toppled on a cracked mirror, sharp shadows, high contrast, no people, no faces, cinematic"
+      },
+      {
+        "narration": "Psychologists call it motivated reasoning. The brain does not search for truth. It searches for arguments that protect what you already believe.",
+        "image_prompt": "black and white film noir, a magnifying glass hovering over a torn page with redacted lines, dust particles, deep shadows, no people, no faces"
+      },
+      {
+        "narration": "Higher intelligence makes this worse, not better. Smarter people build more convincing rationalizations for the very things they should question.",
+        "image_prompt": "black and white film noir, intricate wooden puzzle pieces locking into a cracked wall, dim spotlight, smoke, no people, no faces, cinematic"
+      },
+      {
+        "narration": "Then there is the pattern recognition trap. Your brain is wired to see connections, even where none exist. The more clever you are, the better the false patterns look.",
+        "image_prompt": "black and white film noir, red string connecting dozens of pinned papers on a dark wall, single bare bulb, deep shadows, no people, no faces"
+      },
+      {
+        "narration": "Conspiracy thinking also offers something rare. A sense of being chosen. Of seeing what the sleeping masses cannot. That feeling is intoxicating.",
+        "image_prompt": "black and white film noir, a single open eye carved into a stone tablet surrounded by closed eye carvings, dramatic side lighting, no people, no faces"
+      },
+      {
+        "narration": "Stress fuels the fire. Studies show that when humans feel powerless, they hunt for hidden enemies. Order becomes a story about secret control.",
+        "image_prompt": "black and white film noir, marionette strings descending into darkness above a small wooden chair, harsh contrast, smoke, no people, no faces"
+      },
+      {
+        "narration": "Once a belief becomes part of your identity, contradicting evidence feels like a personal attack. Smart people just defend it harder.",
+        "image_prompt": "black and white film noir, cracked iron mask resting on an old book, candlelight, deep shadows, no people, no faces, cinematic"
+      },
+      {
+        "narration": "So when you meet someone brilliant who believes something baffling, do not assume they are stupid. Their mind is doing exactly what yours would do under the right pressure.",
+        "image_prompt": "black and white film noir, a single old key suspended by a thin chain in front of a heavy locked door, mist, dramatic shadows, no people, no faces"
+      }
+    ]
+  },
+  "scheduled_at": "2026-05-03 17:09",
+  "status": "pending"
+}

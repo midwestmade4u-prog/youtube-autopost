@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "David and Goliath",
+  "script": {
+    "title": "David and Goliath \ud83d\udde1\ufe0f | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "Long ago, a giant warrior named Goliath stomped across the battlefield. He was nine feet tall, and every soldier in Israel trembled with fear as he shouted his challenge.",
+        "image_prompt": "Colorful storybook illustration of a giant warrior Goliath in bronze armor, towering over a scared Israelite army on a sunny battlefield, bright cheerful biblical art style, family-friendly"
+      },
+      {
+        "narration": "Far from the battle, a young shepherd boy named David was caring for his sheep. He loved God with all his heart and trusted Him completely, even when the world seemed scary.",
+        "image_prompt": "Cheerful storybook illustration of young shepherd boy David with a slingshot, surrounded by fluffy white sheep on a green hillside, golden sunlight, bright biblical art style for children"
+      },
+      {
+        "narration": "David's father sent him to bring food to his older brothers in the army. When David arrived, he heard Goliath's loud, angry shouting and saw the brave soldiers shaking with fear.",
+        "image_prompt": "Colorful illustration of young David carrying a basket of bread arriving at an army camp with tents, looking up at a distant giant warrior, warm storybook style, family-friendly"
+      },
+      {
+        "narration": "David said, \"I will fight this giant. The Lord who saved me from lions and bears will save me now.\" King Saul gave David his royal armor, but it was much too heavy.",
+        "image_prompt": "Bright cheerful illustration of small boy David standing before kind King Saul on a throne, oversized golden armor too big for the boy, colorful storybook biblical art style"
+      },
+      {
+        "narration": "So David took only his shepherd's staff, his sling, and five smooth stones from the stream. With a brave heart and a quiet prayer, he stepped out to meet the giant.",
+        "image_prompt": "Colorful storybook illustration of young David kneeling by a sparkling stream picking up smooth round stones, holding a leather sling, peaceful sunny scene, bright biblical art for children"
+      },
+      {
+        "narration": "Goliath laughed when he saw the young boy. But David shouted, \"You come with sword and spear, but I come in the name of the Lord! This battle belongs to God!\"",
+        "image_prompt": "Bright cheerful illustration of small brave young David facing the enormous giant Goliath on a battlefield, blue sky above, dramatic but family-friendly storybook biblical style"
+      },
+      {
+        "narration": "David swung his sling round and round, then released one little stone. It flew through the air and struck the giant on the forehead. Goliath toppled to the ground with a mighty crash.",
+        "image_prompt": "Colorful storybook illustration of David swinging a sling with a stone flying through the air, the giant Goliath falling backward, dynamic but child-friendly biblical scene, bright vivid colors"
+      },
+      {
+        "narration": "All Israel cheered as God gave David a great victory. Remember, no problem is too big for God. When you trust Him, even the smallest stone can defeat the tallest giant.",
+        "image_prompt": "Joyful storybook illustration of young David standing victorious as Israelite soldiers cheer and celebrate around him, golden sunshine, bright cheerful biblical art style for families"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-26 17:42",
+  "status": "pending"
+}

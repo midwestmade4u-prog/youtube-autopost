@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "The psychology of gaslighting and how to spot it",
+  "script": {
+    "title": "Why You Keep Doubting Yourself Around Them",
+    "scenes": [
+      {
+        "narration": "You leave every conversation with them feeling confused. Like you're the problem. Like you're overreacting. You're not losing your mind. Someone is slowly teaching you to distrust it.",
+        "image_prompt": "Black and white film noir, cracked bathroom mirror reflecting shards of a dimly lit empty room, single bare bulb overhead casting long deep shadows, high contrast, heavy grainy film texture, oppressive atmosphere, no people"
+      },
+      {
+        "narration": "Gaslighting isn't shouting or insults. It's quiet. It's someone denying something you clearly remember, then calmly asking if you've been getting enough sleep.",
+        "image_prompt": "Black and white film noir, close up of an old gas lamp flickering on a worn wooden table, wisps of smoke curling upward, shadows stretching across peeling wallpaper, heavy grain, moody cinematic lighting, no people"
+      },
+      {
+        "narration": "Psychologists call it reality erosion. Small contradictions. Tiny rewrites of history. Your brain fills the gaps by assuming you must have misremembered the truth.",
+        "image_prompt": "Black and white film noir, weathered leather journal open on a dusty desk with pages being torn out by a gust of wind, ink smeared across the paper, long shadows, dim desk lamp, heavy grain texture, no people"
+      },
+      {
+        "narration": "The tactic works because your mind trusts familiar voices. When someone close to you insists the truth is different, your memory bends before their story ever does.",
+        "image_prompt": "Black and white film noir, wooden marionette with cut strings lying collapsed on dusty floorboards, single shaft of light through venetian blinds, deep shadows crossing the scene, grainy cinematic texture, no people"
+      },
+      {
+        "narration": "Watch for the pattern. You bring up a concern and they flip it instantly. Suddenly you're apologizing for something you never actually did. That's the signature move.",
+        "image_prompt": "Black and white film noir, empty chair at a small kitchen table with a tipped over porcelain teacup, steam still rising faintly, light pooling on cracked tile floor, heavy noir shadows, no people"
+      },
+      {
+        "narration": "Most gaslighters don't even know the term. They do it instinctively to avoid accountability. What feels like manipulation to you feels like self-defense to them.",
+        "image_prompt": "Black and white film noir, two overlapping human-shaped shadows on a brick alley wall that don't quite match each other, dim streetlight above, wet pavement reflecting light, grainy texture, no people visible"
+      },
+      {
+        "narration": "The damage isn't in one conversation. It's in a hundred small ones. Over time you stop trusting your instincts. That's the exact moment control becomes total.",
+        "image_prompt": "Black and white film noir, a heavy iron chain with one link slowly bending under tension, metallic glint under moonlight, droplets of water falling, deep shadows on cold concrete, high contrast, no people"
+      },
+      {
+        "narration": "If you constantly feel crazy around one specific person, the problem isn't your memory. It's theirs. And they are quietly counting on you to never notice.",
+        "image_prompt": "Black and white film noir, a locked wooden door with an old brass key lying on the floor just inside, long shadow stretching down an empty hallway, single dim light overhead, oppressive atmosphere, heavy grain, no people"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-22 12:22",
+  "status": "pending"
+}

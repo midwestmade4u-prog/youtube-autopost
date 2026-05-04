@@ -1,0 +1,41 @@
+{
+  "title": "Creation — The Seven Days",
+  "scenes": [
+    {
+      "narration": "In the beginning, there was nothing. No stars. No sky. No earth. Just God.",
+      "image_prompt": "Vast empty dark space with only a single soft golden glow in the middle, peaceful mysterious mood, colorful bible storybook illustration, cosmic style"
+    },
+    {
+      "narration": "Day one — God said let there be light. And light exploded across the darkness.",
+      "image_prompt": "Brilliant golden light bursting outward from a single point across a dark cosmic sky, stars beginning to appear, colorful bible storybook illustration, epic style"
+    },
+    {
+      "narration": "Day two — God made the sky. Big, blue, and full of space for what came next.",
+      "image_prompt": "Beautiful bright blue sky with fluffy white clouds forming from swirling mist, sunshine breaking through, colorful bible storybook illustration, cheerful style"
+    },
+    {
+      "narration": "Day three — land and sea. Mountains, rivers, trees, flowers, every plant that grows.",
+      "image_prompt": "Lush green mountains rising from blue oceans, colorful flowers and tall trees sprouting everywhere, waterfalls flowing, bright colorful bible storybook illustration"
+    },
+    {
+      "narration": "Day four — the sun, the moon, and a sky full of stars.",
+      "image_prompt": "Bright golden sun and silver moon together in a sky, countless twinkling stars scattered across, earth visible below, colorful magical bible storybook illustration"
+    },
+    {
+      "narration": "Day five — God filled the seas with fish and the skies with birds of every color.",
+      "image_prompt": "Colorful fish swimming in bright blue seas, flocks of beautiful birds soaring through the sky, bright tropical colors, cheerful bible storybook illustration"
+    },
+    {
+      "narration": "Day six — every animal on land. Lions, elephants, rabbits, dogs. Then God made people.",
+      "image_prompt": "Many different animals gathered together in a beautiful garden — lions, elephants, giraffes, rabbits, dogs — with Adam and Eve standing among them, colorful bible storybook illustration"
+    },
+    {
+      "narration": "God looked at everything He had made. And He said — it is very good.",
+      "image_prompt": "Beautiful earth glowing warmly with golden light from above, all of creation visible together in harmony, peaceful joyful mood, colorful bible storybook illustration"
+    },
+    {
+      "narration": "Day seven — God rested. Because even good work needs a good rest.",
+      "image_prompt": "Peaceful serene landscape at sunset with all animals resting, soft golden light, warm colors, colorful bible storybook illustration, calm restful mood"
+    }
+  ]
+}

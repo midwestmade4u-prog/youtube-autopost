@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "David and Goliath",
+  "script": {
+    "title": "David and Goliath \ud83d\udde1\ufe0f | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "Long ago, a giant warrior named Goliath stood tall on the battlefield. He was taller than a house, and his armor shined in the sun. He shouted at God's people, and everyone was afraid.",
+        "image_prompt": "Colorful storybook illustration of a giant warrior Goliath in shining bronze armor standing tall on a grassy battlefield, friendly children's book style, bright warm sunlight, cheerful and family-friendly"
+      },
+      {
+        "narration": "But in a quiet field, a young shepherd boy named David was taking care of his sheep. He was small, but his heart was big with faith in God.",
+        "image_prompt": "Colorful storybook illustration of a young shepherd boy David with a staff tending fluffy white sheep in a sunny green meadow, cheerful children's book style, bright blue sky, warm and gentle"
+      },
+      {
+        "narration": "David's father asked him to bring food to his brothers in the army. When David arrived, he heard Goliath shouting. David said, 'I will fight this giant with God's help.'",
+        "image_prompt": "Colorful storybook illustration of young boy David carrying bread and cheese, walking into an army camp with tents, his brothers in simple soldier outfits looking surprised, cheerful family-friendly style"
+      },
+      {
+        "narration": "King Saul tried to give David heavy armor and a big sword. But David said, 'I don't need these. God is with me.' He trusted God more than armor.",
+        "image_prompt": "Colorful storybook illustration of King Saul offering oversized shiny armor to small David inside a royal tent, David smiling and shaking his head, warm candlelight, children's book style"
+      },
+      {
+        "narration": "David walked to a sparkling stream and picked up five smooth stones. He placed them gently in his shepherd's pouch. His slingshot was ready in his hand.",
+        "image_prompt": "Colorful storybook illustration of boy David crouching by a sparkling blue stream, picking up smooth round stones, small leather pouch at his side, cheerful bright sunlight, children's book style"
+      },
+      {
+        "narration": "David stepped into the valley to meet Goliath. The giant laughed and mocked him. But David said, 'You come with a sword, but I come in the name of the Lord.'",
+        "image_prompt": "Colorful storybook illustration of small David facing the giant Goliath across a grassy valley, David looking brave and peaceful, giant towering with shield, warm golden sunlight, family-friendly style"
+      },
+      {
+        "narration": "David swung his sling around and let the stone fly. It soared through the air and struck the giant's forehead. Goliath fell down with a mighty thud.",
+        "image_prompt": "Colorful storybook illustration of boy David swinging a sling with one stone flying forward, giant Goliath stumbling back, bright sunlight, dynamic but gentle children's book style, family-friendly"
+      },
+      {
+        "narration": "God's people cheered and praised God. David learned that when we trust God, no problem is too big. You are never too small for God to use you in great ways.",
+        "image_prompt": "Colorful storybook illustration of cheerful crowd of people celebrating with young David holding his shepherd staff high, bright rainbow sky, joyful children's book style, warm and uplifting"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-21 20:00",
+  "status": "pending"
+}

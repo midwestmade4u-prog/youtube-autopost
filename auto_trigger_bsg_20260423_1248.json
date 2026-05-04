@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "Noah's Ark and the Great Flood",
+  "script": {
+    "title": "Noah's Ark and the Great Flood \ud83c\udf08 | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "Long ago, the world had grown wild and unkind. But there was one good man named Noah, who loved God with his whole heart and listened carefully when God spoke.",
+        "image_prompt": "Colorful children's storybook illustration of Noah, a kind older man with a long white beard and gentle eyes, standing on a grassy hillside with his family, soft golden sunlight, warm and whimsical cartoon style, family-friendly"
+      },
+      {
+        "narration": "God told Noah a great flood was coming to wash the world clean. Build a giant boat, God said, an ark to keep your family and the animals safe.",
+        "image_prompt": "Bright cheerful storybook illustration of Noah looking up toward a glowing warm light in the sky, hands lifted gently, peaceful expression, soft clouds parting, whimsical cartoon style, wonder-filled and family-friendly"
+      },
+      {
+        "narration": "Noah and his sons got right to work. They sawed and hammered tall wooden planks for years and years, building the biggest boat anyone had ever seen.",
+        "image_prompt": "Cheerful storybook illustration of Noah and his three sons happily hammering and sawing huge wooden boards, building a giant brown wooden ark, sawdust flying, sunny day, bright cartoon colors, family-friendly"
+      },
+      {
+        "narration": "Then God sent the animals, two by two. Lions and lambs, elephants and ducks, giraffes and tiny mice all marched up the ramp into the warm safe ark.",
+        "image_prompt": "Whimsical bright storybook illustration of pairs of friendly cartoon animals walking up a long wooden ramp into a giant ark, lions, elephants, giraffes, ducks, mice, rainbow line of creatures, joyful and colorful, family-friendly"
+      },
+      {
+        "narration": "Then the rain began to pour. It fell for forty days and forty nights, until the whole world was covered in rolling, splashing water.",
+        "image_prompt": "Cheerful storybook illustration of the giant wooden ark floating on huge blue waves with friendly raindrops splashing down, gentle stormy sky with soft round clouds, cozy and family-friendly cartoon style, not scary"
+      },
+      {
+        "narration": "Inside the ark, Noah cared for every animal. He fed them, cleaned them, and trusted God to keep them safe through the long, splashing storm.",
+        "image_prompt": "Warm cozy storybook illustration of Noah inside the ark, smiling as he hands food to friendly cartoon animals in their stalls, soft lantern light, peaceful and bright, family-friendly cartoon style"
+      },
+      {
+        "narration": "At last the rain stopped. Noah sent out a little dove, and it returned carrying a fresh green leaf. Dry land had appeared again.",
+        "image_prompt": "Bright cheerful storybook illustration of a gentle white dove flying back to the ark window with a green olive leaf in its beak, Noah smiling with joy, soft golden sunshine breaking through clouds, family-friendly cartoon style"
+      },
+      {
+        "narration": "God painted a giant rainbow across the sky as a promise of His love. Noah teaches you that when you trust God, He always keeps His word.",
+        "image_prompt": "Joyful storybook illustration of a huge bright rainbow arching over the ark resting on a green hillside, Noah's family and all the animals walking out happily, sunshine, fluffy clouds, hopeful and warm, family-friendly cartoon style"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-23 12:48",
+  "status": "pending"
+}

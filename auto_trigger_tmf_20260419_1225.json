@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "The dark truth about conformity \u2014 Asch's line experiment",
+  "script": {
+    "title": "Why You'd Agree With a Lie",
+    "scenes": [
+      {
+        "narration": "Three out of four people will deny what their own eyes see if the room disagrees. You are not the exception. You are the pattern.",
+        "image_prompt": "Three empty wooden chairs in a row facing a single chair, stark interrogation lighting, black and white film noir, long shadows stretching across a bare floor"
+      },
+      {
+        "narration": "In 1951, Solomon Asch drew three lines on a card. One was obviously longer. He asked a simple question. Then he broke us.",
+        "image_prompt": "A yellowed index card on a wooden desk with three vertical black lines of different lengths, harsh desk lamp, black and white film noir, grainy texture"
+      },
+      {
+        "narration": "Actors in the room gave the wrong answer on purpose. The real subject sat last. Their eyes told the truth. Their mouth betrayed them.",
+        "image_prompt": "A single mouth half hidden in shadow, teeth slightly parted, a hand covering the lower face, black and white film noir, heavy vignette, extreme close up"
+      },
+      {
+        "narration": "Seventy-five percent caved at least once. Intelligent people. Confident people. They watched reality, then agreed with the lie to belong.",
+        "image_prompt": "A cracked mirror on a concrete wall reflecting a room full of identical empty chairs, jagged glass fractures, black and white film noir, low angle"
+      },
+      {
+        "narration": "Your brain treats social rejection like physical injury. Disagreeing with a group lights up the same region as a broken bone.",
+        "image_prompt": "A single hand gripping the edge of a table, knuckles bone white, chains coiled loosely around the wrist, black and white film noir, harsh side lighting"
+      },
+      {
+        "narration": "This is how bad ideas spread. How entire companies miss obvious frauds. How juries convict the innocent. Nobody speaks. Everyone sees.",
+        "image_prompt": "A long empty courtroom bench, wooden gavel resting on its side, heavy shadows falling across polished wood, black and white film noir, deep perspective"
+      },
+      {
+        "narration": "Add one dissenting voice and the spell breaks. When a single person disagrees, conformity collapses by eighty percent. Courage is contagious.",
+        "image_prompt": "A single locked door slightly ajar with dim light bleeding through the crack, heavy iron chains dangling from the handle, black and white film noir"
+      },
+      {
+        "narration": "The next time the room nods, notice what your gut said first. Silence is not agreement. Silence is how the lie wins. You already know.",
+        "image_prompt": "A closed mouth with a single fingertip pressed vertically against the lips, deep shadows across the face, black and white film noir, tight crop"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-19 12:25",
+  "status": "pending"
+}

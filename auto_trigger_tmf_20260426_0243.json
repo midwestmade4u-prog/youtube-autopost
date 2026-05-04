@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why people obey authority even when they should not \u2014 Milgram",
+  "script": {
+    "title": "Why You Would Obey Too",
+    "scenes": [
+      {
+        "narration": "In 1961, a Yale psychologist asked ordinary people to electrocute a stranger. Two-thirds of them did it. Not monsters. Teachers, accountants, fathers. You.",
+        "image_prompt": "Black and white film noir close-up of an old electric switch panel with heavy bakelite knobs, dramatic shadow falling diagonally, cinematic 35mm grain, no people, eerie stillness"
+      },
+      {
+        "narration": "Stanley Milgram wanted to know how the Holocaust happened. So he ran an experiment. A man in a white lab coat told volunteers to deliver shocks for wrong answers.",
+        "image_prompt": "Black and white film noir image of an empty wooden chair under a single hanging bulb, white lab coat draped over the chair back, deep shadows, dust particles in the light beam"
+      },
+      {
+        "narration": "The shocks were not real. The screams were acted. But the volunteers did not know. They heard a man beg them to stop. They kept going anyway.",
+        "image_prompt": "Black and white film noir close-up of a vintage reel-to-reel tape recorder spinning slowly, audio meter needle pinned, harsh side lighting, no people, foreboding mood"
+      },
+      {
+        "narration": "Sixty-five percent administered the maximum voltage. A lethal dose. All it took was a calm voice in authority saying, the experiment requires that you continue.",
+        "image_prompt": "Black and white film noir overhead shot of a gloved hand reaching toward a row of labeled switches on a metal panel, the final switch marked DANGER, harsh contrast, shallow depth of field"
+      },
+      {
+        "narration": "These were not sadists. Many were sweating, trembling, begging to leave. They obeyed anyway. Because authority hijacks something deeper than morality. It hijacks belonging.",
+        "image_prompt": "Black and white film noir image of a clipboard on a desk with a fountain pen and crumpled handkerchief beside it, harsh window light casting prison-bar shadows, no people, tense atmosphere"
+      },
+      {
+        "narration": "Your brain treats disobedience like exile. The same regions that fire when you break a social rule fire when you break someone's leg. Conscience and cowardice share an address.",
+        "image_prompt": "Black and white film noir image of a cracked mirror on an old wooden wall, fractured reflection of an empty room, single dim bulb overhead, dust and silence, no people"
+      },
+      {
+        "narration": "Milgram repeated the experiment in different countries, decades, settings. The results barely changed. Most of you, given the right uniform and the right script, would press the button.",
+        "image_prompt": "Black and white film noir close-up of a folded uniform jacket on a chair with brass buttons gleaming, peaked cap resting on top, cold stark lighting, oppressive shadows, no faces"
+      },
+      {
+        "narration": "The next time someone in authority asks you to ignore your gut, remember this. Evil rarely arrives screaming. It usually wears a calm voice and a clipboard.",
+        "image_prompt": "Black and white film noir image of a closed wooden door with a thin sliver of cold light beneath it, a clipboard hanging from a nail beside the frame, deep grain, ominous quiet, no people"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-26 02:43",
+  "status": "pending"
+}

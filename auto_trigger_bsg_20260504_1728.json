@@ -1,0 +1,51 @@
+{
+  "channel": "bsg",
+  "topic": "Noah's Ark and the Great Flood",
+  "script": {
+    "title": "Noah's Ark and the Great Flood \ud83c\udf08 | Bible Story for Kids",
+    "scenes": [
+      {
+        "scene": 1,
+        "narration": "Long ago, God looked down at the earth and saw that people had forgotten how to be kind and loving. But one man named Noah always listened to God and lived a good and faithful life.",
+        "image_prompt": "Colorful storybook illustration of a bearded man named Noah kneeling in a sunny green field, praying with hands folded, warm golden light shining down from above, cheerful bright colors, family-friendly biblical style"
+      },
+      {
+        "scene": 2,
+        "narration": "God spoke to Noah and said, 'I will send a great flood. Build a big wooden ark \u2014 a giant boat \u2014 to keep your family and the animals safe!' Noah trusted God and began to build.",
+        "image_prompt": "Bright storybook illustration of Noah listening with a happy smile as golden light beams down, surrounded by trees and animals, colorful cheerful style, children's book illustration"
+      },
+      {
+        "scene": 3,
+        "narration": "Noah and his sons worked hard every day, hammering and sawing wood. The ark grew bigger and bigger \u2014 tall as a building, long as a football field! All their neighbors wondered what Noah was doing.",
+        "image_prompt": "Cheerful storybook illustration of Noah and his three sons building a giant wooden ark with hammers and tools, bright blue sky, colorful wood planks, friendly faces, warm sunny day, children's book style"
+      },
+      {
+        "scene": 4,
+        "narration": "Then came the most amazing part! Two by two, animals walked toward the ark. Lions and lambs, elephants and doves, giraffes and rabbits \u2014 every kind of creature came to be safe on Noah's boat.",
+        "image_prompt": "Colorful cheerful storybook illustration of pairs of animals walking two by two up a ramp into a large wooden ark \u2014 lions, elephants, giraffes, rabbits, doves, zebras \u2014 bright colors, happy animals, children's bible story style"
+      },
+      {
+        "scene": 5,
+        "narration": "Noah's whole family climbed aboard, and God closed the big wooden door. Then the rain began to fall \u2014 drip, drip, drip \u2014 and it rained and rained for forty days and forty nights!",
+        "image_prompt": "Storybook illustration of rain pouring down on Noah's large wooden ark floating on rising blue water, Noah's family waving from a window, animals peeking out, colorful and cheerful children's bible illustration style"
+      },
+      {
+        "scene": 6,
+        "narration": "The whole earth was covered with water, but Noah's family and all the animals were safe and dry inside the ark. God watched over them and kept them protected through every storm.",
+        "image_prompt": "Bright colorful storybook illustration of Noah's ark floating peacefully on calm blue water under stormy grey and purple clouds, warm light glowing from ark windows, cozy and hopeful feeling, children's bible story style"
+      },
+      {
+        "scene": 7,
+        "narration": "After many days, the rain stopped and the water began to go down. Noah sent out a white dove, and it came back carrying a fresh green olive branch \u2014 a sign that dry land had appeared!",
+        "image_prompt": "Cheerful storybook illustration of a white dove flying toward Noah's outstretched hand holding a small green olive branch, soft golden sunlight breaking through clouds, ark visible in background, warm hopeful colors, children's bible style"
+      },
+      {
+        "scene": 8,
+        "narration": "Noah's family and all the animals stepped out onto dry ground. God placed a beautiful rainbow in the sky as His promise \u2014 He would always love and care for the world. And whenever you see a rainbow, remember God's promise!",
+        "image_prompt": "Bright joyful storybook illustration of Noah's family and animals coming out of the ark onto green grass, a giant colorful rainbow arching across a blue sky with white clouds, everyone smiling and celebrating, warm sunshine, cheerful children's bible art style"
+      }
+    ]
+  },
+  "scheduled_at": "2026-05-04 17:28",
+  "status": "pending"
+}

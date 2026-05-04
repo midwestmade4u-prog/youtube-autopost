@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why people obey authority even when they should not \u2014 Milgram",
+  "script": {
+    "title": "Why You'll Obey a Voice You Shouldn't",
+    "scenes": [
+      {
+        "narration": "You like to think you'd refuse. That if someone in a lab coat told you to hurt a stranger, you'd walk out. You wouldn't.",
+        "image_prompt": "Empty wooden chair under a single harsh overhead lamp, black and white film noir, long shadows stretching across a bare concrete floor, clinical and cold"
+      },
+      {
+        "narration": "In 1961, Stanley Milgram ran an experiment that destroyed what we believed about ourselves. Ordinary people. A fake shock machine. And one man in a gray coat.",
+        "image_prompt": "Vintage control panel with rows of unlabeled switches, dim tungsten glow, heavy shadows, black and white film noir, dust motes in the air"
+      },
+      {
+        "narration": "Sixty-five percent of subjects delivered what they believed were lethal shocks. Not sociopaths. Teachers. Accountants. Your neighbors. Your father.",
+        "image_prompt": "A single hand gripping an industrial lever, knuckles white, tight crop, deep shadows, black and white film noir, grainy texture"
+      },
+      {
+        "narration": "They screamed. They sweated. They begged the experimenter to stop. And then they kept pressing the button anyway.",
+        "image_prompt": "Clenched fist resting on a metal table beside a small red button, sweat beads visible, black and white film noir, harsh side lighting"
+      },
+      {
+        "narration": "Milgram discovered something darker than cruelty. You don't need to be evil to do evil. You only need someone above you who tells you it's fine.",
+        "image_prompt": "A stark empty staircase ascending into darkness, iron railings casting bar-like shadows on the wall, black and white film noir, oppressive angle"
+      },
+      {
+        "narration": "Your brain has an off switch. It's called the agentic state. Once you hand responsibility to an authority, your conscience goes quiet.",
+        "image_prompt": "An old telephone receiver hanging off the hook, cord coiled like a noose, dust on the cradle, black and white film noir, silent room"
+      },
+      {
+        "narration": "This is why uniforms work. Why clipboards work. Why a confident voice on the phone can drain your bank account by dinner.",
+        "image_prompt": "A clipboard and pen resting on a wooden desk beside a worn leather briefcase, heavy shadow falling across the page, black and white film noir"
+      },
+      {
+        "narration": "You are not the exception. You are the rule. The next time someone above you tells you to cross a line, remember \u2014 the button was always in your hand.",
+        "image_prompt": "A cracked mirror reflecting a single red button on a gray surface, jagged glass fractures, black and white film noir, low angle, heavy vignette"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-18 12:05",
+  "status": "pending"
+}

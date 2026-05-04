@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "The bystander effect \u2014 why people refuse to help",
+  "script": {
+    "title": "Why Nobody Helps When You Scream",
+    "scenes": [
+      {
+        "narration": "The more people watch you suffer, the less likely anyone will save your life.",
+        "image_prompt": "Empty phone booth on a rain-slicked city street at night, heavy shadows, single overhead streetlight, black and white film noir, high contrast, no people, no faces"
+      },
+      {
+        "narration": "A woman collapses on a busy sidewalk. Twenty strangers step over her body. Each one assumes someone else will do something. Nobody ever does.",
+        "image_prompt": "Abandoned high-heeled shoe lying alone on an empty wet sidewalk at night, rain puddles reflecting cold light, black and white film noir, high contrast, no people, no faces"
+      },
+      {
+        "narration": "In a room full of strangers, you are more alone than you will ever be in your life. Crowds do not protect you. They erase you.",
+        "image_prompt": "Vast empty theater with hundreds of vacant velvet seats in dim light, single spotlight illuminating one empty chair in the center, black and white film noir, deep shadows, no people, no faces"
+      },
+      {
+        "narration": "This is the bystander effect. Psychologists Darley and Latan\u00e9 proved it in 1968. The more witnesses present, the longer the victim waits. Sometimes forever.",
+        "image_prompt": "Antique scales of justice on a dusty desk, one side heavily weighted down, low angled light, black and white film noir, heavy shadow across the frame, no people, no faces"
+      },
+      {
+        "narration": "Your brain runs a silent calculation. If no one else is reacting, you assume nothing is wrong. Responsibility dissolves into the crowd around you.",
+        "image_prompt": "Single pocket watch hanging from a chain in a dark room, second hand caught mid-tick, deep shadows, dust particles, black and white film noir, no people, no faces"
+      },
+      {
+        "narration": "You believe you would be the exception. You would intervene where others froze. The research is clear. You would not.",
+        "image_prompt": "Cracked mirror on a peeling wall reflecting an empty hallway, harsh light beam angled through dust, black and white film noir, heavy atmospheric shadows, no people, no faces"
+      },
+      {
+        "narration": "The one moment you are most likely to be helped is when you lock eyes with one specific stranger. A crowd ignores you. An individual cannot.",
+        "image_prompt": "Two old black rotary telephones on either side of a dark wooden desk, one receiver off the hook, single overhead light pooling on the cord, black and white film noir, no people, no faces"
+      },
+      {
+        "narration": "If something terrible ever happens in public, do not scream at the crowd. Point at one person and give them a task. Crowds forget you. One stranger cannot.",
+        "image_prompt": "Arrow carved deep into weathered wooden planks, pointing forward, single shaft of light breaking through overhead, heavy atmospheric shadows, black and white film noir, no people, no faces"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-21 12:09",
+  "status": "pending"
+}

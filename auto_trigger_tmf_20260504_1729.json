@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why people obey authority even when they should not \u2014 Milgram",
+  "script": {
+    "title": "Why You Would Flip the Switch Too \u2014 Milgram",
+    "scenes": [
+      {
+        "narration": "In 1961, an ordinary person sat down in a lab and agreed to electrocute a stranger. Not a monster. A neighbor. A teacher. Someone exactly like you.",
+        "image_prompt": "Black and white film noir: a heavy electrical switch mounted on a cracked wall, long shadow cast across the floor, single overhead light"
+      },
+      {
+        "narration": "Stanley Milgram wanted to understand how the Nazis happened. His answer was terrifying \u2014 it was not them. It was everyone. It was obedience.",
+        "image_prompt": "Film noir: rows of empty chairs in a sterile room, harsh fluorescent shadows, authoritative desk at the far end, no people"
+      },
+      {
+        "narration": "Subjects were told to deliver electric shocks every time someone answered wrong. The shocks were not real. The screams were recordings. But the subjects did not know that.",
+        "image_prompt": "Film noir: close-up of hands gripping a control panel dial, knuckles white with tension, deep shadow across the frame"
+      },
+      {
+        "narration": "65 percent of people delivered the maximum shock \u2014 450 volts \u2014 simply because a man in a lab coat said please continue. Authority spoke. The switch was flipped.",
+        "image_prompt": "Film noir: a lone figure at a table, face hidden in shadow, hand resting on a lever, oppressive darkness surrounding"
+      },
+      {
+        "narration": "When participants hesitated, they heard four phrases. Please continue. The experiment requires it. You have no other choice. That last one was a lie \u2014 but it worked.",
+        "image_prompt": "Film noir: a locked door with light bleeding under it, a key hanging just out of reach on a hook, chains on the floor"
+      },
+      {
+        "narration": "Your brain has two systems fighting constantly \u2014 your conscience, and your need to comply with perceived authority. Milgram proved which one usually wins.",
+        "image_prompt": "Film noir: a cracked mirror reflecting two divergent shadowy paths, one lit dimly, one dark, no human forms"
+      },
+      {
+        "narration": "The scariest part? Obedient subjects did not enjoy it. They sweated. They trembled. They kept going anyway. Discomfort does not equal resistance.",
+        "image_prompt": "Film noir: a chair bolted to the floor under a single harsh spotlight, leather straps hanging loose, ominous empty stillness"
+      },
+      {
+        "narration": "Milgram did not discover weakness. He discovered design \u2014 systems built to make obedience the path of least resistance. The question is: who designed yours?",
+        "image_prompt": "Film noir: a long empty hallway receding into darkness, a single open door at the far end letting in a sliver of cold light"
+      }
+    ]
+  },
+  "scheduled_at": "2026-05-04 17:29",
+  "status": "pending"
+}

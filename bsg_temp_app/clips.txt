@@ -1,0 +1,7 @@
+file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_app/scene_00_clip.mp4'
+file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_app/scene_01_clip.mp4'
+file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_app/scene_02_clip.mp4'
+file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_app/scene_03_clip.mp4'
+file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_app/scene_04_clip.mp4'
+file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_app/scene_05_clip.mp4'
+file '/Users/mattwisse/Documents/Claude/Projects/Youtube Channels Project/bsg_temp_app/scene_06_clip.mp4'

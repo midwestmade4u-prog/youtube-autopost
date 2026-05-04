@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why people obey authority even when they should not — Milgram",
+  "script": {
+    "title": "Why 65% Would Obey a Killer's Order",
+    "scenes": [
+      {
+        "narration": "In 1961, a Yale professor proved that sixty-five percent of normal people would torture a stranger to death. Just because a man in a lab coat told them to.",
+        "image_prompt": "Empty wooden chair under a single harsh overhead light bulb, dust particles drifting in the beam, completely dark surrounding room, black and white film noir, heavy shadows, vintage 1960s laboratory atmosphere, no people, no faces"
+      },
+      {
+        "narration": "The setup was simple. You sit at a panel with switches labeled fifteen volts to four-fifty. A stranger answers questions wrong. You deliver the shock.",
+        "image_prompt": "Vintage control panel covered in rows of metal toggle switches, dramatic side lighting casting long shadows, close-up macro shot, scratched metal surface, black and white film noir, 1960s scientific equipment, no people, no faces"
+      },
+      {
+        "narration": "As voltage climbs, you hear screaming. Then pleading. Then silence. The man in the lab coat says one sentence: the experiment requires that you continue.",
+        "image_prompt": "Closed heavy steel door with light leaking through the seams, hand pressed flat against the surface from outside, peeling paint, black and white film noir, deep shadows, claustrophobic angle, no faces"
+      },
+      {
+        "narration": "And you do it. Two-thirds of people pulled the final switch. Not psychopaths. Teachers. Engineers. Fathers. The same people you pass every day at the grocery store.",
+        "image_prompt": "Long row of empty wooden chairs in a dimly lit hall, single light fixture overhead, dramatic chiaroscuro lighting, black and white film noir, vintage atmosphere, dust and decay, no people, no faces"
+      },
+      {
+        "narration": "Milgram discovered something disturbing. When authority is present, your moral compass shuts off. You stop being a person. You become an instrument.",
+        "image_prompt": "Cracked mirror reflecting a fragmented empty hallway, shards scattered on the floor, single bare bulb hanging, black and white film noir, heavy shadows, broken glass, no people, no faces"
+      },
+      {
+        "narration": "It is called the agentic state. Your brain offloads responsibility onto the figure in charge. You are no longer choosing. You are executing.",
+        "image_prompt": "Marionette strings descending from total darkness above, strings tangled and taut, no figure attached, dramatic side lighting, black and white film noir, theatrical staging, no people, no faces"
+      },
+      {
+        "narration": "This is why ordinary people commit atrocities. Soldiers. Bureaucrats. Neighbors. You do not need to be cruel. You only need someone to tell you it is okay.",
+        "image_prompt": "Long stretched shadow of a faceless figure cast across wet cobblestones at night, single street lamp glowing, fog rolling in, black and white film noir, ominous atmosphere, no faces visible"
+      },
+      {
+        "narration": "The uncomfortable truth is that obedience is not a flaw in human nature. It is a feature. And under the right conditions, it can be activated in you too.",
+        "image_prompt": "Single large metal switch in the upright position, heavy iron chains coiled around its base, harsh overhead light, dust in the air, black and white film noir, macro close-up, industrial decay, no people, no faces"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-26 12:00",
+  "status": "pending"
+}

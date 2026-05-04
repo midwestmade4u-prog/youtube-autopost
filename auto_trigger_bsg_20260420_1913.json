@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "David and Goliath",
+  "script": {
+    "title": "David and Goliath \ud83d\udde1\ufe0f | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "Long ago, a giant warrior named Goliath stood tall and loud, scaring the entire army of Israel. No one was brave enough to face him.",
+        "image_prompt": "Colorful storybook illustration of a towering giant warrior Goliath in shiny bronze armor standing in a sunny valley, tiny frightened soldiers in the background, bright cheerful sky, soft watercolor style, family-friendly children's book art"
+      },
+      {
+        "narration": "But a young shepherd boy named David heard the giant's threats. David loved God with his whole heart and knew he was never truly alone.",
+        "image_prompt": "Warm storybook illustration of a kind-faced young shepherd boy David in a simple tunic, holding a wooden staff, surrounded by fluffy white sheep on a green grassy hillside, golden sunlight, cheerful family-friendly children's book style"
+      },
+      {
+        "narration": "David told King Saul he would fight the giant. The king offered heavy armor, but David smiled and said God would be his shield.",
+        "image_prompt": "Cheerful children's book illustration of King Saul on a wooden throne handing oversized gleaming armor to a small smiling boy David, warm tent interior, banners and candlelight, bright storybook colors, family-friendly art"
+      },
+      {
+        "narration": "David walked down to a bubbling stream and picked up five smooth little stones. He tucked them into his pouch and held his trusty sling tight.",
+        "image_prompt": "Bright whimsical illustration of young David kneeling by a sparkling blue stream picking up smooth round stones, lush green grass, sunlight dancing on the water, colorful wildflowers, soft storybook watercolor style"
+      },
+      {
+        "narration": "Goliath laughed when he saw David coming. But David spoke boldly, saying he came in the name of the Lord, the God of heaven's armies.",
+        "image_prompt": "Dramatic but friendly storybook scene of tiny brave David facing the enormous giant Goliath across a sunlit valley, both armies watching from the hills, puffy clouds, bright cheerful colors, kid-friendly illustration style"
+      },
+      {
+        "narration": "David swung his sling round and round, then let a stone fly through the air. It struck the giant, and Goliath tumbled down with a mighty thud.",
+        "image_prompt": "Dynamic children's book illustration of small David swinging a sling over his head with a glowing stone soaring through the blue sky toward the giant, motion lines, sparkles of light, bright uplifting colors, family-friendly style"
+      },
+      {
+        "narration": "The army of Israel cheered with joy. A small shepherd boy had saved them all, and everyone saw how great and powerful God really is.",
+        "image_prompt": "Joyful storybook illustration of Israelite soldiers raising their arms and cheering under bright blue skies, banners waving, young David standing tall in the center, golden sunbeams, warm cheerful children's book art"
+      },
+      {
+        "narration": "You may feel small sometimes, but God makes the brave even braver. Trust him with your whole heart, and he will help you stand tall, too.",
+        "image_prompt": "Heartwarming storybook scene of David standing on a hilltop at sunset with sheep around him, glowing golden sky, a gentle dove flying overhead, peaceful and uplifting mood, soft watercolor children's book style"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-20 19:13",
+  "status": "pending"
+}

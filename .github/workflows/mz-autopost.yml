@@ -7,8 +7,8 @@ on:
   schedule:
     # 9 AM CT  = 14:00 UTC (CDT)
     - cron: '0 14 * * *'
-    # 7 PM CT = 00:00 UTC next day (CDT)  — PHASE 2; leave disabled until Day 15
-    # - cron: '0 0 * * *'
+    # 7 PM CT = 00:00 UTC next day (CDT)  — PHASE 2 enabled May 4 2026
+    - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
       format:
@@ -67,10 +67,9 @@ jobs:
           # TTS voice override (optional)
           MZ_VOICE:         ${{ vars.MZ_VOICE || 'en-US-ChristopherNeural' }}
         run: |
-          # Phase 1: hardcode --format A so cron always picks ONE_BAD_DAY topics
-          # regardless of what time GH Actions actually fires. Remove this line
-          # when graduating to Phase 2 (2/day) and re-enable time-based rotation.
-          ARGS="--format A"
+          # Phase 2: time-based rotation active. Morning (14:00 UTC) = Format A,
+          # Evening (00:00 UTC) = Format B/C alternating. Manual override still works.
+          ARGS=""
           if [ -n "${{ github.event.inputs.format }}" ]; then
             ARGS="--format ${{ github.event.inputs.format }}"
           fi

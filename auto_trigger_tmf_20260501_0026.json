@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why people obey authority even when they should not \u2014 Milgram",
+  "script": {
+    "title": "Why You'd Obey an Order to Hurt Someone",
+    "scenes": [
+      {
+        "narration": "In 1961, an ordinary man sat in a room and pressed a button. He believed it was sending 450 volts into another human being. He did it anyway.",
+        "image_prompt": "Film noir black and white, a heavy industrial electrical switch mounted on a metal panel, dramatic side lighting casting deep shadows, no people"
+      },
+      {
+        "narration": "Stanley Milgram wanted to know one thing \u2014 how far would normal people go if someone in authority told them to keep going?",
+        "image_prompt": "Black and white film noir, a locked door with a single bare bulb overhead, long shadow stretching across a cracked floor, empty corridor"
+      },
+      {
+        "narration": "Sixty-five percent of participants delivered the maximum shock. Not monsters. Teachers. Accountants. Fathers. People exactly like you.",
+        "image_prompt": "Film noir black and white, a row of identical empty chairs facing a wall, harsh overhead lighting, stark and institutional atmosphere"
+      },
+      {
+        "narration": "Each time someone hesitated, the authority figure said four words \u2014 'Please continue. It's required.' That was enough to restart obedience.",
+        "image_prompt": "Black and white film noir, a single chair under a spotlight in an empty room, deep shadows surrounding it, cold and isolating"
+      },
+      {
+        "narration": "The participants weren't passive. They sweated. They trembled. They begged to stop. But the uniform in the room outweighed their own conscience.",
+        "image_prompt": "Film noir black and white, a white lab coat hanging on a hook casting a human-shaped shadow on the wall, eerie and authoritative"
+      },
+      {
+        "narration": "Milgram called it the agentic state \u2014 when you hand your moral judgment to someone above you, you stop feeling responsible for outcomes.",
+        "image_prompt": "Black and white film noir, hands passing a folded piece of paper to another set of hands across a bare desk, close cropped shot, heavy shadow"
+      },
+      {
+        "narration": "This isn't ancient history. It's every whistleblower who stayed silent. Every soldier who followed an illegal order. Every employee who looked away.",
+        "image_prompt": "Film noir black and white, a single unlit candle on a table surrounded by darkness, one window letting in a thin strip of cold light"
+      },
+      {
+        "narration": "The most dangerous thing about authority isn't the person giving orders. It's how easily we stop asking whether we should be following them at all.",
+        "image_prompt": "Black and white film noir, a cracked mirror reflecting a distorted empty room, dramatic chiaroscuro lighting, symbolic and unsettling"
+      }
+    ]
+  },
+  "scheduled_at": "2026-05-01 00:26",
+  "status": "pending"
+}

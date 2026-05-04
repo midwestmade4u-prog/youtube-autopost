@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "The psychology of gaslighting and how to spot it",
+  "script": {
+    "title": "The Dark Art of Gaslighting",
+    "scenes": [
+      {
+        "narration": "Someone can rewrite your reality without you ever noticing. You will doubt your memory, your senses, your sanity. And they will smile while doing it.",
+        "image_prompt": "Black and white film noir, a cracked mirror reflecting a distorted empty room, heavy shadows, high contrast, cinematic"
+      },
+      {
+        "narration": "It starts small. A denied conversation. A misremembered date. They insist you are wrong with such calm certainty that you begin to wonder if you are.",
+        "image_prompt": "Black and white film noir, a single flickering candle casting long shadows on a bare wall, vintage moody atmosphere"
+      },
+      {
+        "narration": "Gaslighters rarely raise their voices. They do not need to. Their weapon is patience. Their ammunition is your trust in yourself.",
+        "image_prompt": "Black and white film noir, an empty chair under a dim hanging bulb in a dark empty room, heavy grain, cinematic"
+      },
+      {
+        "narration": "You start apologizing for things you did not do. You explain yourself constantly. You keep receipts, just to prove you exist.",
+        "image_prompt": "Black and white film noir, scattered torn paper notes on a wooden desk, a broken pen, harsh shadows, vintage"
+      },
+      {
+        "narration": "Research on coercive control shows the goal is never agreement. It is dependence. If they define reality, they define you.",
+        "image_prompt": "Black and white film noir, heavy rusted chains coiled on a stone floor, single beam of light, dramatic high contrast"
+      },
+      {
+        "narration": "Watch their hands, not their words. A gaslighter punishes clarity. The moment you remember accurately, they change the subject or attack your character.",
+        "image_prompt": "Black and white film noir, a gloved hand gripping the edge of a wooden table, shadow looming across the wall, noir lighting"
+      },
+      {
+        "narration": "The way out begins the moment you stop arguing about what happened. You do not need them to agree. You only need to believe yourself.",
+        "image_prompt": "Black and white film noir, a heavy wooden door slightly ajar with light spilling through the crack, fog, cinematic"
+      },
+      {
+        "narration": "If someone must distort you to keep you, they were never keeping you. They were containing you. And you were never the one losing your mind.",
+        "image_prompt": "Black and white film noir, a broken birdcage on an abandoned floor with the door wide open, soft rays of light, dramatic shadows"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-16 19:24",
+  "status": "pending"
+}

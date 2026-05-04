@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why narcissists are so charming at first",
+  "script": {
+    "title": "Why Narcissists Feel Too Good To Be True",
+    "scenes": [
+      {
+        "narration": "The most dangerous people in your life will make you feel like the most important one.",
+        "image_prompt": "A single wilted rose under a harsh spotlight on a velvet pedestal, black and white, film noir shadows, high contrast"
+      },
+      {
+        "narration": "A narcissist doesn't approach you. They study you. They notice what makes you ache, what makes you glow, what makes you feel unseen.",
+        "image_prompt": "An empty vintage armchair facing a cracked mirror in a dim room, pooled lamplight, black and white, film noir"
+      },
+      {
+        "narration": "Then they become it. The perfect listener. The mind reader. The one person who finally gets you. You think you've found a soulmate.",
+        "image_prompt": "A velvet glove resting on a silver platter, dust motes drifting through a beam of light, black and white, chiaroscuro lighting"
+      },
+      {
+        "narration": "This is called idealization. Psychologists describe it as phase one of narcissistic bonding. Love bombing. A flood of attention, praise, and manufactured intimacy.",
+        "image_prompt": "A broken wax seal bleeding onto parchment beside a quill, desaturated black and white, film noir lighting"
+      },
+      {
+        "narration": "The warmth feels real, but it isn't for you. It's the reflection of yourself they've learned to mirror back, your own longing aimed back at you.",
+        "image_prompt": "Two identical porcelain masks facing each other on a dusty table, one hairline cracked, black and white, deep film noir shadows"
+      },
+      {
+        "narration": "That's why the early red flags feel impossible to trust. You aren't falling for a person. You're falling for a performance built around your weak spots.",
+        "image_prompt": "A chess board with one overturned king, a single shadow of a hand reaching across the squares, black and white, dramatic high contrast"
+      },
+      {
+        "narration": "Once you're hooked, the mask slips. The charm cools. The eyes go flat. Suddenly you're chasing a version of them that never actually existed.",
+        "image_prompt": "A crumbling porcelain mask lying on a checkered marble floor, cracks spreading like veins, black and white, dramatic chiaroscuro lighting"
+      },
+      {
+        "narration": "If someone feels too good to be true this fast, they usually are. Real love doesn't need to dazzle you. It just needs to stay.",
+        "image_prompt": "An empty doorway with soft light spilling out into darkness, a single brass key left behind on the floor, black and white, film noir"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-23 12:49",
+  "status": "pending"
+}

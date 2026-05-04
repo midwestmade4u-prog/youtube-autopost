@@ -1,0 +1,51 @@
+{
+  "channel": "tmf",
+  "topic": "Why people obey authority even when they should not \u2014 Milgram",
+  "script": {
+    "title": "Why You'd Follow Orders to Hurt Someone",
+    "scenes": [
+      {
+        "scene": 1,
+        "narration": "In 1961, a mild-mannered Yale professor ran an experiment that shattered everything we believed about human decency. What he found still keeps scientists awake at night.",
+        "image_prompt": "Black and white film noir: a lone empty chair under a single hanging lightbulb in a dark room, long shadows on bare concrete walls"
+      },
+      {
+        "scene": 2,
+        "narration": "Ordinary people \u2014 teachers, clerks, fathers \u2014 were told to administer electric shocks to a stranger. A man in a white coat said: continue. Most of them did.",
+        "image_prompt": "Black and white: a white lab coat hanging on a hook, heavy shadow cast across a blank wall, sterile and cold"
+      },
+      {
+        "scene": 3,
+        "narration": "The shocks weren't real. But the obedience was. Sixty-five percent delivered what they believed was a potentially lethal four-hundred-and-fifty-volt shock. Strangers. Neighbors. You.",
+        "image_prompt": "Black and white film noir: a dial turned to maximum, close-up of a hand hovering over a control panel, deep dramatic shadows"
+      },
+      {
+        "scene": 4,
+        "narration": "Milgram called it the agentic state. When you defer to authority, your sense of personal responsibility doesn't disappear \u2014 it transfers. You become an instrument, not a person.",
+        "image_prompt": "Black and white: heavy iron chains wrapped around an empty chair, shadows pooling on the floor, symbolizing invisible psychological restraint"
+      },
+      {
+        "scene": 5,
+        "narration": "Participants sweated. They trembled. Some laughed nervously. They knew something felt wrong. They pressed the button anyway. The authority voice said it was necessary.",
+        "image_prompt": "Black and white film noir: a single telephone handset lying off the hook on a desk, cord twisted, dim light from a cracked door in background"
+      },
+      {
+        "scene": 6,
+        "narration": "This isn't ancient history. Milgram's setup has been replicated across fifty countries and sixty years. The percentage who comply barely moves. The experiment keeps finding the same person \u2014 us.",
+        "image_prompt": "Black and white: rows of identical empty chairs facing a blank wall, overhead fluorescent light casting harsh shadows, eerily uniform"
+      },
+      {
+        "scene": 7,
+        "narration": "The real horror isn't that evil people do evil things. It's that good people stop asking whether they should \u2014 the moment someone with a title tells them to keep going.",
+        "image_prompt": "Black and white film noir: a cracked mirror reflecting a fragmented silhouette, sharp contrast between light and dark, identity broken"
+      },
+      {
+        "scene": 8,
+        "narration": "Milgram said the most dangerous word in the human language isn't hate. It's 'I was just following orders.' You have heard that sentence before. History is full of it.",
+        "image_prompt": "Black and white: a locked door with a heavy bolt, light seeping under the gap, a single set of keys hanging on a nail just out of reach"
+      }
+    ]
+  },
+  "scheduled_at": "2026-05-01 17:06",
+  "status": "pending"
+}

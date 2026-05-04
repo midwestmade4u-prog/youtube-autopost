@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why good people do terrible things under the right conditions",
+  "script": {
+    "title": "Why Good People Do Terrible Things",
+    "scenes": [
+      {
+        "narration": "The person who would hurt you is not a monster. They probably smile at strangers and mean it. Evil rarely arrives wearing a mask.",
+        "image_prompt": "Black and white film noir, an empty chair facing a single hanging bulb in a dark interrogation room, heavy shadows, high contrast, cinematic grain"
+      },
+      {
+        "narration": "In 1961, Stanley Milgram discovered something unsettling. Two thirds of ordinary people would deliver lethal shocks to a stranger, simply because a man in a lab coat asked them to.",
+        "image_prompt": "Black and white film noir, a vintage electrical switch panel on a wooden wall, dials glowing faintly, thick shadows, dramatic lighting"
+      },
+      {
+        "narration": "They were not sadists. They were mechanics, teachers, accountants. They hesitated. They sweated. And then, most of them, they kept pressing the button.",
+        "image_prompt": "Black and white film noir, a single gloved finger hovering over a large metal button on a dark console, deep shadows, noir lighting"
+      },
+      {
+        "narration": "You like to think you would have refused. Statistically, you would not. What breaks a person is not cruelty. It is the quiet permission of authority.",
+        "image_prompt": "Black and white film noir, an empty military officer cap resting on a polished wooden desk, long shadow stretching across, cinematic"
+      },
+      {
+        "narration": "Researchers call it diffusion of responsibility. When someone above you takes the blame, your conscience goes quiet. The uniform decides. The system decides. You just follow.",
+        "image_prompt": "Black and white film noir, rows of empty chairs lined in a vast dim hall, single beam of light cutting through dust, vintage atmosphere"
+      },
+      {
+        "narration": "This is why regimes do not need many monsters. They need clerks. They need people willing to sign, stamp, and look away. History is built on that silence.",
+        "image_prompt": "Black and white film noir, stacks of old paper files bound in string on a wooden desk, a fountain pen resting beside, harsh window light"
+      },
+      {
+        "narration": "The Stanford prison study showed it takes days, not years. Give someone a role, a uniform, and permission, and watch the person you thought you knew disappear.",
+        "image_prompt": "Black and white film noir, heavy iron bars casting striped shadows across a concrete floor, a discarded whistle on the ground, dramatic contrast"
+      },
+      {
+        "narration": "The real question is not whether good people can do terrible things. They already have. The question is what you would do if no one was watching, and everyone told you it was fine.",
+        "image_prompt": "Black and white film noir, a cracked mirror on a bare wall reflecting only shadow and an empty doorway, heavy grain, cinematic noir"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-17 12:00",
+  "status": "pending"
+}

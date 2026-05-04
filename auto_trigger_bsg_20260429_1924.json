@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "Noah's Ark and the Great Flood",
+  "script": {
+    "title": "Noah's Ark and the Great Flood \ud83c\udf08 | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "Long ago, a kind man named Noah loved God with all his heart. God saw that Noah was good and faithful, and He had a very special plan just for him.",
+        "image_prompt": "Colorful storybook illustration of an elderly man with a long white beard, Noah, kneeling in prayer in a sunny meadow surrounded by gentle animals, warm golden light, cheerful and bright"
+      },
+      {
+        "narration": "God spoke to Noah and said, 'Build a great big boat called an ark!' Noah obeyed right away, swinging his hammer with a smile, day after day.",
+        "image_prompt": "Cheerful storybook illustration of Noah and his family happily building a huge wooden ark, hammers in hand, bright blue sky, colorful and family-friendly"
+      },
+      {
+        "narration": "Then God said, 'Bring two of every animal \u2014 big and small!' So elephants, lions, bunnies, and birds all marched two by two right up the ramp!",
+        "image_prompt": "Bright, colorful storybook illustration of pairs of animals \u2014 elephants, giraffes, lions, bunnies, doves \u2014 happily walking two by two up a wide wooden ramp into the ark, cheerful sunny scene"
+      },
+      {
+        "narration": "The rain began to fall \u2014 drip, drip, drip \u2014 then pour and pour! But inside the ark, Noah's family and all the animals were safe and warm.",
+        "image_prompt": "Cozy storybook illustration showing the inside of the ark with Noah's family and smiling animals snuggled together warmly while rain falls outside the small round window, soft warm colors"
+      },
+      {
+        "narration": "For forty days and forty nights the rain fell. The whole earth was covered in water. But God kept His promise, and the ark floated safely on the waves.",
+        "image_prompt": "Beautiful storybook illustration of a large wooden ark floating peacefully on calm, glittering blue water under stormy clouds with a soft glow of light breaking through, hopeful and serene"
+      },
+      {
+        "narration": "Then the rain stopped! Noah sent out a dove to look for dry land. The little dove came back carrying a green olive branch \u2014 good news at last!",
+        "image_prompt": "Cheerful storybook illustration of a white dove flying back toward the ark carrying a bright green olive branch in its beak, soft blue sky beginning to clear, warm and hopeful colors"
+      },
+      {
+        "narration": "The waters went down and the ark rested on a mountain. Noah and his family stepped out, and all the animals ran, hopped, and flew off into the world!",
+        "image_prompt": "Joyful storybook illustration of Noah's family stepping off the ark onto green land, animals joyfully running and flying in every direction, mountains in the background, bright sunny day"
+      },
+      {
+        "narration": "God put a beautiful rainbow in the sky as His promise \u2014 He would always care for us. Noah thanked God, and his heart was filled with joy and love.",
+        "image_prompt": "Stunning storybook illustration of a huge colorful rainbow arching across a bright blue sky over Noah and his family with arms raised in joy, animals gathered around, lush green meadow, warm golden light"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-29 19:24",
+  "status": "pending"
+}

@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "David and Goliath",
+  "script": {
+    "title": "David and Goliath \u2694\ufe0f | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "Long ago, a giant warrior named Goliath stood tall in the valley. He shouted at the army of Israel, daring anyone to face him in battle.",
+        "image_prompt": "Colorful storybook illustration of a massive armored giant warrior standing in a sunny valley with rolling green hills, shouting boldly, bright cheerful biblical art style for children"
+      },
+      {
+        "narration": "King Saul and his soldiers trembled with fear. Goliath was nine feet tall, covered in heavy armor, and no one was brave enough to fight him.",
+        "image_prompt": "Cheerful biblical storybook illustration of a worried king and soldiers in ancient armor hiding behind tents, watching nervously, warm sunny colors, family friendly children's book style"
+      },
+      {
+        "narration": "A young shepherd boy named David came to bring food to his brothers. He heard the giant's threats and felt his heart fill with courage.",
+        "image_prompt": "Bright colorful storybook illustration of a young shepherd boy with a sling and bag, walking through an army camp with sheep nearby, gentle smile, sunny biblical setting, children's book art"
+      },
+      {
+        "narration": "David told the king, do not be afraid. The Lord has helped me defeat lions and bears. He will help me defeat this giant too.",
+        "image_prompt": "Warm storybook illustration of a brave shepherd boy speaking confidently to a worried king inside a royal tent, golden lamplight, biblical robes, cheerful children's book style"
+      },
+      {
+        "narration": "David walked to a small stream and picked five smooth stones. He held his shepherd's sling and trusted God with all his heart.",
+        "image_prompt": "Colorful storybook illustration of a young boy kneeling by a clear blue stream, picking up smooth stones, sling in hand, sunny day, lush biblical landscape, family friendly art"
+      },
+      {
+        "narration": "The giant laughed when he saw the small boy. But David said, you come with a sword, but I come in the name of the Lord.",
+        "image_prompt": "Bright biblical storybook illustration of a tall giant warrior laughing while a small brave shepherd boy stands tall facing him in a sunny valley, dramatic but cheerful children's art style"
+      },
+      {
+        "narration": "David swung his sling with all his might. A single stone flew through the air and struck Goliath, and the mighty giant fell to the ground.",
+        "image_prompt": "Cheerful storybook illustration of a young boy swinging a sling, a small stone flying through bright blue sky, biblical valley setting, dynamic motion, family friendly children's book art"
+      },
+      {
+        "narration": "The people cheered with joy. David showed that with faith in God, even the smallest and youngest of us can do amazing and brave things.",
+        "image_prompt": "Joyful storybook illustration of cheering soldiers and a young shepherd boy raised in celebration, sunset golden light over biblical hills, warm uplifting colors, family friendly children's book style"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-25 19:00",
+  "status": "pending"
+}

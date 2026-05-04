@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "The Birth of Jesus in Bethlehem",
+  "script": {
+    "title": "The Birth of Jesus in Bethlehem \u2b50 | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "Long ago, in a little town called Nazareth, a kind young woman named Mary heard wonderful news from an angel. God had chosen her to be the mother of a very special baby.",
+        "image_prompt": "Colorful storybook illustration of a gentle young woman named Mary in a simple blue robe, standing in a small village home with golden light streaming through a window, a bright angel with soft wings glowing nearby, warm cheerful family-friendly style"
+      },
+      {
+        "narration": "Mary and her husband Joseph had to travel far away to Bethlehem. Mary rode on a little donkey along the dusty road while stars began to twinkle above them.",
+        "image_prompt": "Bright cheerful storybook illustration of Mary riding a small friendly donkey with Joseph walking beside her, winding dirt road through green hills toward a tiny town on the horizon, sunset sky with early stars, warm family-friendly style"
+      },
+      {
+        "narration": "When they finally arrived, every inn was full. A kind innkeeper offered them a cozy stable with gentle animals, where they could rest for the night.",
+        "image_prompt": "Colorful storybook scene of a wooden stable with a smiling innkeeper holding a lantern, Mary and Joseph stepping inside where friendly cows, sheep, and a donkey wait, soft warm glowing light, cheerful family-friendly illustration"
+      },
+      {
+        "narration": "That holy night, baby Jesus was born. Mary wrapped him in soft cloths and laid him gently in a manger full of fresh hay.",
+        "image_prompt": "Warm storybook illustration of baby Jesus sleeping in a manger filled with golden hay, Mary and Joseph smiling down lovingly, soft glowing halo of light around the baby, gentle cows and sheep nearby, cozy family-friendly style"
+      },
+      {
+        "narration": "On nearby hills, shepherds watched their sheep under the quiet sky. Suddenly an angel appeared, shining like the sun, with joyful news to share.",
+        "image_prompt": "Bright cheerful storybook illustration of shepherds on a grassy hillside at night surrounded by fluffy white sheep, a radiant smiling angel glowing in the sky above them, stars sparkling, warm wonder-filled family-friendly style"
+      },
+      {
+        "narration": "A brilliant star shone over Bethlehem that night. Far away, three wise men saw it and began following the star with precious gifts.",
+        "image_prompt": "Colorful storybook scene of three wise men in royal robes riding camels across a desert at night, a huge bright glowing star shining above Bethlehem in the distance, sparkling starry sky, cheerful family-friendly illustration"
+      },
+      {
+        "narration": "The shepherds hurried to the stable and knelt beside the manger. The wise men brought gifts of gold, frankincense, and myrrh for the newborn king.",
+        "image_prompt": "Warm storybook illustration inside a stable, shepherds kneeling and wise men presenting ornate golden gift boxes to baby Jesus in the manger, Mary and Joseph smiling, soft candlelight, cheerful reverent family-friendly style"
+      },
+      {
+        "narration": "And so, on that starry night in Bethlehem, heaven came down to earth. You are loved by the God who sent his Son to be with us forever.",
+        "image_prompt": "Beautiful cheerful storybook illustration of the stable at night glowing with warm golden light, baby Jesus in the manger, Mary, Joseph, shepherds, wise men, and animals gathered together in peace, big bright star above, sparkling starry sky, family-friendly style"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-18 12:05",
+  "status": "pending"
+}

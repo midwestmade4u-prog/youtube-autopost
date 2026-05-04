@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "David and Goliath",
+  "script": {
+    "title": "David and Goliath \ud83d\udde1\ufe0f | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "Long ago, a giant named Goliath stood tall and shouted at the people of Israel. He was nine feet of armor, sword, and pride. Everyone trembled.",
+        "image_prompt": "Colorful storybook illustration of a huge bronze-armored giant Goliath standing in a sunny valley, towering over scared Israelite soldiers, bright cheerful biblical art, family-friendly, soft watercolor style"
+      },
+      {
+        "narration": "But a young shepherd boy named David was bringing food to his brothers. He was small, kind, and trusted God with his whole heart.",
+        "image_prompt": "Cheerful storybook illustration of a young shepherd boy David in a simple tunic, holding bread and cheese, walking through golden fields with sheep, warm sunlight, biblical times, family-friendly art"
+      },
+      {
+        "narration": "When David heard the giant's threats, he was not afraid. He told King Saul, the same God who saved me from lions will save me today.",
+        "image_prompt": "Bright storybook scene of brave young David speaking to King Saul inside a royal tent, golden lamp light, kind and confident expression, biblical robes, colorful family-friendly illustration"
+      },
+      {
+        "narration": "David refused heavy armor. Instead, he chose five smooth stones from a quiet stream and held tight to his simple shepherd's sling.",
+        "image_prompt": "Beautiful storybook illustration of young David crouching by a sparkling stream, picking up smooth river stones, sling in hand, peaceful sunlit valley, cheerful colors, biblical art"
+      },
+      {
+        "narration": "Goliath laughed at the boy. But David said, you come with a sword, but I come in the name of the Lord, the God of Israel.",
+        "image_prompt": "Storybook scene of small brave David facing the towering giant Goliath in a wide green valley, both armies watching from the hills, dramatic but family-friendly, bright colors"
+      },
+      {
+        "narration": "David ran toward the giant. He swung his sling once, twice, three times. The stone flew straight and true through the morning air.",
+        "image_prompt": "Dynamic storybook illustration of young David running fearlessly forward, sling swinging above his head, motion lines, blue sky and golden valley, cheerful biblical art style"
+      },
+      {
+        "narration": "The stone struck Goliath's forehead, and the great giant fell to the ground. The whole army of Israel cheered with joyful, thankful hearts.",
+        "image_prompt": "Family-friendly storybook scene of the giant Goliath falling backwards in the valley, David standing small but victorious, Israelite soldiers raising hands and cheering, bright sunlight, cheerful art"
+      },
+      {
+        "narration": "Even the smallest hero can do great things when God is with them. You are never too young, too small, or too quiet to be brave.",
+        "image_prompt": "Warm closing storybook illustration of young David standing on a hill at sunset, sheep around him, golden light, peaceful smile, cross-shaped clouds in the sky, biblical, hopeful, family-friendly"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-28 17:27",
+  "status": "pending"
+}

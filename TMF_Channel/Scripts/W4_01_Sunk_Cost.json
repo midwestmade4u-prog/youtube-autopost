@@ -1,0 +1,33 @@
+{
+  "title": "Why You Can't Leave",
+  "scenes": [
+    {
+      "narration": "You've been at the same job for eight years. You hate it. You stay anyway because you've invested so much time. This is the sunk cost fallacy at work.",
+      "image_prompt": "A middle-aged man sitting alone at a corporate desk surrounded by stacked papers and empty coffee cups, staring at his hands, dim fluorescent lighting casting harsh shadows across his exhausted face, black and white film noir, photorealistic, melancholic atmosphere"
+    },
+    {
+      "narration": "Your brain makes a critical error. It treats past investments as reasons to continue, not as information to ignore.",
+      "image_prompt": "close-up of a man's face, half in shadow, dramatic side lighting, furrowed brow showing internal conflict, black and white high contrast, photorealistic, psychological tension visible in expression"
+    },
+    {
+      "narration": "Economists know this is irrational. Money spent is gone. It should never influence your next decision. Yet you stay anyway.",
+      "image_prompt": "A man's hands gripping the edge of a desk, knuckles white, dramatic chiaroscuro lighting, chains visible wrapped around his wrist pulling downward, black and white photorealistic, psychological anguish"
+    },
+    {
+      "narration": "This applies everywhere. Bad relationships. Failed businesses. University degrees you hate. You throw good money after bad.",
+      "image_prompt": "A man standing at a crossroads in an urban street at night, looking back at a collapsing building, uncertainty visible in his posture, moody dusk lighting, black and white cinematic, photorealistic depth"
+    },
+    {
+      "narration": "The research is consistent. People hold onto failing investments twice as long as rational logic would allow.",
+      "image_prompt": "A woman's face reflected in a broken mirror, distorted reflection showing two versions of herself, dark background, dramatic lighting, black and white photorealistic, unsettling psychological imagery"
+    },
+    {
+      "narration": "The cost wasn't sunken when you paid it. It was sunken the moment you committed. Every day after is a choice.",
+      "image_prompt": "A close-up of a person's hand slowly opening, releasing something into darkness, dramatic backlighting creating silhouette effect, fine detail of fingers, black and white photorealistic, introspective mood"
+    },
+    {
+      "narration": "You're not staying because it was worth it. You're staying because you can't admit it wasn't.",
+      "image_prompt": "A man staring at his reflection in a window, expression showing denial and resignation, cold institutional lighting, black and white high contrast, photorealistic detail, vertical composition showing internal conflict"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "Jonah and the Whale",
+  "script": {
+    "title": "Jonah and the Whale \ud83d\udc0b | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "Long ago, God asked a man named Jonah to go to the big city of Nineveh and share a special message of love and warning.",
+        "image_prompt": "Colorful storybook illustration of Jonah, a kind bearded man in a flowing robe, standing on a sunlit hillside with a large glowing city in the distance, bright cheerful sky, soft watercolor style, family-friendly"
+      },
+      {
+        "narration": "But Jonah felt afraid and tried to run away from God. He got on a ship sailing far in the opposite direction across the deep blue sea.",
+        "image_prompt": "Cheerful children's book illustration of Jonah boarding a wooden sailing ship at a bright seaside harbor, seagulls flying, blue waves, warm golden sunlight, soft colors, family-friendly storybook style"
+      },
+      {
+        "narration": "Soon a mighty storm rolled in, tossing the ship like a toy. The sailors were frightened, and Jonah knew the storm was because he ran from God.",
+        "image_prompt": "Dramatic but kid-friendly illustration of a wooden ship on giant rolling waves, big puffy storm clouds, lightning flickering softly, sailors holding onto ropes, bright storybook colors, wonder-filled mood"
+      },
+      {
+        "narration": "Jonah told them to toss him into the sea so the storm would stop. The sailors gently lowered him into the waves, and the wind grew calm again.",
+        "image_prompt": "Warm storybook illustration of Jonah being lowered into the ocean by caring sailors, calming waves around him, soft sunbeams breaking through the clouds, peaceful atmosphere, gentle colors, family-friendly"
+      },
+      {
+        "narration": "Suddenly, a giant whale swam up from the deep and gently swallowed Jonah whole. Inside the whale, Jonah was safe, and he began to pray.",
+        "image_prompt": "Whimsical children's illustration of an enormous friendly blue whale opening its mouth in the ocean with Jonah inside, glowing light, tiny sea stars, bubbles, bright storybook colors, wonder and awe"
+      },
+      {
+        "narration": "For three whole days, Jonah prayed and thanked God. He told God he was sorry and promised to listen and obey with his whole heart.",
+        "image_prompt": "Cozy storybook illustration of Jonah kneeling inside the warm glowing belly of the whale, softly lit by a heavenly light, hands folded in prayer, peaceful expression, magical bioluminescent glow, gentle colors"
+      },
+      {
+        "narration": "Then the whale swam to shore and carefully placed Jonah on the sandy beach. Jonah was amazed by God's kindness and second chances.",
+        "image_prompt": "Joyful storybook scene of a friendly giant whale gently resting Jonah on a sunny sandy beach, seashells and palm trees, bright blue sky, warm golden light, cheerful children's book illustration style"
+      },
+      {
+        "narration": "Jonah ran to Nineveh and shared God's message. The whole city listened and turned their hearts to God. You can always trust God's plan, too.",
+        "image_prompt": "Vibrant storybook illustration of Jonah preaching in a bustling ancient city of Nineveh, smiling families listening, golden sunshine, colorful tents and buildings, doves flying overhead, warm and uplifting family-friendly style"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-20 12:36",
+  "status": "pending"
+}

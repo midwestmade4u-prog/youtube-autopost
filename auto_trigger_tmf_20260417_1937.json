@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "The Stanford Prison Experiment and the psychology of power",
+  "script": {
+    "title": "The Experiment That Proved Power Corrupts Anyone",
+    "scenes": [
+      {
+        "narration": "In 1971, ordinary college students were handed absolute power over other students. Within six days, the experiment had to be shut down. What happened next says something dark about you.",
+        "image_prompt": "Empty prison corridor in black and white film noir style, harsh shadows falling through iron bars, single overhead light swinging, cinematic high contrast, no people"
+      },
+      {
+        "narration": "The psychologist Philip Zimbardo assigned them roles at random. Half became guards. Half became prisoners. Nothing else was changed. The outcome was not supposed to matter.",
+        "image_prompt": "Two identical uniforms hanging on hooks in black and white, one dark and one light, film noir lighting, shadows creeping across concrete wall, no people"
+      },
+      {
+        "narration": "Within forty-eight hours, the guards began humiliating the prisoners. They stripped them, isolated them, invented punishments. No one told them to be cruel. The uniform was enough.",
+        "image_prompt": "A wooden baton resting on a metal desk in black and white film noir, harsh shadows, dust particles in a single beam of light, no people"
+      },
+      {
+        "narration": "The prisoners broke down faster. One had a breakdown within thirty-six hours. Others became silent, obedient, hollow. They forgot they could simply walk out the door.",
+        "image_prompt": "An empty chair in the center of a dim cell, black and white film noir, light bleeding through barred window, heavy shadows, no people"
+      },
+      {
+        "narration": "This was not a study about bad people. Every participant had been screened as psychologically healthy. The role itself rewrote who they were.",
+        "image_prompt": "A cracked mirror on a concrete wall in black and white film noir, reflecting only darkness, deep shadows, cinematic contrast, no people"
+      },
+      {
+        "narration": "Zimbardo himself got lost in it. He played the prison warden and stopped seeing the harm. It took an outside observer to remind him these were human beings.",
+        "image_prompt": "A clipboard abandoned on a concrete floor in black and white film noir, long shadows stretching across the frame, single bare bulb above, no people"
+      },
+      {
+        "narration": "The lesson most people miss is not that power corrupts. It is that identity is thinner than you think. A uniform, a title, a crowd, and you become someone else.",
+        "image_prompt": "A uniform jacket hanging on a lone chair in black and white film noir, dramatic shadow on concrete wall, atmospheric lighting, no people"
+      },
+      {
+        "narration": "You like to believe you would have been the one to speak up. Statistically, you would not. The most uncomfortable truth is that almost no one does.",
+        "image_prompt": "A heavy steel door standing slightly open in black and white film noir, darkness beyond, long shadow cast toward the viewer, no people"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-17 19:37",
+  "status": "pending"
+}

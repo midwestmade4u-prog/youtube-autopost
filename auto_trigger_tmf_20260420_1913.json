@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why narcissists are so charming at first",
+  "script": {
+    "title": "Why Narcissists Charm You Before They Destroy You",
+    "scenes": [
+      {
+        "narration": "The most charming person you've ever met was probably scanning you for weakness.",
+        "image_prompt": "A cracked ornate mirror reflecting only shadow, heavy velvet drapes, single dim spotlight, black and white film noir, high contrast, no people, no faces"
+      },
+      {
+        "narration": "Narcissists aren't warm. They're studying you. Your compliments. Your wounds. Your desperate need to feel special. They take notes while you talk.",
+        "image_prompt": "An open leather journal on a mahogany desk, fountain pen poised above blank page, single overhead spotlight, black and white film noir, no people, no faces"
+      },
+      {
+        "narration": "Within minutes they mirror you. Same opinions. Same taste. Same childhood pain. You feel finally seen. It's a performance.",
+        "image_prompt": "A still dark pool of water reflecting only blackness, dripping ripples, empty stone walls, black and white film noir, no people, no faces"
+      },
+      {
+        "narration": "Psychologists call this love bombing. Overwhelming early affection floods your brain with dopamine. You mistake intensity for intimacy. You mistake obsession for love.",
+        "image_prompt": "Crumbling rose petals scattered across an empty candlelit dinner table, two untouched wine glasses, black and white film noir, no people, no faces"
+      },
+      {
+        "narration": "Then comes the test. A small cruelty. A subtle insult. They watch how you react. If you forgive too fast, they know you'll forgive everything later.",
+        "image_prompt": "A single black chess piece being pushed across a marble board by a long shadow, tense close-up, black and white film noir, no people, no faces"
+      },
+      {
+        "narration": "The charm was never about you. It was about access. Your trust. Your time. Your money. Your self-image. Narcissists don't fall in love. They acquire.",
+        "image_prompt": "An empty gilded theater mask resting on a velvet pedestal, dust motes in a narrow beam of light, black and white film noir, no people, no faces"
+      },
+      {
+        "narration": "By the time you see it, the mask is already off. And the person who adored you last month looks at you like a stranger.",
+        "image_prompt": "A heavy wooden door slowly closing, a thin sliver of cold light disappearing through the crack, black and white film noir, no people, no faces"
+      },
+      {
+        "narration": "The next time someone feels too perfect too fast, ask yourself one question. Are they seeing you? Or are they studying you?",
+        "image_prompt": "A solitary hand-shaped void reaching toward a fogged mirror showing no reflection, dim lamp, black and white film noir, no people, no faces"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-20 19:13",
+  "status": "pending"
+}

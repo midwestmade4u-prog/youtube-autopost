@@ -1,0 +1,37 @@
+{
+  "title": "The Obedience Experiment",
+  "scenes": [
+    {
+      "narration": "In 1961, Yale psychologist Stanley Milgram ran an experiment. Ordinary people administered electric shocks to strangers on command. This is what he discovered about you.",
+      "image_prompt": "A man's hands hovering over a control panel with switches and dials, each switch more menacing than the last, fingers trembling, cold institutional lighting, black and white photorealistic equipment detail, tension and dread palpable"
+    },
+    {
+      "narration": "The person wasn't actually shocked. But the test subject didn't know that. They heard screams. Begging. Pleading to stop. And most people kept going.",
+      "image_prompt": "A person behind glass recoiling in pain, face twisted in anguish, electrode visible on neck, observer's hand visible on controls outside the glass, separated by barrier, black and white photorealistic suffering, psychological separation"
+    },
+    {
+      "narration": "Sixty-five percent of participants delivered the maximum voltage. They weren't sadists. They weren't broken. They were just being told to continue by someone in a lab coat.",
+      "image_prompt": "A stern-faced scientist or authority figure in white coat pointing a finger giving orders, participant's face visible showing moral conflict and doubt, authority figure looming close, black and white photorealistic power dynamic, institutional setting"
+    },
+    {
+      "narration": "Here's what's unsettling. When the authority figure left the room, compliance dropped dramatically. The evil wasn't inside them. It was transferred from a uniform.",
+      "image_prompt": "An empty chair where authority figure once stood, participant's hand trembling on the controls, sudden freedom and confusion visible in their expression, empty chair creating psychological void, black and white photorealistic doubt"
+    },
+    {
+      "narration": "Your brain contains two voices. One that knows right from wrong. One that obeys. The second one is older and stronger.",
+      "image_prompt": "A close-up of a person's face split down the middle, two different expressions on each half, one side showing moral clarity one side showing obedience, dramatic split lighting, black and white photorealistic, internal psychological war"
+    },
+    {
+      "narration": "Milgram ran this in multiple countries, with different populations. The results were consistent. You will hurt someone if a person with authority tells you to.",
+      "image_prompt": "Multiple hands from different people on different control panels visible in frame, each switching dials to maximum voltage, montage effect suggesting repeated obedience, black and white photorealistic, disturbing parallelism and scale"
+    },
+    {
+      "narration": "This wasn't unique to Nazis. This wasn't unique to evil regimes. This is how ordinary people who love their families and believe in kindness become participants.",
+      "image_prompt": "A family photo visible in the background, showing warmth and kindness, while in the foreground a hand operates torture controls, black and white photorealistic, tragic irony in contrast, unsettling juxtaposition of innocence and cruelty"
+    },
+    {
+      "narration": "The person giving orders didn't need a gun. They just needed a title.",
+      "image_prompt": "close-up of a name tag on a lab coat reflecting light, power emanating from the label itself, blurred face of the wearer visible behind it, dark background, black and white photorealistic symbol of authority, vertical emphasis on the label"
+    }
+  ]
+}

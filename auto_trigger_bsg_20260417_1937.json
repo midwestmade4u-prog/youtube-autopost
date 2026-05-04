@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "Moses parts the Red Sea",
+  "script": {
+    "title": "Moses Parts the Red Sea \ud83c\udf0a | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "Long ago in Egypt, God's people were slaves. They cried out for help, and God heard them. He chose a man named Moses to lead them to freedom.",
+        "image_prompt": "Colorful storybook illustration of Moses standing tall with a wooden staff, wearing simple robes, bright desert sunrise behind him, cheerful children's book style, warm vibrant colors"
+      },
+      {
+        "narration": "Moses went to Pharaoh and said, 'Let my people go!' Pharaoh refused again and again. So God sent ten powerful plagues across the land of Egypt.",
+        "image_prompt": "Colorful storybook illustration of Moses in bright robes speaking boldly before Pharaoh on a golden throne, Egyptian palace with pillars, family-friendly cartoon style, warm cheerful colors"
+      },
+      {
+        "narration": "At last, Pharaoh let the people go. Moses led thousands of Israelites out of Egypt, following God's cloud by day and fire by night.",
+        "image_prompt": "Colorful storybook illustration of a joyful crowd of Israelites walking through the desert with sheep and donkeys, a glowing cloud above them, cheerful children's book style, bright sunny colors"
+      },
+      {
+        "narration": "But Pharaoh changed his mind! He sent his chariots and soldiers chasing after them. The people were trapped with the giant Red Sea in front of them.",
+        "image_prompt": "Colorful storybook illustration of Israelites looking worried at the edge of a vast blue sea, Egyptian chariots with horses rushing in the background, dramatic but family-friendly cartoon style"
+      },
+      {
+        "narration": "The people were afraid and cried out. Moses said, 'Do not fear! Stand still and see what God will do today.' Then Moses raised his staff high.",
+        "image_prompt": "Colorful storybook illustration of Moses standing brave with arms raised and staff lifted toward the sky, worried children and families behind him, warm storybook style, bright hopeful colors"
+      },
+      {
+        "narration": "A mighty wind blew all night long. The water split in two! A dry path opened up right through the middle of the sea, with walls of water on each side.",
+        "image_prompt": "Colorful storybook illustration of a magical dry path splitting through blue sea walls, fish swimming in the water walls, glowing starry night sky, wondrous family-friendly cartoon style"
+      },
+      {
+        "narration": "The Israelites hurried across the sea on dry ground. When Pharaoh's army followed, the walls of water came crashing down, and God's people were saved.",
+        "image_prompt": "Colorful storybook illustration of Israelites safely reaching the far shore, waving and cheering, water walls crashing down behind them, bright sunny sky, cheerful children's book style"
+      },
+      {
+        "narration": "Moses and the people sang a song of thanks to God. He had made a way where there was no way. Remember, you can trust God, for He parts the seas for His children.",
+        "image_prompt": "Colorful storybook illustration of Moses and children dancing and singing on the seashore with tambourines, bright rainbow overhead, joyful family-friendly cartoon style, warm glowing colors"
+      }
+    ]
+  },
+  "scheduled_at": "2026-04-17 19:37",
+  "status": "pending"
+}
