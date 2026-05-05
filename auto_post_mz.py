@@ -223,6 +223,41 @@ def _save_log(log: dict) -> None:
     LOG_FILE.write_text(json.dumps(log, indent=2))
 
 
+def append_to_google_sheets(title: str, url: str, format_tag: str) -> None:
+    """Append posted MZ video to Google Sheets Auto-Post Log (GitHub Actions only)."""
+    if not os.environ.get("GITHUB_ACTIONS"):
+        return
+    try:
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+    except ImportError:
+        print("⚠️  Google API libraries not available for Sheets logging")
+        return
+    try:
+        creds_json = os.environ.get("GOOGLE_SHEETS_KEY")
+        if not creds_json:
+            print("  ❌ GOOGLE_SHEETS_KEY not set — skipping Sheets log")
+            return
+        creds = service_account.Credentials.from_service_account_info(
+            json.loads(creds_json),
+            scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        )
+        service = build("sheets", "v4", credentials=creds)
+        timestamp = datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d %H:%M:%S")
+        row = [timestamp, "Minute Zero", title, "Success", url, ""]
+        service.spreadsheets().values().append(
+            spreadsheetId="1JKlBnYdv-_r3FcjozBtpRxLNRiAoA1ezLRz2W-7vVWI",
+            range="Auto-Post Log!A:G",
+            valueInputOption="USER_ENTERED",
+            body={"values": [row]}
+        ).execute()
+        print(f"  📊 Logged to Google Sheets: Minute Zero — {title}")
+    except Exception as e:
+        print(f"  ⚠️  Sheets logging failed: {str(e)[:100]}")
+
+
 def mark_mz_posted(topic: str, title: str, video_url: str, format_tag: str) -> None:
     log = _load_log()
     log.setdefault("mz_topics_used", []).append(topic)
@@ -461,6 +496,7 @@ def main() -> int:
 
     # 5. Log
     mark_mz_posted(topic, script_data["title"], video_url, format_tag)
+    append_to_google_sheets(script_data["title"], video_url, format_tag)
 
     # 6. Trigger file for traceability (matches TMF/BSG pattern)
     trigger_path = BASE_DIR / f"auto_trigger_mz_{time.strftime('%Y%m%d_%H%M')}.json"
