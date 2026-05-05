@@ -58,8 +58,8 @@ jobs:
         # Per project_sheets_logging_fixed memory: GH secrets MUST be exposed as
         # env here. Do not assume auto-injection.
         env:
-          # Script generation — default to OpenAI; flip MZ_MODEL_BACKEND to use Claude.
-          MZ_MODEL_BACKEND: ${{ vars.MZ_MODEL_BACKEND || 'openai' }}
+          # Script generation — switched to Claude (Anthropic) May 5 2026 to avoid OpenAI quota issues.
+          MZ_MODEL_BACKEND: anthropic
           OPENAI_API_KEY:   ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # Pexels footage sourcing (v3 pipeline requirement)

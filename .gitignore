@@ -32,6 +32,9 @@ bsg_temp_*/
 tmf_temp_*/
 mz_temp_*/
 
+# Local asset folders (branding images, AI headshots, etc.)
+SKOOL AI Head Shots/
+
 # Local voice files
 bsg_voices/
 tmf_voices/
