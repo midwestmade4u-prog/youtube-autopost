@@ -1,0 +1,43 @@
+{
+  "channel": "tmf",
+  "topic": "Why people obey authority even when they should not \u2014 Milgram",
+  "script": {
+    "title": "Why You'd Obey an Order You Know Is Wrong",
+    "scenes": [
+      {
+        "narration": "In 1961, Stanley Milgram proved something terrifying. Ordinary people would administer what they believed were fatal electric shocks \u2014 simply because someone in a lab coat told them to.",
+        "image_prompt": "Black and white film noir: a heavy metal switch panel with large lever, dramatic shadows cast across a concrete wall, ominous institutional setting"
+      },
+      {
+        "narration": "Sixty-five percent of participants went all the way to 450 volts. Not monsters. Not sociopaths. Teachers, accountants, everyday people \u2014 just like you.",
+        "image_prompt": "Black and white film noir: a dial turned to maximum, framed by deep shadows, a single harsh overhead light illuminating cracked institutional tiles"
+      },
+      {
+        "narration": "The authority figure never touched anyone. He just wore a lab coat and said four words: 'Please continue the experiment.' That was enough.",
+        "image_prompt": "Black and white film noir: an empty authoritative chair behind a stark desk, a white coat hanging on a hook casting a long shadow across the floor"
+      },
+      {
+        "narration": "When participants hesitated, they felt something Milgram called the 'agentic state' \u2014 a mental shift where you stop seeing yourself as responsible. You become an instrument of someone else's will.",
+        "image_prompt": "Black and white film noir: a pair of hands gripping a table edge tightly, knuckles white, chains hanging loosely from wrists in dim light"
+      },
+      {
+        "narration": "This is how atrocities happen. Not through armies of willing killers \u2014 but through ordinary people who outsource their conscience to whoever holds the title.",
+        "image_prompt": "Black and white film noir: a long corridor of locked doors stretching into darkness, one bare bulb hanging at the far end, deep shadows swallowing the walls"
+      },
+      {
+        "narration": "Milgram found that proximity mattered. When participants could see their victim \u2014 compliance dropped sharply. Distance makes cruelty easier. Always has.",
+        "image_prompt": "Black and white film noir: a cracked mirror reflecting a distorted empty room, shards catching sparse light, the reflection showing only absence"
+      },
+      {
+        "narration": "The question isn't whether you would obey. Research says most people would. The question is: what conditions have already made you someone else's instrument \u2014 without you realizing it?",
+        "image_prompt": "Black and white film noir: a marionette string casting a sharp shadow across a blank wall, the puppet absent \u2014 only the controlling wire remains"
+      },
+      {
+        "narration": "Milgram didn't study monsters. He studied how normal minds surrender moral agency. His conclusion: the capacity for harm isn't rare. The conditions for it are everywhere.",
+        "image_prompt": "Black and white film noir: an empty institutional chair under a single spotlight, surrounded by absolute darkness, a single nameplate face-down on the floor"
+      }
+    ]
+  },
+  "scheduled_at": "2026-05-05 18:52",
+  "status": "pending"
+}

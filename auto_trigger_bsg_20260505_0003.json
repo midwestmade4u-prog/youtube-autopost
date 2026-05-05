@@ -1,0 +1,43 @@
+{
+  "channel": "bsg",
+  "topic": "Noah's Ark and the Great Flood",
+  "script": {
+    "title": "Noah's Ark and the Great Flood \ud83c\udf08 | Bible Story for Kids",
+    "scenes": [
+      {
+        "narration": "Long ago, God looked at the world He made and felt sad. People had forgotten to be kind and good. But there was one man who loved God with his whole heart \u2014 his name was Noah.",
+        "image_prompt": "Colorful storybook illustration of a kind bearded man Noah standing in a sunny green field, arms raised to the sky, warm smile, bright cheerful colors, family-friendly biblical style"
+      },
+      {
+        "narration": "God spoke to Noah and said, 'Build a great big boat called an ark! Make it tall and strong. I will send rain to cover the earth, but I will keep you and your family safe.'",
+        "image_prompt": "Storybook illustration of God speaking to Noah from golden glowing clouds above, Noah listening reverently, lush green hills in background, bright warm colors, children's Bible art style"
+      },
+      {
+        "narration": "Noah and his sons worked and worked, hammering and sawing. Day after day they built the enormous wooden ark, just as God had told them. The whole town watched in amazement!",
+        "image_prompt": "Cheerful storybook illustration of Noah and his three sons building a giant wooden ark together, tools in hand, smiling, sunny day, colorful and detailed, family-friendly biblical art"
+      },
+      {
+        "narration": "Then something wonderful happened! Two of every animal on earth began walking toward the ark \u2014 elephants, giraffes, lions, butterflies, and tiny little beetles. God sent them all!",
+        "image_prompt": "Bright colorful storybook illustration of pairs of animals marching happily toward Noah's ark \u2014 elephants, giraffes, lions, birds, rabbits \u2014 cheerful and whimsical, children's Bible style"
+      },
+      {
+        "narration": "Noah, his wife, his sons, and their families climbed aboard. Then God closed the door. And soon the rain began to fall \u2014 first a little, then more and more and more!",
+        "image_prompt": "Storybook illustration of Noah's family boarding the large wooden ark, animals all around, dark clouds gathering with first raindrops falling, warm and safe lighting inside ark doorway, children's Bible art"
+      },
+      {
+        "narration": "It rained for forty days and forty nights! Water covered the mountains. But inside the ark, Noah's family and all the animals were warm, safe, and dry. God was watching over them.",
+        "image_prompt": "Colorful storybook illustration of Noah's ark floating safely on calm blue floodwaters under dramatic clouds, cozy warm light in ark windows, cheerful animals peeking out, children's Bible style"
+      },
+      {
+        "narration": "At last the rain stopped. Noah sent out a dove. The little bird came back carrying a fresh green olive branch \u2014 a sign the waters were going down and dry land had appeared!",
+        "image_prompt": "Bright storybook illustration of a white dove flying toward Noah's outstretched hand with a green olive branch in its beak, sunlight breaking through clouds above the ark, beautiful and hopeful, children's Bible art"
+      },
+      {
+        "narration": "The ark rested on a mountain. Noah's family stepped onto dry ground and thanked God. Then God painted a beautiful rainbow in the sky \u2014 His promise to love and protect us forever!",
+        "image_prompt": "Joyful storybook illustration of Noah's family and animals stepping off the ark onto green land, a brilliant rainbow arching across the bright blue sky above, everyone looking up with wonder and joy, children's Bible style"
+      }
+    ]
+  },
+  "scheduled_at": "2026-05-05 00:03",
+  "status": "pending"
+}

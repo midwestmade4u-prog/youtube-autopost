@@ -1,0 +1,51 @@
+{
+  "channel": "tmf",
+  "topic": "Why people obey authority even when they should not \u2014 Milgram",
+  "script": {
+    "title": "Why You'd Obey Orders That Kill",
+    "scenes": [
+      {
+        "scene": 1,
+        "narration": "In 1961, a Yale psychologist ran an experiment that revealed something terrifying about ordinary people. The results shook the entire scientific world.",
+        "image_prompt": "Black and white film noir style, an empty clinical room with a single metal chair under a harsh overhead light, long shadows on bare concrete floor, ominous atmosphere"
+      },
+      {
+        "scene": 2,
+        "narration": "Stanley Milgram wanted to understand how Nazi soldiers followed orders. What he discovered had nothing to do with Germany \u2014 and everything to do with you.",
+        "image_prompt": "Black and white film noir, a hand gripping a thick stack of official documents stamped with bold authority seals, shadows obscuring the hand's identity"
+      },
+      {
+        "scene": 3,
+        "narration": "Volunteers were told to deliver electric shocks to strangers. Each wrong answer meant a higher voltage. Most assumed they would stop. They were wrong.",
+        "image_prompt": "Film noir black and white, a close-up of a hand hovering over a row of numbered switches, knuckles tense, deep shadows cast across the panel"
+      },
+      {
+        "scene": 4,
+        "narration": "When the 'subject' screamed in pain and begged to stop, participants hesitated \u2014 but sixty-five percent kept going. All the way to the maximum voltage.",
+        "image_prompt": "Black and white, a locked heavy door with light seeping beneath it, a silhouette of a figure pressed against the outside, chains coiled on the floor beside it"
+      },
+      {
+        "scene": 5,
+        "narration": "They were not monsters. They were teachers, accountants, ordinary people. What broke their moral compass was one simple thing: an authority figure saying 'please continue.'",
+        "image_prompt": "Film noir black and white, a cracked mirror reflecting a fragmented face distorted into multiple warped images, harsh overhead spotlight, deep shadow surroundings"
+      },
+      {
+        "scene": 6,
+        "narration": "Milgram called this the 'agentic state' \u2014 the moment your brain shifts from independent agent to obedient instrument. You stop owning your actions. Someone else does.",
+        "image_prompt": "Black and white noir, a marionette puppet hanging limp from tangled strings in an empty dark room, strings extending upward into impenetrable darkness"
+      },
+      {
+        "scene": 7,
+        "narration": "This same psychological switch explains corporate fraud, military atrocities, and abuse inside institutions. Ordinary people. Legitimate authority. Catastrophic outcomes.",
+        "image_prompt": "Film noir black and white, a long empty corridor with identical closed doors on both sides receding into darkness, a single overhead bulb casting a narrow cone of light"
+      },
+      {
+        "scene": 8,
+        "narration": "The most dangerous belief you carry is that you would have refused. Milgram's data says otherwise. The question isn't whether you can be manipulated \u2014 it's whether you know when it's happening.",
+        "image_prompt": "Black and white film noir, a single empty chair in a vast dark void, a faint shadow of a figure cast on the floor in front of it with no visible source, deeply unsettling"
+      }
+    ]
+  },
+  "scheduled_at": "2026-05-05 00:10",
+  "status": "pending"
+}

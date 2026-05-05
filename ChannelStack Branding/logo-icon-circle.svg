@@ -1,0 +1,13 @@
+<svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Circle variant — for social profile pics -->
+  <rect width="52" height="52" rx="26" fill="#00C9FF"/>
+  <!-- Stack bars - C portion -->
+  <rect x="9" y="9" width="20" height="5" rx="1.5" fill="#0D1117"/>
+  <rect x="9" y="17" width="14" height="5" rx="1.5" fill="#0D1117"/>
+  <rect x="9" y="25" width="20" height="5" rx="1.5" fill="#0D1117"/>
+  <rect x="9" y="38" width="34" height="5" rx="1.5" fill="#0D1117"/>
+  <!-- Stack bars - S portion (lighter) -->
+  <rect x="25" y="9" width="18" height="5" rx="1.5" fill="#0D1117" opacity="0.35"/>
+  <rect x="25" y="17" width="18" height="5" rx="1.5" fill="#0D1117" opacity="0.35"/>
+  <rect x="25" y="25" width="18" height="5" rx="1.5" fill="#0D1117" opacity="0.35"/>
+</svg>
