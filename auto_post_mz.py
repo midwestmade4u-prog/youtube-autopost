@@ -272,6 +272,42 @@ def mark_mz_posted(topic: str, title: str, video_url: str, format_tag: str) -> N
     _save_log(log)
 
 
+# ─── MZ Script validators ────────────────────────────────────────────────────
+
+# edge-tts ChristopherNeural speaks at ~2.5 words/sec.
+# Calibrated May 6 2026 from Washington Mutual video (106w → 54.5s = 1.95 wps observed,
+# but script was underfilled; 2.5 wps is the correct target for a properly-filled script).
+MZ_WORD_TARGETS = {
+    "one_bad_day":     (140, 165),   # Format A: target 55–65s
+    "unknown_failure": (180, 215),   # Format B: target 72–82s
+    "near_death":      (180, 215),   # Format C: target 72–82s
+}
+
+def mz_script_word_count_ok(script: dict, format_tag: str) -> tuple[bool, int, tuple[int, int]]:
+    """Check narration word count is in the edge-tts target band for this format.
+
+    MZ uses a flat 'script' string field (not scenes like TMF).
+    Returns (ok, actual_count, (min, max)).
+    """
+    narration = (script.get("script") or "").strip()
+    total = len(narration.split())
+    lo, hi = MZ_WORD_TARGETS.get(format_tag, (140, 215))
+    return (lo <= total <= hi), total, (lo, hi)
+
+
+def mz_title_ok(title: str) -> tuple[bool, str]:
+    """Basic MZ title guardrails — not as strict as TMF but catches obvious failures."""
+    t = (title or "").strip()
+    if len(t) < 10:
+        return False, "title too short"
+    if len(t) > 70:
+        return False, f"title too long ({len(t)} chars — keep under 70)"
+    if t.lower().startswith("the night") or t.lower().startswith("the day"):
+        # Allow these — common MZ pattern e.g. "The Night Washington Mutual Vanished"
+        pass
+    return True, ""
+
+
 # ─── Script generation (v3 prompt → JSON) ────────────────────────────────────
 
 def load_system_prompt() -> str:
@@ -344,44 +380,84 @@ def _parse_llm_content(content: str) -> dict:
 
 
 def generate_script(topic: str, format_tag: str) -> dict:
-    """Call the LLM backend with v3 prompt + tagged topic, return parsed JSON.
+    """Call the LLM backend with v3 prompt + tagged topic, return validated JSON.
 
     Primary backend: OpenAI (proven, paid, reliable).
     Fallback backend: Anthropic (used if OpenAI fails for any reason).
     MZ_MODEL_BACKEND env var can force a specific backend, but fallback still applies.
+
+    Validator: up to 3 attempts. Rejects scripts where narration word count falls
+    outside the edge-tts target band for the given format.
     """
     system = load_system_prompt()
-    user = f"[{format_tag.upper()}] {topic}"
+    user_base = f"[{format_tag.upper()}] {topic}"
 
     # Determine call order based on MODEL_BACKEND setting
     if MODEL_BACKEND == "anthropic":
         primary_fn,  primary_name  = _call_anthropic, "anthropic"
         fallback_fn, fallback_name = _call_openai,    "openai"
     else:
-        # Default: openai primary, anthropic fallback
         primary_fn,  primary_name  = _call_openai,    "openai"
         fallback_fn, fallback_name = _call_anthropic,  "anthropic"
 
-    # Try primary
-    try:
-        print(f"  🤖 Using {primary_name} backend ...")
-        content = primary_fn(system, user)
-        return _parse_llm_content(content)
-    except Exception as e:
-        print(f"  ⚠️  {primary_name} failed: {str(e)[:120]}")
-        print(f"  🔄 Falling back to {fallback_name} ...")
+    def _call_with_fallback(system_prompt: str, user_msg: str) -> dict:
+        """Try primary backend, fall back to secondary on any error."""
+        try:
+            print(f"  🤖 Using {primary_name} backend ...")
+            content = primary_fn(system_prompt, user_msg)
+            return _parse_llm_content(content)
+        except Exception as e:
+            print(f"  ⚠️  {primary_name} failed: {str(e)[:120]}")
+            print(f"  🔄 Falling back to {fallback_name} ...")
+        try:
+            content = fallback_fn(system_prompt, user_msg)
+            print(f"  ✅ {fallback_name} fallback succeeded")
+            return _parse_llm_content(content)
+        except Exception as e2:
+            raise RuntimeError(
+                f"Both LLM backends failed.\n"
+                f"  {primary_name}: see above\n"
+                f"  {fallback_name}: {str(e2)[:200]}"
+            ) from e2
 
-    # Try fallback
-    try:
-        content = fallback_fn(system, user)
-        print(f"  ✅ {fallback_name} fallback succeeded")
-        return _parse_llm_content(content)
-    except Exception as e2:
-        raise RuntimeError(
-            f"Both LLM backends failed.\n"
-            f"  {primary_name}: see above\n"
-            f"  {fallback_name}: {str(e2)[:200]}"
-        ) from e2
+    extra = ""
+    last_data: dict | None = None
+    lo, hi = MZ_WORD_TARGETS.get(format_tag, (140, 215))
+
+    for attempt in range(1, 4):   # up to 3 attempts
+        data = _call_with_fallback(system + extra, user_base)
+        last_data = data
+
+        wc_ok, word_count, (lo, hi) = mz_script_word_count_ok(data, format_tag)
+        title_ok, title_reason = mz_title_ok(data.get("title", ""))
+
+        problems = []
+        if not wc_ok:
+            est_sec = int(word_count / 2.5)
+            problems.append(
+                f"LENGTH FAIL: narration is {word_count} words (~{est_sec}s at edge-tts rate). "
+                f"Must be {lo}–{hi} words (target {int(lo/2.5)}–{int(hi/2.5)}s). "
+                f"Write MORE narration — do not summarise, expand each beat fully."
+            )
+        if not title_ok:
+            problems.append(f"TITLE FAIL: {title_reason}")
+
+        if not problems:
+            print(f"  ✅ Script passed validators ({word_count}w, title OK) on attempt {attempt}")
+            return data
+
+        print(f"  ⚠️  Validator failed attempt {attempt}/3: {' | '.join(problems)}")
+        extra = (
+            "\n\nIMPORTANT — your previous draft was REJECTED:\n- "
+            + "\n- ".join(problems)
+            + f"\n\nFix ALL issues. The narration (script field) MUST be {lo}–{hi} words. "
+              f"edge-tts speaks at ~2.5 words/sec — {lo}w = ~{int(lo/2.5)}s, {hi}w = ~{int(hi/2.5)}s. "
+              f"Expand every beat with specific details, dollar figures, timestamps, and reactions. "
+              f"Do NOT shorten or summarise."
+        )
+
+    print(f"  🚨 All 3 attempts failed validators — posting last draft ({word_count}w)")
+    return last_data  # type: ignore[return-value]
 
 
 # ─── YouTube upload ──────────────────────────────────────────────────────────
