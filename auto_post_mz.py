@@ -295,38 +295,43 @@ def load_system_prompt() -> str:
     return "\n".join(lines)
 
 
-def generate_script(topic: str, format_tag: str) -> dict:
-    """Call the LLM backend with v3 prompt + tagged topic, return parsed JSON."""
-    system = load_system_prompt()
-    user = f"[{format_tag.upper()}] {topic}"
+def _call_openai(system: str, user: str) -> str:
+    """Call OpenAI and return raw content string."""
+    from openai import OpenAI
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is missing or empty")
+    client = OpenAI(api_key=api_key)
+    r = client.chat.completions.create(
+        model=OPENAI_MODEL,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user",   "content": user},
+        ],
+        temperature=0.8,
+    )
+    return r.choices[0].message.content
 
-    if MODEL_BACKEND == "openai":
-        from openai import OpenAI
-        client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-        r = client.chat.completions.create(
-            model=OPENAI_MODEL,
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user",   "content": user},
-            ],
-            temperature=0.8,
-        )
-        content = r.choices[0].message.content
-    elif MODEL_BACKEND == "anthropic":
-        from anthropic import Anthropic
-        client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-        r = client.messages.create(
-            model=ANTHROPIC_MODEL,
-            max_tokens=2000,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-        )
-        content = r.content[0].text
-    else:
-        raise RuntimeError(f"Unknown MZ_MODEL_BACKEND: {MODEL_BACKEND}")
 
-    # Defensive parse: sometimes models wrap in ```json ... ```
+def _call_anthropic(system: str, user: str) -> str:
+    """Call Anthropic and return raw content string."""
+    from anthropic import Anthropic
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY is missing or empty")
+    client = Anthropic(api_key=api_key)
+    r = client.messages.create(
+        model=ANTHROPIC_MODEL,
+        max_tokens=2000,
+        system=system,
+        messages=[{"role": "user", "content": user}],
+    )
+    return r.content[0].text
+
+
+def _parse_llm_content(content: str) -> dict:
+    """Parse JSON from LLM response, stripping any markdown code fences."""
     content = content.strip()
     if content.startswith("```"):
         content = content.strip("`")
@@ -336,6 +341,47 @@ def generate_script(topic: str, format_tag: str) -> dict:
     if "error" in data:
         raise RuntimeError(f"Script generator self-rejected: {data['error']}")
     return data
+
+
+def generate_script(topic: str, format_tag: str) -> dict:
+    """Call the LLM backend with v3 prompt + tagged topic, return parsed JSON.
+
+    Primary backend: OpenAI (proven, paid, reliable).
+    Fallback backend: Anthropic (used if OpenAI fails for any reason).
+    MZ_MODEL_BACKEND env var can force a specific backend, but fallback still applies.
+    """
+    system = load_system_prompt()
+    user = f"[{format_tag.upper()}] {topic}"
+
+    # Determine call order based on MODEL_BACKEND setting
+    if MODEL_BACKEND == "anthropic":
+        primary_fn,  primary_name  = _call_anthropic, "anthropic"
+        fallback_fn, fallback_name = _call_openai,    "openai"
+    else:
+        # Default: openai primary, anthropic fallback
+        primary_fn,  primary_name  = _call_openai,    "openai"
+        fallback_fn, fallback_name = _call_anthropic,  "anthropic"
+
+    # Try primary
+    try:
+        print(f"  🤖 Using {primary_name} backend ...")
+        content = primary_fn(system, user)
+        return _parse_llm_content(content)
+    except Exception as e:
+        print(f"  ⚠️  {primary_name} failed: {str(e)[:120]}")
+        print(f"  🔄 Falling back to {fallback_name} ...")
+
+    # Try fallback
+    try:
+        content = fallback_fn(system, user)
+        print(f"  ✅ {fallback_name} fallback succeeded")
+        return _parse_llm_content(content)
+    except Exception as e2:
+        raise RuntimeError(
+            f"Both LLM backends failed.\n"
+            f"  {primary_name}: see above\n"
+            f"  {fallback_name}: {str(e2)[:200]}"
+        ) from e2
 
 
 # ─── YouTube upload ──────────────────────────────────────────────────────────
