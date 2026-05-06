@@ -1156,23 +1156,53 @@ Rules:
     try:
         import openai
         client = openai.OpenAI(api_key=api_key)
-        resp = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Write a {n}-scene script about: {topic}"}
-            ],
-            max_tokens=2000,
-            temperature=0.8,
-        )
-        raw = resp.choices[0].message.content.strip()
-        # Strip markdown code fences if present
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        script = json.loads(raw.strip())
-        return jsonify({"script": script})
+        user_msg = f"Write a {n}-scene script about: {topic}"
+        extra_constraints = ""
+        last_script = None
+
+        # TMF: up to 3 attempts with title validator. Other channels: 1 attempt.
+        max_attempts = 3 if channel == "tmf" else 1
+
+        for attempt in range(1, max_attempts + 1):
+            resp = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_prompt + extra_constraints},
+                    {"role": "user", "content": user_msg}
+                ],
+                max_tokens=2000,
+                temperature=0.8,
+            )
+            raw = resp.choices[0].message.content.strip()
+            # Strip markdown code fences if present
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            script = json.loads(raw.strip())
+            last_script = script
+
+            # TMF title validator — "Why You/Your" rule enforced here too
+            if channel == "tmf":
+                title = (script.get("title") or "").strip()
+                t_lower = title.lower()
+                title_ok = t_lower.startswith("why you") or t_lower.startswith("why your")
+                if title_ok:
+                    break  # passed — use this script
+                # Failed — build retry constraint
+                extra_constraints = (
+                    f"\n\nIMPORTANT — your previous draft was REJECTED. "
+                    f"Title was: \"{title}\"\n"
+                    f"The title MUST start with \"Why You\" or \"Why Your\" — "
+                    f"e.g. \"Why You Stay Loyal to Mean People\". "
+                    f"Data shows this pattern drives 400–1300 views vs <50 for \"The [concept]\" titles. "
+                    f"Rewrite as \"Why You [verb] [observable behavior the viewer recognizes in themselves]\". "
+                    f"No colons in the title."
+                )
+            else:
+                break  # non-TMF channels accept first valid JSON
+
+        return jsonify({"script": last_script})
     except Exception as e:
         return jsonify({"error": f"Script generation failed: {str(e)[:120]}"}), 500
 
