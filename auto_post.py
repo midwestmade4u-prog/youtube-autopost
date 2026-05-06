@@ -264,11 +264,14 @@ def title_passes_tmf_rules(title: str) -> tuple[bool, str]:
     return True, ""
 
 def script_word_count_ok(script: dict) -> tuple[bool, int]:
-    """Total narration words must land in 180–235 (≈72–82 sec at TMF voice rate)."""
+    """Total narration words must land in 300–360 (≈65–80 sec at Adam ElevenLabs voice rate).
+    NOTE: Adam voice speaks at ~4.5 words/sec (not 2.7 as previously assumed).
+    Calibrated May 6 2026 after analytics showed 38-57s videos from 180-235w scripts.
+    """
     total = 0
     for scene in script.get("scenes", []):
         total += len((scene.get("narration") or "").split())
-    return (180 <= total <= 235), total
+    return (300 <= total <= 370), total
 
 def title_already_published(title: str, channel: str) -> bool:
     """Fuzzy-match the candidate title against past posts in auto_post_log.json."""
@@ -403,9 +406,10 @@ HOOK RULES:
 
     system_prompt = f"""You are a short-form video script writer for YouTube Shorts.
 
-TARGET LENGTH: 72–82 seconds. NEVER over 85 seconds.
-- Total narration across ALL scenes combined: 200–230 words. Do not exceed 235.
-- 90+ second Shorts on this channel avg ~40 views vs 400+ for 70–85s. This matters.
+TARGET LENGTH: 65–80 seconds. NEVER under 60 or over 85 seconds.
+- Total narration across ALL scenes combined: 300–360 words. Do not go below 300 or above 370.
+- Adam voice speaks at ~4.5 words/sec. 300w = ~67s, 360w = ~80s. Hit this range every time.
+- Top performing TMF videos (800–1300 views) averaged 65–85s. Short videos (~45s) get suppressed.
 
 Channel style: {style_guide}
 {channel_rules}
@@ -474,7 +478,7 @@ Structural rules:
                 if not wc_ok:
                     problems.append(
                         f"LENGTH FAIL: total narration is {word_count} words "
-                        f"(must be 180–235; current = ~{int(word_count/2.7)}s, target 72–82s)"
+                        f"(must be 300–370; current = ~{int(word_count/4.5)}s at Adam voice rate, target 65–80s)"
                     )
                     last_word_count = word_count
                 if dup:
@@ -492,7 +496,8 @@ Structural rules:
                     + "\n- ".join(problems)
                     + "\nFix ALL of them in this next draft. The title MUST start with \"Why\" "
                       "and describe an observable behavior, not name an effect. "
-                      "Total narration MUST be 180–235 words across all scenes combined."
+                      "Total narration MUST be 300–360 words across all scenes combined. "
+                      "Adam voice speaks at 4.5 words/sec — 300w = 67s, 360w = 80s. DO NOT write short scripts."
                 )
             else:
                 # BSG: keep behavior — accept first valid JSON.
