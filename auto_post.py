@@ -239,27 +239,20 @@ def title_passes_tmf_rules(title: str) -> tuple[bool, str]:
     if len(t) > 65:
         return False, f"title too long ({len(t)} chars; keep under 60)"
 
-    # First word check: "Why" / shocking-claim verbs allowed; effect-name leads banned.
-    first = _re.split(r"\s+", t, maxsplit=1)[0].lower()
-    if first == "the":
-        # "The X..." — reject if X looks like an effect/jargon noun.
-        second = _re.split(r"\s+", t, maxsplit=2)[1].lower() if len(t.split()) > 1 else ""
-        second = _re.sub(r"[^a-z]", "", second)
-        if second in _TMF_BANNED_LEAD_NOUNS:
-            return False, f'starts with effect name "The {second.title()}..." — rewrite as "Why ..." behavior claim'
-    if first == "how":
-        # "How Predators Test You" / "How to Spot..." both flopped.
-        return False, 'starts with "How" — rewrite as "Why ..." behavior claim'
+    # MUST start with "Why You" or "Why Your" — data shows this pattern drives 400-1300 views
+    # vs "The [noun]" or other patterns averaging <50 views. Enforced May 6 2026.
+    t_lower = t.lower()
+    if not (t_lower.startswith("why you") or t_lower.startswith("why your")):
+        return False, (
+            'title must start with "Why You" or "Why Your" — '
+            'e.g. "Why You Stay Loyal to Mean People". '
+            'Data: "Why You..." titles avg 400-1300 views; other patterns avg <50 views. '
+            'Rewrite as "Why You [verb] [observable behavior]".'
+        )
 
-    # Effect-name with colon at the start: "Microexpressions:" / "Mind Trap:"
-    head = t.split("—")[0].split("-")[0]  # everything before any em-dash/hyphen split
-    if ":" in head:
-        before_colon = head.split(":", 1)[0].strip()
-        # If the words before the colon are all-cap-or-titlecase short jargon (≤3 words),
-        # this is the effect-name-colon pattern.
-        words_before = before_colon.split()
-        if 1 <= len(words_before) <= 3 and not before_colon.lower().startswith(("why", "the dark", "the hidden", "the real")):
-            return False, f'effect name before colon ("{before_colon}: ...") — rewrite as "Why ..."'
+    # No colon mid-title — kills CTR ("Why You're Right: The Mind Trap" flopped)
+    if ":" in t:
+        return False, 'no colon in title — "Why You [behavior]" only, no subtitle after colon'
 
     return True, ""
 
@@ -364,20 +357,21 @@ def generate_script_for_topic(topic: str, channel: str, num_scenes: int = 8) -> 
     if channel == "tmf":
         channel_rules = """
 TITLE RULES (strict — titles drive 20× view differences in this channel):
-- Must start with "Why", "The dark/hidden/real reason", or a shocking claim — NEVER with an effect name.
-- Effect name, if used at all, goes AFTER a colon or em-dash, not at the start.
-- Must describe an OBSERVABLE BEHAVIOR, not a textbook term. Under 60 chars.
-- GOOD examples (these hit 400+ views):
-  • "Why One Bad Thing Erases Ten Good Ones"
-  • "Why the Least Skilled People Are Most Confident"
-  • "Why You Can't Leave — The Sunk Cost Fallacy"
-  • "Dehumanization: The Psychology Behind Cruelty"
-- BAD examples (these got <30 views):
-  • "The Pseudocertainty Effect Unveiled"
-  • "Anchoring Bias: The Invisible Mind Trap"
-  • "The Barnum Effect: Why Horoscopes Feel Accurate"  ← starts with effect
-  • "Negativity Bias: The Brain's Darker Focus"       ← same concept as winner #1, got 20× fewer views
-- If your draft title starts with an article + effect name ("The X Effect..."), REWRITE it.
+- MUST start with "Why You" or "Why Your". This is the #1 rule. No exceptions.
+- "Why You [verb] [uncomfortable behavior the viewer recognizes in themselves]"
+- Must describe an OBSERVABLE BEHAVIOR the viewer does, not a concept or named effect. Under 60 chars.
+- GOOD examples (data-backed 400–1300 views):
+  • "Why You Stay Loyal to Mean People" ← 576 views
+  • "Why One Bad Thing Erases Ten Good Ones" ← 722 views
+  • "Why the Least Skilled People Are Most Confident" ← strong
+  • "Why You Can't Leave — The Sunk Cost Fallacy" ← effect name AFTER behavior
+- BAD examples (data-backed <50 views each):
+  • "The Secret Fear of High Achievers" ← starts with "The [noun]" — BANNED
+  • "The Haunting Regret of Inaction" ← concept label, not behavior — BANNED
+  • "The Dark Triad: Charm or Harm?" ← colon pattern, no "Why You" — BANNED
+  • "Why You're Always Right: The Mind Trap" ← colon mid-title kills it
+  • "Anchoring Bias: The Invisible Mind Trap" ← effect name lead — BANNED
+- If your draft doesn't start with "Why You" or "Why Your", REWRITE it. No exceptions.
 
 HOOK RULES (78.7% of viewers currently swipe away — this is the #1 fix):
 - Scene 1 narration = ONE shocking claim or uncomfortable question. 10–18 words MAX.
@@ -494,8 +488,8 @@ Structural rules:
                 extra_constraints = (
                     "\n\nIMPORTANT — your previous draft was REJECTED for these reasons:\n- "
                     + "\n- ".join(problems)
-                    + "\nFix ALL of them in this next draft. The title MUST start with \"Why\" "
-                      "and describe an observable behavior, not name an effect. "
+                    + "\nFix ALL of them in this next draft. The title MUST start with \"Why You\" or \"Why Your\" "
+                      "and describe an observable behavior the viewer recognizes in themselves. No colons. "
                       "Total narration MUST be 300–360 words across all scenes combined. "
                       "Adam voice speaks at 4.5 words/sec — 300w = 67s, 360w = 80s. DO NOT write short scripts."
                 )
