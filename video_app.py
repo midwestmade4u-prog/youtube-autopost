@@ -1493,7 +1493,7 @@ def youtube_upload():
             },
             "status": {
                 "privacyStatus":          privacy,
-                "selfDeclaredMadeForKids": channel == "bsg",
+                "selfDeclaredMadeForKids": False,
             }
         }
 

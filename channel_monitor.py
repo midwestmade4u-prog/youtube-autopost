@@ -152,13 +152,23 @@ def get_recent_workflow_runs(workflow_file: str, hours: int = 26) -> list[dict]:
 
 def get_run_log_snippet(run_id: int) -> str:
     """Download and return the last 3000 chars of a workflow run log."""
+    import zipfile, io
     token = os.environ.get("GITHUB_TOKEN", "")
     headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
     url = f"https://api.github.com/repos/{GITHUB_REPO}/actions/runs/{run_id}/logs"
     try:
         r = requests.get(url, headers=headers, timeout=20, allow_redirects=True)
-        # Logs come as a zip — just grab raw text for pattern matching
-        return r.content.decode("utf-8", errors="ignore")[-3000:]
+        # Logs are returned as a ZIP — extract all text files and concatenate
+        try:
+            zf = zipfile.ZipFile(io.BytesIO(r.content))
+            lines = []
+            for name in zf.namelist():
+                if name.endswith(".txt"):
+                    lines.append(zf.read(name).decode("utf-8", errors="ignore"))
+            return "\n".join(lines)[-3000:]
+        except zipfile.BadZipFile:
+            # Fallback: treat as plain text (e.g. redirect or error response)
+            return r.content.decode("utf-8", errors="ignore")[-3000:]
     except Exception as e:
         return f"(could not fetch log: {e})"
 
