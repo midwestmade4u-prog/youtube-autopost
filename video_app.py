@@ -1322,16 +1322,23 @@ def _load_yt_credentials(channel="bsg"):
     """Return valid Google credentials for the given channel, or None."""
     token_file = YT_TOKEN_FILES.get(channel)
     if not token_file or not token_file.exists():
+        print(f"❌ YT credentials [{channel}]: token file not found at {token_file}")
         return None
     try:
         from google.oauth2.credentials import Credentials
         from google.auth.transport.requests import Request
         creds = Credentials.from_authorized_user_file(str(token_file), YT_SCOPES)
         if creds.expired and creds.refresh_token:
+            print(f"🔄 YT credentials [{channel}]: access token expired, refreshing...")
             creds.refresh(Request())
             token_file.write_text(creds.to_json())
-        return creds if creds.valid else None
-    except Exception:
+            print(f"✅ YT credentials [{channel}]: token refreshed successfully")
+        if not creds.valid:
+            print(f"❌ YT credentials [{channel}]: credentials invalid after load/refresh")
+            return None
+        return creds
+    except Exception as e:
+        print(f"❌ YT credentials [{channel}]: failed to load — {e}")
         return None
 
 
