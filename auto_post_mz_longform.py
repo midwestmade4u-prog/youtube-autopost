@@ -217,12 +217,14 @@ def generate_script(topic: str) -> dict:
         return resp.content[0].text.strip()
 
     def _get_prose(extra: str = "") -> str:
+        # Claude is primary for prose — it reliably writes full-length narration.
+        # GPT-4o compresses to ~650w regardless of instructions; use as fallback only.
         try:
-            print("    Calling OpenAI GPT-4o (prose)...")
-            return _call_prose_openai(extra)
-        except Exception as e:
-            print(f"    OpenAI failed ({e}) — falling back to Anthropic (prose)...")
+            print("    Calling Anthropic Claude (prose)...")
             return _call_prose_anthropic(extra)
+        except Exception as e:
+            print(f"    Anthropic failed ({e}) — falling back to OpenAI GPT-4o (prose)...")
+            return _call_prose_openai(extra)
 
     # Retry loop on prose length
     narration = ""
