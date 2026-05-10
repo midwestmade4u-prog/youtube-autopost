@@ -154,11 +154,18 @@ def generate_script(topic: str) -> dict:
     """Generate long-form script via OpenAI (primary) or Anthropic (fallback)."""
     system = load_system_prompt()
     user_msg = (
-        f"Write a complete 8–10 minute Minute Zero long-form script about: {topic}\n\n"
-        f"CRITICAL LENGTH REQUIREMENT: The 'script' field MUST be 1,500–1,800 words of narration. "
-        f"That is roughly 5–6 pages of text. Do NOT summarise — expand every beat with specific "
-        f"dollar figures, names, timestamps, dialogue, and consequences. "
-        f"A 700-word script is a SHORT, not a documentary. Write the FULL story."
+        f"Write a complete 8–10 minute Minute Zero long-form documentary script about: {topic}\n\n"
+        f"CRITICAL: The JSON 'script' field (the narration text ONLY — not title, description, or tags) "
+        f"MUST contain 1,300–1,600 words. Count them before returning.\n\n"
+        f"Minimum words per act — all five acts must be fully expanded:\n"
+        f"  Act 1 (Hook):       100–120 words\n"
+        f"  Act 2 (Context):    260–290 words\n"
+        f"  Act 3 (Minute Zero): 380–420 words\n"
+        f"  Act 4 (Fallout):    360–400 words\n"
+        f"  Act 5 (Lesson):     360–400 words\n\n"
+        f"Each act must be narrated in full — specific dollar figures, names, precise timestamps, "
+        f"what people said in the room, who got hurt, what the consequences looked like. "
+        f"Do NOT summarize. Do NOT compress. A script under 1,300 words is a SHORT VIDEO and will be REJECTED."
     )
 
     def _call_openai(system_prompt: str, user: str) -> dict:
@@ -220,9 +227,11 @@ def generate_script(topic: str) -> dict:
             problems.append(f"TITLE FAIL: {title_reason}")
         if not wc_ok:
             est_sec = int(word_count / 2.5)
+            target_min_sec = int(WORD_MIN / 2.5)
+            target_max_sec = int(WORD_MAX / 2.5)
             problems.append(
                 f"LENGTH FAIL: script is {word_count} words (~{est_sec}s). "
-                f"Must be {WORD_MIN}–{WORD_MAX} words (target 600–720s). "
+                f"Must be {WORD_MIN}–{WORD_MAX} words (target {target_min_sec}–{target_max_sec}s). "
                 f"{'Expand every act with more specific details.' if word_count < WORD_MIN else 'Trim without losing key facts.'}"
             )
 
@@ -236,18 +245,21 @@ def generate_script(topic: str) -> dict:
             + "\n- ".join(problems)
             + f"\n\nFix ALL issues in this next attempt.\n"
               f"LENGTH is the #1 issue: the 'script' field must be {WORD_MIN}–{WORD_MAX} words. "
-              f"Count your words. A 700-word script is a SHORT VIDEO — you wrote a summary, not a documentary. "
-              f"Each of the 5 acts needs 300–400 words minimum. "
-              f"Expand EVERY beat: add specific names, exact dollar amounts, precise timestamps, "
-              f"what people said in the room, who got hurt, what the aftermath looked like. "
-              f"Do NOT compress. Do NOT summarise. Write the FULL story in detail.\n"
+              f"Your previous script was under {WORD_MIN} words — that is a SHORT VIDEO SUMMARY, not a documentary.\n"
+              f"Required minimum words per act:\n"
+              f"  Act 1 (Hook): 100 words | Act 2 (Context): 260 words | "
+              f"Act 3 (Minute Zero): 380 words | Act 4 (Fallout): 360 words | Act 5 (Lesson): 360 words\n"
+              f"Expand EVERY beat: specific names, exact dollar amounts, precise timestamps, "
+              f"direct quotes, who got hurt, what the aftermath looked like. "
+              f"Do NOT compress. Do NOT summarise. Write the FULL story.\n"
               f"Title must start with 'How' or a number/dollar figure."
         )
 
     # All retries exhausted — skip
     last_title = (last_data or {}).get("title", "n/a")
+    last_wc = len((last_data or {}).get("script", "").split())
     raise ValueError(
-        f"TITLE_VALIDATION_SKIP: all 3 attempts failed — last title: \"{last_title}\""
+        f"VALIDATION_SKIP: all 3 attempts failed — last script: {last_wc}w, last title: \"{last_title}\""
     )
 
 
@@ -571,10 +583,10 @@ def main() -> int:
         script_data = generate_script(topic)
     except ValueError as e:
         err = str(e)
-        if err.startswith("TITLE_VALIDATION_SKIP"):
-            print(f"\n⏭️  SKIPPED (title validation): {err}")
+        if err.startswith("VALIDATION_SKIP"):
+            print(f"\n⏭️  SKIPPED (validation): {err}")
             print("   No video posted. This is expected behavior.")
-            log_to_sheets(f"[SKIPPED] {err[22:100]}", "", topic)
+            log_to_sheets(f"[SKIPPED] {err[16:100]}", "", topic)
             return 0
         raise
 
