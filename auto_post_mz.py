@@ -296,15 +296,43 @@ def mz_script_word_count_ok(script: dict, format_tag: str) -> tuple[bool, int, t
 
 
 def mz_title_ok(title: str) -> tuple[bool, str]:
-    """Basic MZ title guardrails — not as strict as TMF but catches obvious failures."""
+    """MZ title guardrails — data-backed from analytics (May 2026).
+
+    Winners: "How One Buyout Saved Harley-Davidson" (919 views), "How Marvel Survived" (all-time #1)
+    Losers:  "The Night Washington Mutual Vanished" (83 views), "The Moment Bernie Madoff..." (314 views)
+    Rule: titles MUST open with 'How' OR lead with a dollar/number figure in the first 5 words.
+    """
     t = (title or "").strip()
     if len(t) < 10:
         return False, "title too short"
     if len(t) > 70:
         return False, f"title too long ({len(t)} chars — keep under 70)"
-    if t.lower().startswith("the night") or t.lower().startswith("the day"):
-        # Allow these — common MZ pattern e.g. "The Night Washington Mutual Vanished"
-        pass
+
+    t_lower = t.lower()
+    words = t_lower.split()
+
+    # Ban confirmed weak openers
+    banned_openers = ("the night", "the day", "the moment", "the hour", "the week")
+    for banned in banned_openers:
+        if t_lower.startswith(banned):
+            return False, (
+                f"title starts with '{banned}' — confirmed underperformer. "
+                f"Must start with 'How' or lead with a dollar/number figure. "
+                f"Example: 'How [Company] Nearly Died' or '$440M Vanished in 12 Minutes'"
+            )
+
+    # Require "How" opener OR a number/dollar sign in the first 5 words
+    starts_with_how = t_lower.startswith("how ")
+    first_five = " ".join(words[:5])
+    has_number_or_dollar = any(c.isdigit() or c == "$" for c in first_five)
+
+    if not starts_with_how and not has_number_or_dollar:
+        return False, (
+            f"title must start with 'How' or contain a number/$dollar in the first 5 words. "
+            f"Got: \"{t[:50]}\". "
+            f"Good examples: 'How Harley-Davidson Survived', '$440M Gone in 12 Minutes'"
+        )
+
     return True, ""
 
 
@@ -456,8 +484,13 @@ def generate_script(topic: str, format_tag: str) -> dict:
               f"Do NOT shorten or summarise."
         )
 
-    print(f"  🚨 All 3 attempts failed validators — posting last draft ({word_count}w)")
-    return last_data  # type: ignore[return-value]
+    # All retries exhausted — skip this post rather than publish a bad title.
+    # Caller catches TITLE_VALIDATION_SKIP, logs to Sheets, and exits 0 (green in GH Actions).
+    last_title = (last_data or {}).get("title", "n/a") if last_data else "n/a"
+    raise ValueError(
+        f"TITLE_VALIDATION_SKIP: all 3 attempts failed — "
+        f"last title: \"{last_title}\" | word count: {word_count}"
+    )
 
 
 # ─── YouTube upload ──────────────────────────────────────────────────────────
@@ -568,7 +601,18 @@ def main() -> int:
 
     # 2. Generate script
     print(f"\n✍️  Generating v3 script (backend: {MODEL_BACKEND}) ...")
-    script_data = generate_script(topic, format_tag)
+    try:
+        script_data = generate_script(topic, format_tag)
+    except ValueError as e:
+        err = str(e)
+        if err.startswith("TITLE_VALIDATION_SKIP"):
+            # Intentional skip — title validator rejected all 3 attempts.
+            # Exit 0 (green in GH Actions) and log to Sheets so it's visible but not alarming.
+            print(f"\n⏭️  SKIPPED (title validation): {err}")
+            print("   No video posted. A bad title is worse than no post — this is expected behavior.")
+            append_to_google_sheets(f"[SKIPPED] {err[22:100]}", "", format_tag)
+            return 0
+        raise
     print(f"  ✅ Title: {script_data['title']}")
     print(f"  ✅ Duration target: {script_data.get('target_duration_sec', '?')}s")
     # Hook rotation telemetry (v3 → v4): log each variant's style + validity.

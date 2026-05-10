@@ -47,13 +47,19 @@ HARD RULES — NON-NEGOTIABLE
 
    If you cannot make a given style work for the topic, return that variant as null and explain briefly in a "hook_note" field.
 
-4. **TITLE TEMPLATE — pick one:**
-   - "The [N] [Minutes / Seconds / Email / Call / Memo] That Killed [Company]"
-   - "How One [Decision / Trade / Tweet / Memo] Destroyed [Company]"
-   - "[Company] Used to Be [Superlative]. Then [One Thing] Happened."
-   - "The Moment [Company] Died"
+4. **TITLE TEMPLATE — pick one (data-backed, May 2026):**
+   - "How One [Decision / Trade / Call / Memo] [Destroyed / Saved / Nearly Killed] [Company]"  ← TOP PERFORMER
+   - "How [Company] [Verb]ed in [N] [Minutes / Hours / Days]"
+   - "$[X] [Vanished / Gone / Lost] in [N] [Minutes / Hours]"
+   - "[N] [Minutes / Seconds]: How [Company] Died"
 
-5. **TITLE FORBIDDEN:** Never start with a concept or term (e.g. "Hubris:", "Groupthink:", "The Agency Problem"). Titles must start with a name, a number, or a "how"/"why" question.
+   **BANNED title openers (confirmed low-performers in analytics):**
+   - "The Night..." → "The Night Washington Mutual Vanished" = 83 views
+   - "The Day..." → proven weak
+   - "The Moment..." → "The Moment Bernie Madoff..." = underperformed
+   - "The [Company] Story" → generic, no urgency
+
+5. **TITLE FORBIDDEN:** Never start with "The Night", "The Day", "The Moment", or any vague time-of-day opener. Never start with a concept or term (e.g. "Hubris:", "Groupthink:"). Titles MUST start with "How", a dollar figure, or a number. Data shows "How [Company] Survived/Died" drives 5–10× more views than "The Night/Moment" framing.
 
 6. **THE LITERAL COUNTDOWN:** In the minute_zero beat, insert at least one precise timestamp or number — "At 9:30 AM, the algorithm went live…" / "12 minutes later, $440 million was gone." Concrete numbers hit harder than vague time language.
 
