@@ -474,46 +474,99 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
 
     print(f"  ✅ Video: {output_path.name}")
 
-    # ── 5. Generate thumbnail ─────────────────────────────────────────────────
+    # ── 5. Generate thumbnail (Pexels photo background + text overlay) ────────
     thumb_path = out_dir / f"{video_id}_thumb.jpg"
     try:
-        from PIL import ImageFont
-        img  = Image.new("RGB", (1280, 720), (10, 10, 10))
-        draw = ImageDraw.Draw(img)
-        thumb_text = script_data.get("thumbnail_text", title[:40].upper())
+        import requests as _req
+        from io import BytesIO
+        from PIL import ImageFont, ImageFilter
 
-        # Try system fonts in order of preference (Ubuntu / macOS)
-        font = None
-        for font_path in [
+        thumb_text = script_data.get("thumbnail_text", title[:40].upper())
+        queries    = script_data.get("pexels_queries", [])
+
+        # ── 5a. Fetch a dramatic Pexels PHOTO as background ──────────────────
+        bg = None
+        if pexels_key and queries:
+            for q in queries[:6]:  # try first 6 queries
+                try:
+                    r = _req.get(
+                        "https://api.pexels.com/v1/search",
+                        headers={"Authorization": pexels_key},
+                        params={"query": q, "orientation": "landscape",
+                                "per_page": 3, "size": "large"},
+                        timeout=10,
+                    )
+                    photos = r.json().get("photos", [])
+                    if photos:
+                        photo_url = photos[0]["src"]["large"]  # ~1280px wide
+                        img_r = _req.get(photo_url, timeout=20)
+                        bg = Image.open(BytesIO(img_r.content)).convert("RGB")
+                        print(f"  📸 Thumbnail photo: {q[:45]}")
+                        break
+                except Exception:
+                    continue
+
+        # ── 5b. Fallback: dark gradient background ────────────────────────────
+        if bg is None:
+            bg = Image.new("RGB", (1280, 720), (12, 12, 20))
+            print("  📸 Thumbnail: using dark fallback background")
+
+        # ── 5c. Crop/scale to exactly 1280×720 ───────────────────────────────
+        bg_w, bg_h = bg.size
+        scale = max(1280 / bg_w, 720 / bg_h)
+        new_w, new_h = int(bg_w * scale), int(bg_h * scale)
+        bg = bg.resize((new_w, new_h), Image.LANCZOS)
+        left = (new_w - 1280) // 2
+        top  = (new_h - 720)  // 2
+        bg   = bg.crop((left, top, left + 1280, top + 720))
+
+        # Slight blur to make text pop
+        bg = bg.filter(ImageFilter.GaussianBlur(radius=1.5))
+
+        # ── 5d. Dark gradient overlay (bottom 60%) ───────────────────────────
+        overlay = Image.new("RGBA", (1280, 720), (0, 0, 0, 0))
+        ov_draw = ImageDraw.Draw(overlay)
+        grad_top = 200
+        for y in range(grad_top, 720):
+            alpha = int(210 * (y - grad_top) / (720 - grad_top))
+            ov_draw.rectangle([(0, y), (1280, y + 1)], fill=(0, 0, 0, alpha))
+        bg = Image.alpha_composite(bg.convert("RGBA"), overlay).convert("RGB")
+
+        # ── 5e. Load font ────────────────────────────────────────────────────
+        draw = ImageDraw.Draw(bg)
+        font_large = font_small = None
+        for fp in [
             "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
             "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
             "/System/Library/Fonts/Helvetica.ttc",
             "/System/Library/Fonts/Arial.ttf",
         ]:
             try:
-                font = ImageFont.truetype(font_path, size=90)
+                font_large = ImageFont.truetype(fp, size=95)
+                font_small = ImageFont.truetype(fp, size=75)
                 break
             except Exception:
                 continue
-        if font is None:
-            font = ImageFont.load_default()
+        if font_large is None:
+            font_large = font_small = ImageFont.load_default()
 
-        # Draw subtle gradient-like dark bar behind text
-        draw.rectangle([(0, 260), (1280, 460)], fill=(0, 0, 0, 180))
-
-        # Wrap long text across two lines if needed
+        # ── 5f. Split thumb_text into two lines and render ───────────────────
         words = thumb_text.split()
-        mid   = len(words) // 2
-        line1 = " ".join(words[:mid]) if mid else thumb_text
-        line2 = " ".join(words[mid:]) if mid and len(words) > 1 else ""
+        mid   = max(1, len(words) // 2)
+        line1 = " ".join(words[:mid])
+        line2 = " ".join(words[mid:]) if len(words) > 1 else ""
 
         if line2:
-            draw.text((640, 320), line1, font=font, fill=(255, 255, 255), anchor="mm")
-            draw.text((640, 420), line2, font=font, fill=(255, 220, 50),  anchor="mm")
+            # Two lines: white on top, yellow on bottom
+            draw.text((640, 580), line1, font=font_large, fill=(255, 255, 255),
+                      anchor="mm", stroke_width=3, stroke_fill=(0, 0, 0))
+            draw.text((640, 670), line2, font=font_small, fill=(255, 215, 0),
+                      anchor="mm", stroke_width=3, stroke_fill=(0, 0, 0))
         else:
-            draw.text((640, 360), line1, font=font, fill=(255, 255, 255), anchor="mm")
+            draw.text((640, 630), line1, font=font_large, fill=(255, 255, 255),
+                      anchor="mm", stroke_width=3, stroke_fill=(0, 0, 0))
 
-        img.save(str(thumb_path), quality=95)
+        bg.save(str(thumb_path), quality=95)
         print(f"  ✅ Thumbnail: {thumb_path.name}")
     except Exception as e:
         print(f"  ⚠️  Thumbnail generation failed: {e}")
