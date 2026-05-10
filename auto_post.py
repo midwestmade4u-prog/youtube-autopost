@@ -389,9 +389,25 @@ BODY & PAYOFF:
 """
     else:
         channel_rules = """
-TITLE RULES:
-- Warm, wonder-filled, under 60 chars. Create curiosity for kids + parents.
-- Example: "Noah's Ark — Why God Chose ONE Man to Save All Life"
+TITLE RULES (strict — must match EXACTLY this format):
+- FORMAT: [Story Name] [single emoji] | Bible Story for Kids | Bible Story Garden
+- The emoji must relate to the story (water/ark = 🌊, fire = 🔥, heart = ❤️, sword = ⚔️, star = ⭐, dove = 🕊️, crown = 👑, etc.)
+- Story name portion should be punchy and curiosity-driven — under 40 chars before the pipe
+- GOOD examples (data-backed top performers):
+  • "The Creation Story 🌍 | Bible Story for Kids | Bible Story Garden"
+  • "Noah's Ark 🌊 | Bible Story for Kids | Bible Story Garden"
+  • "Adam and Eve 🍎 | Bible Story for Kids | Bible Story Garden"
+  • "David vs Goliath ⚔️ | Bible Story for Kids | Bible Story Garden"
+- BAD examples (confirmed weak performers):
+  • "Deborah: The Brave Judge" ← missing format entirely, 0 views
+  • "Elisha's Impossible Oil Miracle" ← missing format, 0 views
+  • "Why God Confused Our Languages!" ← missing format, 0 views
+- If your title doesn't follow the exact format above, REWRITE it. No exceptions.
+
+STORY SELECTION PRIORITY — focus on ICONIC, visually rich stories with clear action/spectacle:
+- TIER 1 (proven top performers): Creation, Noah's Ark, Adam & Eve, David vs Goliath, Moses & Red Sea, Easter, Christmas, Daniel in Lion's Den, Jonah, Joseph's Coat
+- TIER 2 (strong visual/action): Jesus Feeds 5000, Jesus Walks on Water, Lazarus, Shadrach/Meshach/Abednego, Samson, Jericho, Elijah vs 450 Prophets, Jesus Calms Storm
+- TIER 3 (use sparingly): lesser-known narratives without clear visual spectacle
 
 HOOK RULES:
 - Scene 1: a dramatic moment or question that stops the scroll.
@@ -435,9 +451,8 @@ Structural rules:
         last_title_reason = ""
         last_word_count = 0
 
-        # Up to 3 attempts (1 original + 2 retries) for TMF.
-        # BSG validates only word count loosely; title is far less viral-sensitive there.
-        max_attempts = 3 if channel == "tmf" else 1
+        # Up to 3 attempts for both TMF and BSG — title format is critical for both.
+        max_attempts = 3
 
         for attempt in range(1, max_attempts + 1):
             print(f"    Making script generation request (attempt {attempt}/{max_attempts})...")
@@ -494,9 +509,22 @@ Structural rules:
                       "Adam voice speaks at 4.5 words/sec — 300w = 67s, 360w = 80s. DO NOT write short scripts."
                 )
             else:
-                # BSG: keep behavior — accept first valid JSON.
-                print(f"    ✅ OpenAI responded")
-                return script
+                # BSG title validator — enforce "X emoji | Bible Story for Kids | Bible Story Garden" format
+                title = (script.get("title") or "").strip()
+                bsg_format_ok = "| Bible Story for Kids | Bible Story Garden" in title
+                if bsg_format_ok:
+                    print(f"    ✅ BSG script passed title validator: {title}")
+                    return script
+                print(f"    ⚠️  BSG title format FAIL on attempt {attempt}: \"{title}\"")
+                extra_constraints = (
+                    f"\n\nIMPORTANT — your previous draft was REJECTED. "
+                    f"Title was: \"{title}\"\n"
+                    f"The BSG title MUST follow this EXACT format: "
+                    f"[Story Name] [single emoji] | Bible Story for Kids | Bible Story Garden\n"
+                    f"Examples: \"Noah's Ark 🌊 | Bible Story for Kids | Bible Story Garden\"\n"
+                    f"          \"David vs Goliath ⚔️ | Bible Story for Kids | Bible Story Garden\"\n"
+                    f"Rewrite the title to match this format exactly. No exceptions."
+                )
 
         # All retries exhausted: return last script with a warning so the run still completes.
         print(
