@@ -44,8 +44,8 @@ YT_SCOPES      = ["https://www.googleapis.com/auth/youtube.upload",
 NOTIFY_EMAIL   = "wisseinc@gmail.com"
 MODEL_BACKEND  = os.getenv("MZ_MODEL_BACKEND", "openai")
 
-# Word targets for 8–10 min at 2.5 wps
-WORD_MIN, WORD_MAX = 1500, 1800
+# Word targets: 1300–1600w at 2.5 wps = ~8.5–10.5 min
+WORD_MIN, WORD_MAX = 1300, 1600
 
 # ── Topic bank ────────────────────────────────────────────────────────────────
 LONGFORM_TOPICS = [

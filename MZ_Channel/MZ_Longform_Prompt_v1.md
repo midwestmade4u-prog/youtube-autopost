@@ -1,7 +1,8 @@
 # Minute Zero — Long-Form Script Generator Prompt v1
 
 **Format:** 8–10 minute YouTube documentary short  
-**Target narration:** 1,500–1,800 words (edge-tts Christopher Neural at ~2.5 wps = 600–720 seconds)  
+**Target narration:** 1,300–1,600 words (edge-tts Christopher Neural at ~2.5 wps = ~8.5–10.5 min)
+
 **Aspect ratio:** 16:9 landscape  
 **Upload:** Private — human review before publishing  
 **Schedule:** 2x/week (Tuesday + Friday 9 AM CT)
