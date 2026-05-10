@@ -151,32 +151,131 @@ def longform_title_ok(title: str) -> tuple[bool, str]:
 
 
 def generate_script(topic: str) -> dict:
-    """Generate long-form script via OpenAI (primary) or Anthropic (fallback)."""
-    system = load_system_prompt()
-    user_msg = (
-        f"Write a complete 8–10 minute Minute Zero long-form documentary script about: {topic}\n\n"
-        f"CRITICAL: The JSON 'script' field (the narration text ONLY — not title, description, or tags) "
-        f"MUST contain 1,300–1,600 words. Count them before returning.\n\n"
-        f"Minimum words per act — all five acts must be fully expanded:\n"
-        f"  Act 1 (Hook):       100–120 words\n"
-        f"  Act 2 (Context):    260–290 words\n"
-        f"  Act 3 (Minute Zero): 380–420 words\n"
-        f"  Act 4 (Fallout):    360–400 words\n"
-        f"  Act 5 (Lesson):     360–400 words\n\n"
-        f"Each act must be narrated in full — specific dollar figures, names, precise timestamps, "
-        f"what people said in the room, who got hurt, what the consequences looked like. "
-        f"Do NOT summarize. Do NOT compress. A script under 1,300 words is a SHORT VIDEO and will be REJECTED."
+    """
+    Two-step generation:
+    Step 1 — Write the narration as plain prose (GPT writes long text naturally).
+    Step 2 — Wrap the validated script into the full JSON metadata package.
+    This sidesteps GPT's tendency to compress prose when asked to output JSON directly.
+    """
+
+    # ── Step 1: Generate narration prose ─────────────────────────────────────
+    PROSE_SYSTEM = (
+        "You are the scriptwriter for 'Minute Zero' — a YouTube documentary channel about the exact "
+        "moments famous companies broke, almost broke, or made the one decision that changed everything. "
+        "Write in a dark, investigative, reverent documentary narrator voice. No jargon. No first person. "
+        "Short punchy sentences mixed with longer context sentences. "
+        "US English. Precise names, dates, dollar figures, and direct quotes throughout."
     )
 
-    def _call_openai(system_prompt: str, user: str) -> dict:
+    PROSE_USER = (
+        f"Write a complete 8–10 minute documentary narration about: {topic}\n\n"
+        f"Use this exact 5-act structure. Write ONLY the narration prose — no labels, no act headings, "
+        f"no JSON, no markdown. Just the continuous spoken narration.\n\n"
+        f"REQUIRED word counts per act (total must be 1,300–1,600 words):\n"
+        f"  Act 1 — THE HOOK (100–120 words): Open on the single most dramatic moment. "
+        f"First sentence must include a number, dollar figure, or timestamp. "
+        f"End with a one-sentence question that makes the viewer need to know more.\n\n"
+        f"  Act 2 — CONTEXT (260–290 words): Who is this company? Why did anyone care? "
+        f"How did they get to the moment we opened on? Fast — one paragraph per year of history. "
+        f'End with: "And then came the decision that changed everything."\n\n'
+        f"  Act 3 — THE MINUTE ZERO (380–420 words): The heart of the video. The specific moment, "
+        f"meeting, phone call, or decision. Precise timestamps, names, dollar figures, direct quotes. "
+        f"Show why it seemed reasonable at the time. Slow it down. Make the viewer feel it.\n\n"
+        f"  Act 4 — THE FALLOUT (360–400 words): What happened next? Who got hurt? What did it cost? "
+        f"Follow the human story — who lost their job, who went to prison, who walked away rich. "
+        f"Include at least one unexpected consequence. Tone: sobering and reflective.\n\n"
+        f"  Act 5 — THE LESSON (360–400 words): What does this story reveal about business, human nature, "
+        f"or decision-making? Connect it to something universal. "
+        f"Final sentence must be 8–12 words, punchy, and slightly uncomfortable.\n\n"
+        f"Write all 1,300–1,600 words now. Do NOT summarize. Do NOT compress. "
+        f"Expand every beat with specific details, consequences, and human moments."
+    )
+
+    def _call_prose_openai(extra: str = "") -> str:
         import openai
         client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         resp = client.chat.completions.create(
             model="gpt-4o",
-            messages=[{"role": "system", "content": system_prompt},
-                      {"role": "user", "content": user}],
+            messages=[
+                {"role": "system", "content": PROSE_SYSTEM},
+                {"role": "user",   "content": PROSE_USER + extra},
+            ],
             max_tokens=6000,
             temperature=0.75,
+        )
+        return resp.choices[0].message.content.strip()
+
+    def _call_prose_anthropic(extra: str = "") -> str:
+        import anthropic
+        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        resp = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=6000,
+            system=PROSE_SYSTEM,
+            messages=[{"role": "user", "content": PROSE_USER + extra}],
+        )
+        return resp.content[0].text.strip()
+
+    def _get_prose(extra: str = "") -> str:
+        try:
+            print("    Calling OpenAI GPT-4o (prose)...")
+            return _call_prose_openai(extra)
+        except Exception as e:
+            print(f"    OpenAI failed ({e}) — falling back to Anthropic (prose)...")
+            return _call_prose_anthropic(extra)
+
+    # Retry loop on prose length
+    narration = ""
+    for attempt in range(1, 4):
+        print(f"  Attempt {attempt}/3 (narration)...")
+        narration = _get_prose(
+            "" if attempt == 1 else (
+                f"\n\nYour previous draft was {len(narration.split())} words — "
+                f"REJECTED. Must be 1,300–1,600 words. "
+                f"Write more for EVERY act: Act 1: 110w, Act 2: 275w, "
+                f"Act 3: 400w, Act 4: 380w, Act 5: 380w. "
+                f"Add more specific details, names, dates, consequences."
+            )
+        )
+        wc = len(narration.split())
+        print(f"    Word count: {wc}")
+        if WORD_MIN <= wc <= WORD_MAX:
+            print(f"  ✅ Narration passed ({wc}w)")
+            break
+        est_sec = int(wc / 2.5)
+        target_min_sec = int(WORD_MIN / 2.5)
+        target_max_sec = int(WORD_MAX / 2.5)
+        print(
+            f"  ⚠️  LENGTH FAIL attempt {attempt}: {wc} words (~{est_sec}s). "
+            f"Must be {WORD_MIN}–{WORD_MAX} words (target {target_min_sec}–{target_max_sec}s)."
+        )
+        if attempt == 3:
+            raise ValueError(
+                f"VALIDATION_SKIP: all 3 attempts failed — last narration: {wc}w"
+            )
+
+    # ── Step 2: Build full JSON metadata from the validated prose ────────────
+    system_full = load_system_prompt()
+    json_user = (
+        f"Topic: {topic}\n\n"
+        f"Here is the complete narration (already written and validated — DO NOT SHORTEN IT):\n\n"
+        f"{narration}\n\n"
+        f"Now produce the full JSON output per your instructions. "
+        f"The 'script' field must contain EXACTLY the narration text above, word for word. "
+        f"Do not summarize or edit it. Generate the title, description, pexels_queries, tags, "
+        f"thumbnail_text, and act_breaks to match this script.\n\n"
+        f"Return ONLY valid JSON. No markdown, no explanation."
+    )
+
+    def _call_json_openai(sys: str, usr: str) -> dict:
+        import openai
+        client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+        resp = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "system", "content": sys},
+                      {"role": "user",   "content": usr}],
+            max_tokens=3000,
+            temperature=0.5,
         )
         raw = resp.choices[0].message.content.strip()
         if raw.startswith("```"):
@@ -185,14 +284,14 @@ def generate_script(topic: str) -> dict:
                 raw = raw[4:]
         return json.loads(raw.strip())
 
-    def _call_anthropic(system_prompt: str, user: str) -> dict:
+    def _call_json_anthropic(sys: str, usr: str) -> dict:
         import anthropic
         client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
         resp = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=6000,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user}],
+            max_tokens=3000,
+            system=sys,
+            messages=[{"role": "user", "content": usr}],
         )
         raw = resp.content[0].text.strip()
         if raw.startswith("```"):
@@ -201,66 +300,28 @@ def generate_script(topic: str) -> dict:
                 raw = raw[4:]
         return json.loads(raw.strip())
 
-    def _call(system_prompt: str, user: str) -> dict:
-        try:
-            print("    Calling OpenAI GPT-4o...")
-            return _call_openai(system_prompt, user)
-        except Exception as e:
-            print(f"    OpenAI failed ({e}) — falling back to Anthropic...")
-            return _call_anthropic(system_prompt, user)
+    print("  📋 Building JSON metadata...")
+    try:
+        print("    Calling OpenAI GPT-4o (JSON)...")
+        data = _call_json_openai(system_full, json_user)
+    except Exception as e:
+        print(f"    OpenAI JSON failed ({e}) — falling back to Anthropic...")
+        data = _call_json_anthropic(system_full, json_user)
 
-    last_data = None
-    extra = ""
+    # Ensure the script field uses our validated narration (not a truncated version)
+    data["script"] = narration
 
-    for attempt in range(1, 4):
-        print(f"  Attempt {attempt}/3...")
-        data = _call(system + extra, user_msg)
-        last_data = data
-
-        title = (data.get("title") or "").strip()
-        title_ok, title_reason = longform_title_ok(title)
-        word_count = len((data.get("script") or "").split())
-        wc_ok = WORD_MIN <= word_count <= WORD_MAX
-
-        problems = []
-        if not title_ok:
-            problems.append(f"TITLE FAIL: {title_reason}")
-        if not wc_ok:
-            est_sec = int(word_count / 2.5)
-            target_min_sec = int(WORD_MIN / 2.5)
-            target_max_sec = int(WORD_MAX / 2.5)
-            problems.append(
-                f"LENGTH FAIL: script is {word_count} words (~{est_sec}s). "
-                f"Must be {WORD_MIN}–{WORD_MAX} words (target {target_min_sec}–{target_max_sec}s). "
-                f"{'Expand every act with more specific details.' if word_count < WORD_MIN else 'Trim without losing key facts.'}"
-            )
-
-        if not problems:
-            print(f"  ✅ Script passed validators ({word_count}w, title OK)")
-            return data
-
-        print(f"  ⚠️  Validator failed attempt {attempt}: {' | '.join(problems)}")
-        extra = (
-            "\n\nIMPORTANT — your previous draft was REJECTED:\n- "
-            + "\n- ".join(problems)
-            + f"\n\nFix ALL issues in this next attempt.\n"
-              f"LENGTH is the #1 issue: the 'script' field must be {WORD_MIN}–{WORD_MAX} words. "
-              f"Your previous script was under {WORD_MIN} words — that is a SHORT VIDEO SUMMARY, not a documentary.\n"
-              f"Required minimum words per act:\n"
-              f"  Act 1 (Hook): 100 words | Act 2 (Context): 260 words | "
-              f"Act 3 (Minute Zero): 380 words | Act 4 (Fallout): 360 words | Act 5 (Lesson): 360 words\n"
-              f"Expand EVERY beat: specific names, exact dollar amounts, precise timestamps, "
-              f"direct quotes, who got hurt, what the aftermath looked like. "
-              f"Do NOT compress. Do NOT summarise. Write the FULL story.\n"
-              f"Title must start with 'How' or a number/dollar figure."
+    # Final title check
+    title = (data.get("title") or "").strip()
+    title_ok, title_reason = longform_title_ok(title)
+    if not title_ok:
+        raise ValueError(
+            f"VALIDATION_SKIP: title failed after JSON step — {title_reason} (title: \"{title}\")"
         )
 
-    # All retries exhausted — skip
-    last_title = (last_data or {}).get("title", "n/a")
-    last_wc = len((last_data or {}).get("script", "").split())
-    raise ValueError(
-        f"VALIDATION_SKIP: all 3 attempts failed — last script: {last_wc}w, last title: \"{last_title}\""
-    )
+    word_count = len(narration.split())
+    print(f"  ✅ Script passed validators ({word_count}w, title OK: {title})")
+    return data
 
 
 def render_longform_video(script_data: dict, out_dir: Path) -> dict:
