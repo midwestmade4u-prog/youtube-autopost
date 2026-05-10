@@ -44,8 +44,8 @@ YT_SCOPES      = ["https://www.googleapis.com/auth/youtube.upload",
 NOTIFY_EMAIL   = "wisseinc@gmail.com"
 MODEL_BACKEND  = os.getenv("MZ_MODEL_BACKEND", "openai")
 
-# Word targets: 1300–1600w at 2.5 wps = ~8.5–10.5 min
-WORD_MIN, WORD_MAX = 1300, 1600
+# Word targets: 1400–1700w at 2.5 wps = ~9.3–11.3 min (guarantees 8-min mid-roll threshold)
+WORD_MIN, WORD_MAX = 1400, 1700
 
 # ── Topic bank ────────────────────────────────────────────────────────────────
 LONGFORM_TOPICS = [
@@ -171,8 +171,8 @@ def generate_script(topic: str) -> dict:
         f"Write a complete 8–10 minute documentary narration about: {topic}\n\n"
         f"Use this exact 5-act structure. Write ONLY the narration prose — no labels, no act headings, "
         f"no JSON, no markdown. Just the continuous spoken narration.\n\n"
-        f"REQUIRED word counts per act (total must be 1,300–1,600 words):\n"
-        f"  Act 1 — THE HOOK (100–120 words): Open on the single most dramatic moment. "
+        f"REQUIRED word counts per act (total must be 1,400–1,700 words):\n"
+        f"  Act 1 — THE HOOK (110–130 words): Open on the single most dramatic moment. "
         f"First sentence must include a number, dollar figure, or timestamp. "
         f"End with a one-sentence question that makes the viewer need to know more.\n\n"
         f"  Act 2 — CONTEXT (260–290 words): Who is this company? Why did anyone care? "
@@ -187,7 +187,7 @@ def generate_script(topic: str) -> dict:
         f"  Act 5 — THE LESSON (360–400 words): What does this story reveal about business, human nature, "
         f"or decision-making? Connect it to something universal. "
         f"Final sentence must be 8–12 words, punchy, and slightly uncomfortable.\n\n"
-        f"Write all 1,300–1,600 words now. Do NOT summarize. Do NOT compress. "
+        f"Write all 1,400–1,700 words now. Do NOT summarize. Do NOT compress. "
         f"Expand every beat with specific details, consequences, and human moments."
     )
 
@@ -233,7 +233,7 @@ def generate_script(topic: str) -> dict:
         narration = _get_prose(
             "" if attempt == 1 else (
                 f"\n\nYour previous draft was {len(narration.split())} words — "
-                f"REJECTED. Must be 1,300–1,600 words. "
+                f"REJECTED. Must be 1,400–1,700 words. "
                 f"Write more for EVERY act: Act 1: 110w, Act 2: 275w, "
                 f"Act 3: 400w, Act 4: 380w, Act 5: 380w. "
                 f"Add more specific details, names, dates, consequences."
