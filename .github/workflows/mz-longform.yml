@@ -1,0 +1,86 @@
+name: MZ Long-Form Auto-Post
+
+# Runs Tuesday + Friday at 9 AM CT (14:00 UTC CDT)
+# Generates, renders, and uploads a private 8–10 min YouTube video.
+# Matt receives an email with the YouTube Studio review link.
+# He manually reviews and flips to public / schedules.
+
+on:
+  schedule:
+    - cron: '0 14 * * 2'   # Tuesday  9 AM CT
+    - cron: '0 14 * * 5'   # Friday   9 AM CT
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: 'Override topic string (leave blank for auto-pick)'
+        required: false
+        default: ''
+      dry_run:
+        description: 'Render only, skip upload (true/false)'
+        required: false
+        default: 'false'
+
+jobs:
+  longform-mz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60   # Long-form renders take longer than shorts
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install edge-tts Pillow openai anthropic requests \
+            google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib
+
+      - name: Create YouTube token file
+        run: |
+          echo '${{ secrets.YT_TOKEN_MZ }}' > youtube_token_mz.json
+
+      - name: Run MZ Long-Form auto-post
+        env:
+          OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PEXELS_API_KEY:    ${{ secrets.PEXELS_API_KEY }}
+          GOOGLE_SHEETS_KEY: ${{ secrets.GOOGLE_SHEETS_KEY }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          MZ_VOICE:          ${{ vars.MZ_VOICE || 'en-US-ChristopherNeural' }}
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.topic }}" ]; then
+            ARGS="--topic \"${{ github.event.inputs.topic }}\""
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          echo "Running: python3 auto_post_mz_longform.py $ARGS"
+          eval "python3 auto_post_mz_longform.py $ARGS"
+
+      - name: Commit dedup log + post log
+        run: |
+          git config --local user.email "automation@youtube.local"
+          git config --local user.name "YouTube AutoPost Bot"
+          git add auto_post_log.json pexels_used_mz_longform.json 2>/dev/null || true
+          git commit -m "MZ long-form post - $(date)" || true
+          git push || true
+
+      - name: Upload logs to artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mz-longform-logs
+          path: |
+            auto_post_log.json
+          retention-days: 14
