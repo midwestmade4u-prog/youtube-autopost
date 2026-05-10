@@ -41,7 +41,7 @@ MZ_CHANNEL_ID  = "UCMVhjR4HetJctXeYkuPgg6w"
 TOKEN_FILE     = BASE_DIR / "youtube_token_mz.json"
 YT_SCOPES      = ["https://www.googleapis.com/auth/youtube.upload",
                   "https://www.googleapis.com/auth/youtube"]
-PLAYLIST_CACHE = BASE_DIR / "mz_longform_playlist_id.txt"  # cached after first creation
+MZ_LONGFORM_PLAYLIST_ID = "PLFxFhPJANicOqF4b_CsQxFoIh5AZlcsIJ"  # "Minute Zero — Full Episodes"
 NOTIFY_EMAIL   = "wisseinc@gmail.com"
 MODEL_BACKEND  = os.getenv("MZ_MODEL_BACKEND", "openai")
 
@@ -687,34 +687,12 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
         except Exception as e:
             print(f"  ⚠️  Thumbnail upload failed: {e}")
 
-    # Add to "Minute Zero — Full Episodes" playlist (create if needed)
+    # Add to "Minute Zero — Full Episodes" playlist
     try:
-        playlist_id = None
-        if PLAYLIST_CACHE.exists():
-            playlist_id = PLAYLIST_CACHE.read_text().strip()
-
-        if not playlist_id:
-            # Create the playlist once
-            pl = youtube.playlists().insert(
-                part="snippet,status",
-                body={
-                    "snippet": {
-                        "title":       "Minute Zero — Full Episodes",
-                        "description": "Every full-length Minute Zero documentary. "
-                                       "The exact moments famous companies broke, almost broke, "
-                                       "or made the one decision that changed everything.",
-                    },
-                    "status": {"privacyStatus": "public"},
-                }
-            ).execute()
-            playlist_id = pl["id"]
-            PLAYLIST_CACHE.write_text(playlist_id)
-            print(f"  ✅ Playlist created: {playlist_id}")
-
         youtube.playlistItems().insert(
             part="snippet",
             body={"snippet": {
-                "playlistId": playlist_id,
+                "playlistId": MZ_LONGFORM_PLAYLIST_ID,
                 "resourceId": {"kind": "youtube#video", "videoId": video_id},
             }}
         ).execute()
