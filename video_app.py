@@ -1160,8 +1160,8 @@ Rules:
         extra_constraints = ""
         last_script = None
 
-        # TMF: up to 3 attempts with title validator. Other channels: 1 attempt.
-        max_attempts = 3 if channel == "tmf" else 1
+        # 3 attempts for both TMF and BSG — title format is critical for both channels.
+        max_attempts = 3
 
         for attempt in range(1, max_attempts + 1):
             resp = client.chat.completions.create(
@@ -1181,15 +1181,14 @@ Rules:
                     raw = raw[4:]
             script = json.loads(raw.strip())
             last_script = script
+            title = (script.get("title") or "").strip()
 
-            # TMF title validator — "Why You/Your" rule enforced here too
             if channel == "tmf":
-                title = (script.get("title") or "").strip()
+                # TMF: must start with "Why You" or "Why Your"
                 t_lower = title.lower()
                 title_ok = t_lower.startswith("why you") or t_lower.startswith("why your")
                 if title_ok:
-                    break  # passed — use this script
-                # Failed — build retry constraint
+                    break
                 extra_constraints = (
                     f"\n\nIMPORTANT — your previous draft was REJECTED. "
                     f"Title was: \"{title}\"\n"
@@ -1199,8 +1198,33 @@ Rules:
                     f"Rewrite as \"Why You [verb] [observable behavior the viewer recognizes in themselves]\". "
                     f"No colons in the title."
                 )
+            elif channel == "bsg":
+                # BSG: must follow "[Story] [emoji] | Bible Story for Kids | Bible Story Garden"
+                title_ok = "| Bible Story for Kids | Bible Story Garden" in title
+                if title_ok:
+                    break
+                extra_constraints = (
+                    f"\n\nIMPORTANT — your previous draft was REJECTED. "
+                    f"Title was: \"{title}\"\n"
+                    f"The BSG title MUST follow this EXACT format: "
+                    f"[Story Name] [single emoji] | Bible Story for Kids | Bible Story Garden\n"
+                    f"Examples: \"Noah's Ark 🌊 | Bible Story for Kids | Bible Story Garden\"\n"
+                    f"          \"David vs Goliath ⚔️ | Bible Story for Kids | Bible Story Garden\"\n"
+                    f"Rewrite the title to match this format exactly."
+                )
             else:
-                break  # non-TMF channels accept first valid JSON
+                break  # other channels accept first valid JSON
+
+        # If all attempts failed the title validator, return a skip signal instead of a bad title.
+        # auto_post.py will catch this, log it as an intentional skip, and exit 0 (not an error).
+        if channel in ("tmf", "bsg"):
+            final_title = (last_script or {}).get("title", "")
+            if channel == "tmf":
+                final_ok = final_title.lower().startswith("why you") or final_title.lower().startswith("why your")
+            else:
+                final_ok = "| Bible Story for Kids | Bible Story Garden" in final_title
+            if not final_ok:
+                return jsonify({"error": f"TITLE_VALIDATION_SKIP: all {max_attempts} attempts failed — last title: \"{final_title}\""}), 422
 
         return jsonify({"script": last_script})
     except Exception as e:

@@ -143,14 +143,21 @@ TMF_TOPICS = [
     "Why Your Brain Only Sees What It Wants To See",
     "Why You Keep Going Back to Things You Know Are Bad For You",
 
-    # ── Uncomfortable-truth / experimental ──
+    # ── Uncomfortable-truth / dark manipulation ──
     "Why Most People Will Lie to Your Face and Believe They're Honest",
-    "Why High Achievers Secretly Think They're Frauds",
-    # "Why You Can't Stop Checking Your Phone" — published twice (Apr 21 + Apr 23) and underperformed; retired from the rotation.
-    "Why You Make Worse Decisions When You're Even Slightly Tired",
     "Why You Act Like a Completely Different Person Around Different People",
-    "The Real Reason You Procrastinate (It's Not Laziness)",
     "Why Smart People Still Make The Same Dumb Mistake Twice",
+    "Why Narcissists Always Come Back After You Cut Them Off",
+    "Why People Who Hurt You Act Like They're the Victim",
+    "The Reason Nice People Are the Easiest to Manipulate",
+    "Why You Freeze When Someone Confronts You With a Lie",
+    "How Manipulators Use Silence as a Weapon Against You",
+    "Why You Can't Trust Someone Who Never Admits They're Wrong",
+    "Why Abusers Always Make You Feel Responsible for Their Behavior",
+    "The Psychological Trick That Makes You Defend People Who Hurt You",
+    "Why Dangerous People Always Seem Completely Normal at First",
+    # Retired (soft behavioral, underperformed): procrastination, imposter syndrome,
+    # planning fallacy, regret, tiredness — these drift away from dark psychology core.
 ]
 
 # ── Topic Log ──────────────────────────────────────────────────────────────────
@@ -526,13 +533,13 @@ Structural rules:
                     f"Rewrite the title to match this format exactly. No exceptions."
                 )
 
-        # All retries exhausted: return last script with a warning so the run still completes.
-        print(
-            f"    🚨 All {max_attempts} attempts failed validators — "
-            f"posting last draft anyway (title issue: {last_title_reason or 'n/a'}, "
-            f"word count: {last_word_count or 'n/a'})."
+        # All retries exhausted: intentionally skip this post rather than publish a bad title.
+        # This is EXPECTED behavior, not a code error — exit 0 so GH Actions shows green.
+        raise ValueError(
+            f"TITLE_VALIDATION_SKIP: All {max_attempts} attempts failed — "
+            f"last title: \"{(last_script or {}).get('title', 'n/a')}\" | "
+            f"reason: {last_title_reason or 'format mismatch'}"
         )
-        return last_script  # type: ignore[return-value]
 
     except json.JSONDecodeError as e:
         raise ValueError(f"OpenAI returned invalid JSON: {str(e)[:100]}")
@@ -543,7 +550,7 @@ Structural rules:
         raise RuntimeError(f"Script generation failed ({error_type}): {str(e)[:150]}")
 
 
-def append_to_google_sheets(channel: str, title: str, url: str) -> None:
+def append_to_google_sheets(channel: str, title: str, url: str, status: str = "Success") -> None:
     """Append posted video to Google Sheets Auto-Post Log (GitHub Actions only)."""
     # Only run in GitHub Actions environment
     if not os.getenv("GITHUB_ACTIONS"):
@@ -581,7 +588,7 @@ def append_to_google_sheets(channel: str, title: str, url: str) -> None:
         # Central Time (auto-handles CDT/CST switch twice a year)
         timestamp = datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d %H:%M:%S")
 
-        row = [timestamp, channel_label, title, "Success", url, ""]
+        row = [timestamp, channel_label, title, status, url, ""]
 
         # Append to sheet
         service.spreadsheets().values().append(
@@ -979,6 +986,17 @@ def main():
                 if "error" in script_resp:
                     raise ValueError(script_resp["error"])
                 script = script_resp["script"]
+            except ValueError as e:
+                err = str(e)
+                if err.startswith("TITLE_VALIDATION_SKIP"):
+                    # Intentional skip — title validator rejected all 3 attempts.
+                    # This is EXPECTED behavior, not a code error. Exit 0 (green in GH Actions).
+                    print(f"\n⏭️  SKIPPED (title validation): {err}")
+                    print("   No video posted this run. This is intentional — a bad title is worse than no post.")
+                    append_to_google_sheets(channel, f"[SKIPPED] {err[22:100]}", "", status="Skipped - Title Validation")
+                    sys.exit(0)
+                print(f"❌ Script generation failed: {e}")
+                sys.exit(1)
             except Exception as e:
                 print(f"❌ Script generation failed: {e}")
                 sys.exit(1)
