@@ -41,6 +41,7 @@ MZ_CHANNEL_ID  = "UCMVhjR4HetJctXeYkuPgg6w"
 TOKEN_FILE     = BASE_DIR / "youtube_token_mz.json"
 YT_SCOPES      = ["https://www.googleapis.com/auth/youtube.upload",
                   "https://www.googleapis.com/auth/youtube"]
+PLAYLIST_CACHE = BASE_DIR / "mz_longform_playlist_id.txt"  # cached after first creation
 NOTIFY_EMAIL   = "wisseinc@gmail.com"
 MODEL_BACKEND  = os.getenv("MZ_MODEL_BACKEND", "openai")
 
@@ -257,16 +258,57 @@ def generate_script(topic: str) -> dict:
             )
 
     # ── Step 2: Build full JSON metadata from the validated prose ────────────
+    # Calculate real act timestamps from word counts (at 2.5 wps)
+    words = narration.split()
+    total_words = len(words)
+    # Act word targets (proportional to 5-act structure)
+    act1_end_w  = min(120, int(total_words * 0.08))
+    act2_end_w  = act1_end_w  + int(total_words * 0.19)
+    act3_end_w  = act2_end_w  + int(total_words * 0.28)
+    act4_end_w  = act3_end_w  + int(total_words * 0.27)
+
+    def _w_to_ts(w: int) -> str:
+        secs = int(w / 2.5)
+        return f"{secs // 60}:{secs % 60:02d}"
+
+    ts1 = _w_to_ts(0)           # Hook always starts at 0:00
+    ts2 = _w_to_ts(act1_end_w)  # Context
+    ts3 = _w_to_ts(act2_end_w)  # Minute Zero
+    ts4 = _w_to_ts(act3_end_w)  # Fallout
+    ts5 = _w_to_ts(act4_end_w)  # Lesson
+
     system_full = load_system_prompt()
     json_user = (
         f"Topic: {topic}\n\n"
-        f"Here is the complete narration (already written and validated — DO NOT SHORTEN IT):\n\n"
+        f"Here is the complete narration script ({total_words} words):\n\n"
         f"{narration}\n\n"
-        f"Now produce the full JSON output per your instructions. "
-        f"The 'script' field must contain EXACTLY the narration text above, word for word. "
-        f"Do not summarize or edit it. Generate the title, description, pexels_queries, tags, "
-        f"thumbnail_text, and act_breaks to match this script.\n\n"
-        f"Return ONLY valid JSON. No markdown, no explanation."
+        f"Produce the YouTube metadata JSON for this video. Rules:\n\n"
+        f"TITLE:\n"
+        f"- Must start with 'How' OR lead with a dollar figure / number\n"
+        f"- Frame as survival/rescue when possible (outperforms collapse framing 5-10x)\n"
+        f"- Max 70 characters. No banned openers: 'The Night', 'The Day', 'The Moment'\n"
+        f"- Best performing templates: 'How [Company] Survived...', 'How $X [Vanished/Saved]...'\n\n"
+        f"DESCRIPTION (150-200 words):\n"
+        f"- First 2 sentences: hook that sells the video (viewer benefit, not plot summary)\n"
+        f"- Use these EXACT chapter timestamps (calculated from script word counts at 2.5 wps):\n"
+        f"  {ts1} The Hook\n"
+        f"  {ts2} Context\n"
+        f"  {ts3} Minute Zero\n"
+        f"  {ts4} The Fallout\n"
+        f"  {ts5} The Lesson\n"
+        f"- End with 4-6 hashtags: always include #businesshistory #documentary, "
+        f"then pick 2-4 from: #corporatehistory #bankruptcy #wallstreet #truecrime "
+        f"#darkhistory #finance #businessfailures #truestory #historybuff\n\n"
+        f"TAGS (return as array, 12-15 tags):\n"
+        f"- Include: company name, 'business failure', 'corporate history', 'documentary', "
+        f"'business history', 'minute zero', plus topic-specific terms\n\n"
+        f"THUMBNAIL_TEXT: 3-5 words ALL CAPS, punchy, works on top of a photo\n\n"
+        f"PEXELS_QUERIES: 12-16 landscape b-roll queries, concrete and visual\n\n"
+        f"Return ONLY valid JSON with these fields: title, description, tags, "
+        f"thumbnail_text, pexels_queries, act_breaks\n"
+        f"act_breaks = {{act1_end_word: {act1_end_w}, act2_end_word: {act2_end_w}, "
+        f"act3_end_word: {act3_end_w}, act4_end_word: {act4_end_w}}}\n"
+        f"No markdown, no explanation."
     )
 
     def _call_json_openai(sys: str, usr: str) -> dict:
@@ -644,6 +686,41 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
             print("  ✅ Thumbnail uploaded")
         except Exception as e:
             print(f"  ⚠️  Thumbnail upload failed: {e}")
+
+    # Add to "Minute Zero — Full Episodes" playlist (create if needed)
+    try:
+        playlist_id = None
+        if PLAYLIST_CACHE.exists():
+            playlist_id = PLAYLIST_CACHE.read_text().strip()
+
+        if not playlist_id:
+            # Create the playlist once
+            pl = youtube.playlists().insert(
+                part="snippet,status",
+                body={
+                    "snippet": {
+                        "title":       "Minute Zero — Full Episodes",
+                        "description": "Every full-length Minute Zero documentary. "
+                                       "The exact moments famous companies broke, almost broke, "
+                                       "or made the one decision that changed everything.",
+                    },
+                    "status": {"privacyStatus": "public"},
+                }
+            ).execute()
+            playlist_id = pl["id"]
+            PLAYLIST_CACHE.write_text(playlist_id)
+            print(f"  ✅ Playlist created: {playlist_id}")
+
+        youtube.playlistItems().insert(
+            part="snippet",
+            body={"snippet": {
+                "playlistId": playlist_id,
+                "resourceId": {"kind": "youtube#video", "videoId": video_id},
+            }}
+        ).execute()
+        print(f"  ✅ Added to playlist: Minute Zero — Full Episodes")
+    except Exception as e:
+        print(f"  ⚠️  Playlist add failed: {e}")
 
     print(f"  ✅ Uploaded (PRIVATE): {video_url}")
     return video_url, studio_url
