@@ -153,7 +153,13 @@ def longform_title_ok(title: str) -> tuple[bool, str]:
 def generate_script(topic: str) -> dict:
     """Generate long-form script via OpenAI (primary) or Anthropic (fallback)."""
     system = load_system_prompt()
-    user_msg = f"Write a complete 8–10 minute Minute Zero long-form script about: {topic}"
+    user_msg = (
+        f"Write a complete 8–10 minute Minute Zero long-form script about: {topic}\n\n"
+        f"CRITICAL LENGTH REQUIREMENT: The 'script' field MUST be 1,500–1,800 words of narration. "
+        f"That is roughly 5–6 pages of text. Do NOT summarise — expand every beat with specific "
+        f"dollar figures, names, timestamps, dialogue, and consequences. "
+        f"A 700-word script is a SHORT, not a documentary. Write the FULL story."
+    )
 
     def _call_openai(system_prompt: str, user: str) -> dict:
         import openai
@@ -162,7 +168,7 @@ def generate_script(topic: str) -> dict:
             model="gpt-4o",
             messages=[{"role": "system", "content": system_prompt},
                       {"role": "user", "content": user}],
-            max_tokens=4000,
+            max_tokens=6000,
             temperature=0.75,
         )
         raw = resp.choices[0].message.content.strip()
@@ -177,7 +183,7 @@ def generate_script(topic: str) -> dict:
         client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
         resp = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=4000,
+            max_tokens=6000,
             system=system_prompt,
             messages=[{"role": "user", "content": user}],
         )
@@ -228,7 +234,13 @@ def generate_script(topic: str) -> dict:
         extra = (
             "\n\nIMPORTANT — your previous draft was REJECTED:\n- "
             + "\n- ".join(problems)
-            + f"\n\nFix ALL issues. Script must be {WORD_MIN}–{WORD_MAX} words total narration. "
+            + f"\n\nFix ALL issues in this next attempt.\n"
+              f"LENGTH is the #1 issue: the 'script' field must be {WORD_MIN}–{WORD_MAX} words. "
+              f"Count your words. A 700-word script is a SHORT VIDEO — you wrote a summary, not a documentary. "
+              f"Each of the 5 acts needs 300–400 words minimum. "
+              f"Expand EVERY beat: add specific names, exact dollar amounts, precise timestamps, "
+              f"what people said in the room, who got hurt, what the aftermath looked like. "
+              f"Do NOT compress. Do NOT summarise. Write the FULL story in detail.\n"
               f"Title must start with 'How' or a number/dollar figure."
         )
 
