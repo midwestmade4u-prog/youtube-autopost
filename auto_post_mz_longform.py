@@ -405,12 +405,14 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
                 r = requests.get(clip_url, timeout=30)
                 clip_path.write_bytes(r.content)
 
-                # Trim + scale to 1920x1080
+                # Trim + scale to 1920x1080 (ultrafast — stream-copied later, quality set at merge)
                 trimmed = out_dir / f"clip_{i:02d}_trim.mp4"
                 subprocess.run([
                     "ffmpeg", "-y", "-i", str(clip_path),
                     "-t", str(clip_duration),
                     "-vf", "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+                    "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23",
+                    "-pix_fmt", "yuv420p", "-r", "30",
                     "-an", str(trimmed)
                 ], capture_output=True)
                 clip_paths.append(trimmed)
@@ -429,47 +431,37 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
     output_path = out_dir / f"{video_id}_longform.mp4"
 
     if clip_paths:
-        # Concat clips into a raw backdrop
+        # Extend clip list to cover full audio — repeat clips rather than re-encoding
+        # Each clip is already 1920x1080 libx264 from the trim step; use stream copy.
+        clips_needed = int(duration_sec / max(clip_duration, 1)) + 2
+        if len(clip_paths) < clips_needed:
+            repeats = (clips_needed // len(clip_paths)) + 1
+            extended = (clip_paths * repeats)[:clips_needed]
+            print(f"  🔁 Extending {len(clip_paths)} clips → {len(extended)} to cover {duration_sec:.0f}s")
+        else:
+            extended = clip_paths
+
         concat_file = out_dir / "concat.txt"
-        concat_file.write_text("\n".join(f"file '{p.resolve()}'" for p in clip_paths))
-        backdrop_raw = out_dir / "backdrop_raw.mp4"
+        concat_file.write_text("\n".join(f"file '{p.resolve()}'" for p in extended))
+        backdrop = out_dir / "backdrop.mp4"
+        # -c:v copy: no re-encode (clips are already uniform libx264 1920x1080)
         subprocess.run([
             "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat_file),
-            "-c:v", "libx264", "-preset", "fast",
-            "-pix_fmt", "yuv420p", str(backdrop_raw)
+            "-t", str(duration_sec),
+            "-c:v", "copy",
+            str(backdrop)
         ], capture_output=True)
-
-        # Check backdrop duration — loop it if clips don't cover the full audio
-        probe = subprocess.run(
-            ["ffprobe", "-v", "quiet", "-print_format", "json",
-             "-show_format", str(backdrop_raw)],
-            capture_output=True, text=True
-        )
-        bd_sec = float(json.loads(probe.stdout)["format"]["duration"])
-        backdrop = out_dir / "backdrop.mp4"
-        if bd_sec < duration_sec * 0.99:
-            # Loop and trim to exact audio length
-            loop_n = int(duration_sec / max(bd_sec, 1)) + 2
-            subprocess.run([
-                "ffmpeg", "-y",
-                "-stream_loop", str(loop_n), "-i", str(backdrop_raw),
-                "-t", str(duration_sec),
-                "-c:v", "libx264", "-preset", "fast",
-                "-pix_fmt", "yuv420p", str(backdrop)
-            ], capture_output=True)
-            print(f"  🔁 Backdrop looped to match {duration_sec:.0f}s audio")
-        else:
-            backdrop_raw.rename(backdrop)
     else:
         # Fallback: dark slate background
         backdrop = out_dir / "backdrop.mp4"
         subprocess.run([
             "ffmpeg", "-y", "-f", "lavfi",
             "-i", f"color=c=0x0a0a0a:size=1920x1080:duration={duration_sec}:rate=30",
-            "-c:v", "libx264", str(backdrop)
+            "-c:v", "libx264", "-preset", "ultrafast",
+            str(backdrop)
         ], capture_output=True)
 
-    # Merge audio + video — NO -shortest, backdrop is now guaranteed ≥ audio length
+    # Merge audio + video — stream copy video (no re-encode), encode audio only
     subprocess.run([
         "ffmpeg", "-y",
         "-i", str(backdrop),
