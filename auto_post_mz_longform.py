@@ -364,7 +364,7 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
 
     # ── 3. Fetch landscape Pexels footage ─────────────────────────────────────
     print("  🎬 Fetching landscape Pexels footage...")
-    pexels_key = os.getenv("PEXELS_API_KEY", "")
+    pexels_key = os.getenv("PEXELS_API_KEY", "").strip()
     clip_paths = []
 
     if pexels_key and queries:
