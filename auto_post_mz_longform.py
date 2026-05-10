@@ -429,15 +429,37 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
     output_path = out_dir / f"{video_id}_longform.mp4"
 
     if clip_paths:
-        # Concat clips to match audio duration
+        # Concat clips into a raw backdrop
         concat_file = out_dir / "concat.txt"
         concat_file.write_text("\n".join(f"file '{p.resolve()}'" for p in clip_paths))
-        backdrop = out_dir / "backdrop.mp4"
+        backdrop_raw = out_dir / "backdrop_raw.mp4"
         subprocess.run([
             "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat_file),
-            "-t", str(duration_sec), "-c:v", "libx264", "-preset", "fast",
-            "-pix_fmt", "yuv420p", str(backdrop)
+            "-c:v", "libx264", "-preset", "fast",
+            "-pix_fmt", "yuv420p", str(backdrop_raw)
         ], capture_output=True)
+
+        # Check backdrop duration — loop it if clips don't cover the full audio
+        probe = subprocess.run(
+            ["ffprobe", "-v", "quiet", "-print_format", "json",
+             "-show_format", str(backdrop_raw)],
+            capture_output=True, text=True
+        )
+        bd_sec = float(json.loads(probe.stdout)["format"]["duration"])
+        backdrop = out_dir / "backdrop.mp4"
+        if bd_sec < duration_sec * 0.99:
+            # Loop and trim to exact audio length
+            loop_n = int(duration_sec / max(bd_sec, 1)) + 2
+            subprocess.run([
+                "ffmpeg", "-y",
+                "-stream_loop", str(loop_n), "-i", str(backdrop_raw),
+                "-t", str(duration_sec),
+                "-c:v", "libx264", "-preset", "fast",
+                "-pix_fmt", "yuv420p", str(backdrop)
+            ], capture_output=True)
+            print(f"  🔁 Backdrop looped to match {duration_sec:.0f}s audio")
+        else:
+            backdrop_raw.rename(backdrop)
     else:
         # Fallback: dark slate background
         backdrop = out_dir / "backdrop.mp4"
@@ -447,12 +469,14 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
             "-c:v", "libx264", str(backdrop)
         ], capture_output=True)
 
-    # Merge audio + video
+    # Merge audio + video — NO -shortest, backdrop is now guaranteed ≥ audio length
     subprocess.run([
         "ffmpeg", "-y",
         "-i", str(backdrop),
         "-i", str(audio_path),
-        "-c:v", "copy", "-c:a", "aac", "-shortest",
+        "-map", "0:v:0", "-map", "1:a:0",
+        "-c:v", "copy", "-c:a", "aac",
+        "-t", str(duration_sec),
         str(output_path)
     ], capture_output=True)
 
@@ -461,13 +485,46 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
     # ── 5. Generate thumbnail ─────────────────────────────────────────────────
     thumb_path = out_dir / f"{video_id}_thumb.jpg"
     try:
-        img = Image.new("RGB", (1280, 720), (10, 10, 10))
+        from PIL import ImageFont
+        img  = Image.new("RGB", (1280, 720), (10, 10, 10))
         draw = ImageDraw.Draw(img)
-        thumb_text = script_data.get("thumbnail_text", title[:30].upper())
-        draw.text((640, 360), thumb_text, fill=(255, 255, 255), anchor="mm")
-        img.save(str(thumb_path))
-    except Exception:
-        pass
+        thumb_text = script_data.get("thumbnail_text", title[:40].upper())
+
+        # Try system fonts in order of preference (Ubuntu / macOS)
+        font = None
+        for font_path in [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+            "/System/Library/Fonts/Helvetica.ttc",
+            "/System/Library/Fonts/Arial.ttf",
+        ]:
+            try:
+                font = ImageFont.truetype(font_path, size=90)
+                break
+            except Exception:
+                continue
+        if font is None:
+            font = ImageFont.load_default()
+
+        # Draw subtle gradient-like dark bar behind text
+        draw.rectangle([(0, 260), (1280, 460)], fill=(0, 0, 0, 180))
+
+        # Wrap long text across two lines if needed
+        words = thumb_text.split()
+        mid   = len(words) // 2
+        line1 = " ".join(words[:mid]) if mid else thumb_text
+        line2 = " ".join(words[mid:]) if mid and len(words) > 1 else ""
+
+        if line2:
+            draw.text((640, 320), line1, font=font, fill=(255, 255, 255), anchor="mm")
+            draw.text((640, 420), line2, font=font, fill=(255, 220, 50),  anchor="mm")
+        else:
+            draw.text((640, 360), line1, font=font, fill=(255, 255, 255), anchor="mm")
+
+        img.save(str(thumb_path), quality=95)
+        print(f"  ✅ Thumbnail: {thumb_path.name}")
+    except Exception as e:
+        print(f"  ⚠️  Thumbnail generation failed: {e}")
 
     return {
         "video_path": output_path,
