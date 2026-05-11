@@ -963,10 +963,11 @@ def main():
         print("\n🔌 Video server already running — using it.")
     else:
         print("\n🚀 Starting video server...")
+        server_log = open(BASE_DIR / "video_server.log", "w")
         server_proc = subprocess.Popen(
             [sys.executable, str(BASE_DIR / "video_app.py")],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stdout=server_log,
+            stderr=server_log,
         )
         if not wait_for_server(timeout=90):
             print("❌ Server failed to start within 90 seconds.")
