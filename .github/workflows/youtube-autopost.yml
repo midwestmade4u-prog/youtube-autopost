@@ -42,12 +42,30 @@ jobs:
           INNEREOF
 
       - name: Create YouTube token files
+        env:
+          YT_TOKEN_BSG: ${{ secrets.YT_TOKEN_BSG }}
+          YT_TOKEN_TMF: ${{ secrets.YT_TOKEN_TMF }}
         run: |
-          echo '${{ secrets.YT_TOKEN_BSG }}' > youtube_token_bsg.json
-          echo '${{ secrets.YT_TOKEN_TMF }}' > youtube_token_tmf.json
+          # Use Python to write token files — handles special characters safely
+          python3 -c "
+          import os, json, sys
+          for fname, var in [('youtube_token_bsg.json','YT_TOKEN_BSG'),('youtube_token_tmf.json','YT_TOKEN_TMF')]:
+              val = os.environ.get(var,'')
+              if not val:
+                  print(f'WARNING: {var} is empty')
+                  continue
+              try:
+                  parsed = json.loads(val)
+                  with open(fname,'w') as f:
+                      json.dump(parsed, f)
+                  print(f'OK: {fname} written ({len(parsed)} keys)')
+              except Exception as e:
+                  print(f'ERROR: {fname} — {e}')
+                  sys.exit(1)
+          "
 
-      # BSG re-enabled May 5 2026. OAuth token regenerated under bsgchannel99@gmail.com
-      # (Manager role on BSG brand account). YT_TOKEN_BSG secret updated same day.
+      # BSG re-enabled May 5 2026. Token must be generated under midwestmade4u@gmail.com
+      # selecting Bible Story Garden brand account. bsgchannel99 is manager only — never token source.
       - name: Run Bible Story Garden auto-post
         if: true
         env:
