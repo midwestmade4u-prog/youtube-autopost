@@ -7,8 +7,9 @@ name: MZ Long-Form Auto-Post
 
 on:
   schedule:
-    - cron: '0 14 * * 2'   # Tuesday  9 AM CT
-    - cron: '0 14 * * 5'   # Friday   9 AM CT
+    - cron: '0 14 * * 1'   # Monday    9 AM CT
+    - cron: '0 14 * * 3'   # Wednesday 9 AM CT
+    - cron: '0 14 * * 5'   # Friday    9 AM CT
   workflow_dispatch:
     inputs:
       topic:
