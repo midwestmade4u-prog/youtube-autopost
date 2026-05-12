@@ -72,6 +72,7 @@ jobs:
         run: |
           git config --local user.email "automation@youtube.local"
           git config --local user.name "YouTube AutoPost Bot"
+          git pull --rebase origin main || true
           git add auto_post_log.json pexels_used_mz_longform.json mz_longform_playlist_id.txt 2>/dev/null || true
           git commit -m "MZ long-form post - $(date)" || true
           git push || true
