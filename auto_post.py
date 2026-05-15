@@ -864,11 +864,23 @@ def run_via_server(channel: str, topic: str, script: dict) -> str:
 
     if status.get("error"):
         print(f"❌ Video generation error: {status['error']}")
+        # Print video_server.log tail for debugging
+        log_path = BASE_DIR / "video_server.log"
+        if log_path.exists():
+            print("\n── video_server.log (last 40 lines) ──")
+            lines = log_path.read_text(errors="replace").splitlines()
+            print("\n".join(lines[-40:]))
         sys.exit(1)
 
     video_path = status.get("output", "")
     if not video_path:
         print("❌ No output video reported.")
+        # Print video_server.log tail so we can see what failed
+        log_path = BASE_DIR / "video_server.log"
+        if log_path.exists():
+            print("\n── video_server.log (last 40 lines) ──")
+            lines = log_path.read_text(errors="replace").splitlines()
+            print("\n".join(lines[-40:]))
         sys.exit(1)
 
     filename = Path(video_path).name

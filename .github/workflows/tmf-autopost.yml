@@ -63,4 +63,5 @@ jobs:
           path: |
             watcher.log
             auto_post_log.json
+            video_server.log
           retention-days: 7
