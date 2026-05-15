@@ -293,13 +293,18 @@ def generate_script(topic: str) -> dict:
         f"- Second sentence: what the viewer will learn / why this story matters NOW (no 'Discover how...' or 'In this video...' openers — those are banned)\n"
         f"- Do NOT start with the company name. Lead with the stakes, the number, or the outcome.\n"
         f"- Example format: '[Specific shocking fact]. [Why this story is relevant today + what viewer learns].'\n"
-        f"- Use these EXACT chapter timestamps (calculated from script word counts at 2.5 wps):\n"
-        f"  {ts1} The Hook\n"
-        f"  {ts2} Context\n"
-        f"  {ts3} Minute Zero\n"
-        f"  {ts4} The Fallout\n"
-        f"  {ts5} The Lesson\n"
-        f"- End with 4-6 hashtags: always include #businesshistory #documentary, "
+        f"- After the prose, add a blank line, then the chapter timestamps — ONE PER LINE, "
+        f"exactly as shown below (YouTube only creates clickable chapters when each timestamp "
+        f"is on its own line with nothing else on that line):\n"
+        f"\n"
+        f"{ts1} The Hook\n"
+        f"{ts2} Context\n"
+        f"{ts3} Minute Zero\n"
+        f"{ts4} The Fallout\n"
+        f"{ts5} The Lesson\n"
+        f"\n"
+        f"- After the timestamps, add a blank line, then the hashtags on their own line. "
+        f"4-6 hashtags: always include #businesshistory #documentary, "
         f"then pick 2-4 from: #corporatehistory #bankruptcy #wallstreet #truecrime "
         f"#darkhistory #finance #businessfailures #truestory #historybuff\n\n"
         f"TAGS (return as array, 12-15 tags):\n"
@@ -530,6 +535,9 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
         queries    = script_data.get("pexels_queries", [])
 
         # ── 5a. Fetch a dramatic Pexels PHOTO as background ──────────────────
+        # Prepend "dark dramatic" to get moodier imagery
+        queries = [f"dark dramatic {q}" for q in queries[:3]] + queries[3:]
+
         bg = None
         if pexels_key and queries:
             for q in queries[:6]:  # try first 6 queries
@@ -568,27 +576,34 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
         # Slight blur to make text pop
         bg = bg.filter(ImageFilter.GaussianBlur(radius=1.5))
 
-        # ── 5d. Dark gradient overlay (bottom 60%) ───────────────────────────
+        # ── 5d. Dark overlay: darken entire image + heavy gradient at bottom ──
+        # Step 1: global darkening
+        dark_layer = Image.new("RGBA", (1280, 720), (0, 0, 0, 100))
+        bg = Image.alpha_composite(bg.convert("RGBA"), dark_layer)
+        # Step 2: red-tinted gradient overlay (bottom half)
         overlay = Image.new("RGBA", (1280, 720), (0, 0, 0, 0))
         ov_draw = ImageDraw.Draw(overlay)
-        grad_top = 200
+        grad_top = 250
         for y in range(grad_top, 720):
-            alpha = int(210 * (y - grad_top) / (720 - grad_top))
-            ov_draw.rectangle([(0, y), (1280, y + 1)], fill=(0, 0, 0, alpha))
-        bg = Image.alpha_composite(bg.convert("RGBA"), overlay).convert("RGB")
+            t = (y - grad_top) / (720 - grad_top)
+            alpha = int(200 * t)
+            r = int(60 * t)   # subtle red tint
+            ov_draw.rectangle([(0, y), (1280, y + 1)], fill=(r, 0, 0, alpha))
+        bg = Image.alpha_composite(bg, overlay).convert("RGB")
 
-        # ── 5e. Load font ────────────────────────────────────────────────────
+        # ── 5e. Load font (Impact → Oswald-Bold → Liberation Bold → fallback) ─
         draw = ImageDraw.Draw(bg)
         font_large = font_small = None
         for fp in [
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/Library/Fonts/Impact.ttf",                                         # macOS
+            "/System/Library/Fonts/Supplemental/Impact.ttf",                    # macOS
+            "/usr/local/share/fonts/Oswald-Bold.ttf",                           # GH Actions (installed)
             "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-            "/System/Library/Fonts/Helvetica.ttc",
-            "/System/Library/Fonts/Arial.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
         ]:
             try:
-                font_large = ImageFont.truetype(fp, size=95)
-                font_small = ImageFont.truetype(fp, size=75)
+                font_large = ImageFont.truetype(fp, size=130)
+                font_small = ImageFont.truetype(fp, size=105)
                 break
             except Exception:
                 continue
@@ -601,15 +616,16 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
         line1 = " ".join(words[:mid])
         line2 = " ".join(words[mid:]) if len(words) > 1 else ""
 
+        def _outlined(draw, x, y, text, font, fill, stroke_fill=(0,0,0), stroke_w=7):
+            draw.text((x, y), text, font=font, fill=fill,
+                      anchor="mm", stroke_width=stroke_w, stroke_fill=stroke_fill)
+
         if line2:
-            # Two lines: white on top, yellow on bottom
-            draw.text((640, 580), line1, font=font_large, fill=(255, 255, 255),
-                      anchor="mm", stroke_width=3, stroke_fill=(0, 0, 0))
-            draw.text((640, 670), line2, font=font_small, fill=(255, 215, 0),
-                      anchor="mm", stroke_width=3, stroke_fill=(0, 0, 0))
+            # Line 1: white, Line 2: red — centered in lower third
+            _outlined(draw, 640, 565, line1, font_large, fill=(255, 255, 255))
+            _outlined(draw, 640, 665, line2, font_small,  fill=(255, 51, 51))
         else:
-            draw.text((640, 630), line1, font=font_large, fill=(255, 255, 255),
-                      anchor="mm", stroke_width=3, stroke_fill=(0, 0, 0))
+            _outlined(draw, 640, 620, line1, font_large, fill=(255, 255, 255))
 
         bg.save(str(thumb_path), quality=95)
         print(f"  ✅ Thumbnail: {thumb_path.name}")
@@ -622,6 +638,69 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
         "duration_sec": duration_sec,
         "video_id": video_id,
     }
+
+
+def _format_description(desc: str) -> str:
+    """Enforce YouTube chapter and hashtag formatting rules.
+
+    YouTube only creates clickable chapter links when each timestamp is on its
+    own line (e.g. "0:00 The Hook" with nothing else on that line). LLMs
+    sometimes embed timestamps inline in prose. This function pulls them out,
+    ensures each is on its own line, and puts hashtags on a separate line at
+    the end.
+    """
+    import re
+
+    # Split prose, timestamps, and hashtags
+    lines = desc.splitlines()
+    prose_lines = []
+    timestamp_lines = []
+    hashtag_line = ""
+
+    ts_pattern = re.compile(r"^\s*(\d{1,2}:\d{2})\s+(.+)$")
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        # Collect hashtag line(s)
+        if stripped.startswith("#") or re.match(r"^(#\w+\s*)+$", stripped):
+            hashtag_line = stripped
+            continue
+        # Check if line contains inline timestamps (e.g. "0:00 The Hook 0:47 Context")
+        # Split them out if multiple timestamps on one line
+        inline_ts = re.findall(r"(\d{1,2}:\d{2})\s+([A-Za-z][A-Za-z\s]+?)(?=\s+\d{1,2}:\d{2}|$)", stripped)
+        if inline_ts and len(inline_ts) >= 2:
+            # Multiple timestamps on one line — split them
+            for ts, label in inline_ts:
+                timestamp_lines.append(f"{ts} {label.strip()}")
+            continue
+        # Single timestamp line
+        if ts_pattern.match(stripped):
+            timestamp_lines.append(stripped)
+            continue
+        # Extract inline hashtags from prose lines
+        if "#" in stripped:
+            # Separate prose from any trailing hashtags
+            parts = re.split(r"\s+(#\w)", stripped, maxsplit=1)
+            if len(parts) > 1:
+                prose_lines.append(parts[0].strip())
+                hashtag_line = "#" + parts[1] + (parts[2] if len(parts) > 2 else "")
+            else:
+                prose_lines.append(stripped)
+            continue
+        prose_lines.append(stripped)
+
+    # Reassemble: prose → blank line → timestamps → blank line → hashtags
+    parts = []
+    if prose_lines:
+        parts.append("\n".join(prose_lines))
+    if timestamp_lines:
+        parts.append("\n".join(timestamp_lines))
+    if hashtag_line:
+        parts.append(hashtag_line)
+
+    return "\n\n".join(parts)
 
 
 def upload_to_youtube(video_path: Path, title: str, description: str,
@@ -832,6 +911,7 @@ def main() -> int:
     # Upload to YouTube (private)
     print(f"\n📤 Uploading to YouTube (PRIVATE)...")
     description = script_data.get("description", f"{title}\n\n#MinuteZero #BusinessHistory")
+    description = _format_description(description)
     tags        = script_data.get("tags", ["minute zero", "business failure", "corporate history"])
     video_url, studio_url = upload_to_youtube(
         render_result["video_path"], title, description, tags,
