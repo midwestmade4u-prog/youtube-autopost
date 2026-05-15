@@ -93,8 +93,9 @@ jobs:
         run: |
           git config --local user.email "automation@youtube.local"
           git config --local user.name "YouTube AutoPost Bot"
+          git pull --rebase origin main || true
           git add auto_post_log.json auto_trigger_*.json 2>/dev/null || true
-          git commit -m "Auto-post videos - $(date)" || true
+          git commit -m "Auto-post videos (BSG) - $(date)" || true
           git push || true
 
       - name: Upload logs to artifacts

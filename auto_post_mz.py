@@ -611,6 +611,15 @@ def main() -> int:
             print(f"\n⏭️  SKIPPED (title validation): {err}")
             print("   No video posted. A bad title is worse than no post — this is expected behavior.")
             append_to_google_sheets(f"[SKIPPED] {err[22:100]}", "", format_tag)
+            # Mark the topic as used so the same failing topic isn't re-picked on
+            # the next run — prevents infinite retry loops on stubborn topics.
+            log = _load_log()
+            used = log.get("mz_topics_used", [])
+            if topic not in used:
+                used.append(topic)
+                log["mz_topics_used"] = used
+                _save_log(log)
+                print(f"   📝 Marked skipped topic as used to prevent retry loop: {topic[:60]}")
             return 0
         raise
     print(f"  ✅ Title: {script_data['title']}")
@@ -664,7 +673,23 @@ def main() -> int:
     mark_mz_posted(topic, script_data["title"], video_url, format_tag)
     append_to_google_sheets(script_data["title"], video_url, format_tag)
 
-    # 6. Trigger file for traceability (matches TMF/BSG pattern)
+    # 6. Post TikTok variant (if TIKTOK_ACCESS_TOKEN is set)
+    tt_path = Path(result["tt_path"])
+    tiktok_publish_id = None
+    if os.environ.get("TIKTOK_ACCESS_TOKEN") or (BASE_DIR / "tiktok_token.json").exists():
+        print(f"\n📱 Posting TikTok variant ...")
+        try:
+            from tiktok_post import post_to_tiktok, load_access_token
+            tt_token = load_access_token()
+            tt_title = script_data["title"]
+            tiktok_publish_id = post_to_tiktok(tt_path, tt_title, tt_token)
+            print(f"  ✅ TikTok posted — Publish ID: {tiktok_publish_id}")
+        except Exception as e:
+            print(f"  ⚠️  TikTok post failed (non-fatal): {str(e)[:200]}")
+    else:
+        print(f"\n⏭️  Skipping TikTok post (TIKTOK_ACCESS_TOKEN not set)")
+
+    # 7. Trigger file for traceability (matches TMF/BSG pattern)
     trigger_path = BASE_DIR / f"auto_trigger_mz_{time.strftime('%Y%m%d_%H%M')}.json"
     trigger_path.write_text(json.dumps({
         "channel":     "mz",
@@ -673,7 +698,8 @@ def main() -> int:
         "title":       script_data["title"],
         "video_url":   video_url,
         "master_path": result["master_path"],
-        "tt_path":     result["tt_path"],    # TikTok variant — for cross-post once wired
+        "tt_path":          result["tt_path"],
+        "tiktok_publish_id": tiktok_publish_id,   # None if not posted
         "ig_path":     result["ig_path"],    # Instagram variant — future
         "thumb_path":  result["thumb_path"],
         "posted_at":   time.strftime("%Y-%m-%d %H:%M:%S"),
