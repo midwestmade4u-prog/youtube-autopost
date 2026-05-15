@@ -50,6 +50,7 @@ jobs:
         run: |
           git config --local user.email "automation@youtube.local"
           git config --local user.name "YouTube AutoPost Bot"
+          git pull --rebase origin main || true
           git add auto_post_log.json auto_trigger_tmf_*.json 2>/dev/null || true
           git commit -m "Auto-post videos (TMF) - $(date)" || true
           git push || true

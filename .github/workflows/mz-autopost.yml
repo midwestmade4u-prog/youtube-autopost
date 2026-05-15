@@ -96,6 +96,7 @@ jobs:
         run: |
           git config --local user.email "automation@youtube.local"
           git config --local user.name "YouTube AutoPost Bot"
+          git pull --rebase origin main || true
           git add auto_post_log.json auto_trigger_mz_*.json pexels_used_mz.json 2>/dev/null || true
           git commit -m "Auto-post video (MZ) - $(date)" || true
           git push || true
