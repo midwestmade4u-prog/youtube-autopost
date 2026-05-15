@@ -524,7 +524,12 @@ def add_text_overlay(image_path, text, output_path, width=1280, height=720, chan
 
 async def _gen_audio_async(text, path, voice):
     import edge_tts
-    await edge_tts.Communicate(text, voice).save(str(path))
+    # 45s timeout — edge-tts has no built-in timeout; without this a hung
+    # Microsoft TTS connection blocks the background thread forever.
+    await asyncio.wait_for(
+        edge_tts.Communicate(text, voice).save(str(path)),
+        timeout=45,
+    )
 
 
 async def _gen_audio_with_timing_async(text, path, voice):
@@ -534,24 +539,28 @@ async def _gen_audio_with_timing_async(text, path, voice):
     Returns list of {word, start, end} dicts (same format as ElevenLabs output).
     """
     import edge_tts
-    communicate  = edge_tts.Communicate(text, voice)
-    word_timings = []
 
-    with open(path, "wb") as audio_file:
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                audio_file.write(chunk["data"])
-            elif chunk["type"] == "WordBoundary":
-                # offset and duration are in 100-nanosecond units → convert to seconds
-                start = chunk["offset"] / 10_000_000
-                end   = (chunk["offset"] + chunk["duration"]) / 10_000_000
-                word_timings.append({
-                    "word":  chunk["text"],
-                    "start": start,
-                    "end":   end,
-                })
+    async def _stream():
+        communicate  = edge_tts.Communicate(text, voice)
+        word_timings = []
+        with open(path, "wb") as audio_file:
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    audio_file.write(chunk["data"])
+                elif chunk["type"] == "WordBoundary":
+                    # offset and duration are in 100-nanosecond units → convert to seconds
+                    start = chunk["offset"] / 10_000_000
+                    end   = (chunk["offset"] + chunk["duration"]) / 10_000_000
+                    word_timings.append({
+                        "word":  chunk["text"],
+                        "start": start,
+                        "end":   end,
+                    })
+        return word_timings if word_timings else None
 
-    return word_timings if word_timings else None
+    # 45s timeout — edge-tts has no built-in timeout; without this a hung
+    # Microsoft TTS connection blocks the background thread forever.
+    return await asyncio.wait_for(_stream(), timeout=45)
 
 
 def _elevenlabs_audio(text, path, voice_id, get_timestamps=False):
@@ -675,9 +684,10 @@ def generate_audio(text, path, voice):
             else:
                 emit(f"  ℹ️ No word timings from edge-tts — using static text overlay")
             return timings  # returns word timings for captions (or None if streaming gave none)
-        except Exception as tts_err:
+        except (Exception, asyncio.TimeoutError) as tts_err:
+            err_msg = "timed out (45s)" if isinstance(tts_err, asyncio.TimeoutError) else str(tts_err)[:60]
             if attempt < 2:
-                emit(f"  ⚠️ Voice attempt {attempt+1}/3 failed — retrying in 2s...")
+                emit(f"  ⚠️ Voice attempt {attempt+1}/3 failed ({err_msg}) — retrying in 2s...")
                 time.sleep(2)
                 tts_voice = fallback_voices[attempt + 1]
             else:
