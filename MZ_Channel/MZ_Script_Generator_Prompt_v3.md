@@ -127,8 +127,12 @@ VISUAL / PEXELS QUERY RULES
 
 Return 6–10 concrete Pexels search queries. Rules:
 - One query per ~8s of runtime (so 55s script = 7 queries, 80s script = 10 queries).
-- Queries must be concrete and visual — "Wall Street trading floor 2012" NOT "financial stress."
-- First and last queries should be semantically paired (same visual motif) to support loop-design — e.g., both "stock market screens red" so the final frame echoes the opening.
+- Queries must be TOPIC-SPECIFIC and visually distinctive — every query must contain at least one noun that is unique to THIS company, person, event, or era. "WeWork office coworking space" NOT "modern office building." "FTX cryptocurrency exchange Sam Bankman-Fried" NOT "financial chart screen."
+- BANNED generic terms (these return the same dark city/finance stock footage across every video — never use them): "dark city", "city night", "office building", "corporate headquarters", "businessman", "business meeting", "financial stress", "money", "stock market crash" (alone), "finance", "economy", "growth", "failure", "bankruptcy" (alone). Always pair broad terms with a specific company name, year, or location.
+- Each query must be visually distinct from the others — no two queries should return the same type of footage. Vary the subjects: some queries should show people, some locations, some products/technology, some interiors.
+- First and last queries should be semantically paired (same visual motif) to support loop-design — e.g., both "WeWork coworking desks empty" so the final frame echoes the opening.
+- Good examples: "WeWork glass office coworking 2019", "Adam Neumann CEO presentation crowd", "SoftBank Tokyo headquarters exterior", "stock market red ticker IPO cancelled", "WeWork sublease empty desks 2020"
+- Bad examples (too generic): "dark office building", "business failure", "corporate collapse", "financial crisis", "man walking city"
 
 ═══════════════════════════════════════════
 ON-SCREEN TEXT CUES
@@ -203,6 +207,7 @@ Before you output, verify:
 - [ ] No profanity anywhere.
 - [ ] Exactly 6 hashtags, 2 chosen from the vetted list.
 - [ ] 6–10 Pexels queries, first and last semantically paired.
+- [ ] Every Pexels query contains at least one topic-specific noun (company/person/location/year). No banned generic terms used alone.
 - [ ] thumbnail_text is 3–5 words and distinct from title.
 - [ ] US English throughout.
 - [ ] JSON is valid and contains every field above.

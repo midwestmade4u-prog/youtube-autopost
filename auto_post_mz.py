@@ -336,6 +336,53 @@ def mz_title_ok(title: str) -> tuple[bool, str]:
     return True, ""
 
 
+# Banned generic Pexels terms that recur across every video and produce
+# visually identical dark-city / corporate-building footage.
+_PEXELS_BANNED_TERMS = {
+    "dark city", "city night", "night city", "office building",
+    "corporate headquarters", "businessman", "businessmen",
+    "business meeting", "financial stress", "money", "finance",
+    "economy", "economic", "growth", "failure", "corporate",
+    "city skyline", "skyscraper", "downtown", "urban night",
+}
+
+def mz_pexels_queries_ok(script: dict) -> tuple[bool, str]:
+    """Check that every Pexels query is topic-specific, not a banned generic phrase.
+
+    Each query must:
+      1. Not consist entirely of banned generic terms.
+      2. Contain at least one word that is 4+ chars and NOT in the banned set,
+         so GPT can't sneak in "dark city skyline" and call it specific.
+    Returns (ok, problem_description).
+    """
+    queries = script.get("pexels_search_queries") or []
+    if not queries:
+        return False, "pexels_search_queries is missing or empty"
+
+    bad_queries = []
+    for q in queries:
+        q_lower = q.lower().strip()
+        words = set(w.strip(".,;:\"'") for w in q_lower.split())
+        # A query is "generic" if every meaningful word (4+ chars) is in the banned set
+        meaningful = [w for w in words if len(w) >= 4]
+        if meaningful and all(w in _PEXELS_BANNED_TERMS for w in meaningful):
+            bad_queries.append(q)
+            continue
+        # Also flag if a banned multi-word phrase is the ENTIRE query (2–3 word queries)
+        if any(q_lower == banned or q_lower.startswith(banned + " ") or q_lower.endswith(" " + banned)
+               for banned in _PEXELS_BANNED_TERMS if " " in banned):
+            bad_queries.append(q)
+
+    if bad_queries:
+        return False, (
+            f"PEXELS QUERY FAIL: {len(bad_queries)} generic query/queries that will produce "
+            f"repeated dark-city/corporate footage: {bad_queries}. "
+            f"Every query MUST contain a company name, person, location, or specific year. "
+            f"BAD: 'dark city night' — GOOD: 'WeWork coworking office 2019'"
+        )
+    return True, ""
+
+
 # ─── Script generation (v3 prompt → JSON) ────────────────────────────────────
 
 def load_system_prompt() -> str:
@@ -458,6 +505,7 @@ def generate_script(topic: str, format_tag: str) -> dict:
 
         wc_ok, word_count, (lo, hi) = mz_script_word_count_ok(data, format_tag)
         title_ok, title_reason = mz_title_ok(data.get("title", ""))
+        pexels_ok, pexels_reason = mz_pexels_queries_ok(data)
 
         problems = []
         if not wc_ok:
@@ -469,6 +517,8 @@ def generate_script(topic: str, format_tag: str) -> dict:
             )
         if not title_ok:
             problems.append(f"TITLE FAIL: {title_reason}")
+        if not pexels_ok:
+            problems.append(pexels_reason)
 
         if not problems:
             print(f"  ✅ Script passed validators ({word_count}w, title OK) on attempt {attempt}")
