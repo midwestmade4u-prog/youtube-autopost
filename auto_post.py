@@ -427,6 +427,15 @@ STORY SELECTION PRIORITY — focus on ICONIC, visually rich stories with clear a
 HOOK RULES:
 - Scene 1: a dramatic moment or question that stops the scroll.
 - Scene 2: deepen the stakes, introduce the problem.
+
+IMAGE PROMPT RULES (critical — vague prompts produce identical AI images across different videos):
+- Every image_prompt MUST contain: (1) the specific character's name from THIS story, (2) a specific action they are doing RIGHT NOW in that scene, (3) a specific location or setting.
+- BAD: "biblical figure standing in a landscape" — could be ANY story, produces same image every time.
+- BAD: "colorful scene from the Bible" — completely generic, identical to other videos.
+- GOOD: "Deborah the Judge sitting under a palm tree, pointing at a crowd of Israelite warriors, bright midday sun"
+- GOOD: "The Prodigal Son running barefoot across a dirt field toward his elderly father who has his arms open wide"
+- GOOD: "Young David loading a stone into a leather sling, facing the giant Goliath in a rocky valley"
+- Scene 1 image_prompt especially must be visually UNIQUE to this specific story — no two BSG videos should ever share an opening image.
 """
 
     system_prompt = f"""You are a short-form video script writer for YouTube Shorts.
