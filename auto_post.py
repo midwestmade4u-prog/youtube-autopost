@@ -38,8 +38,8 @@ LOG_FILE = BASE_DIR / "auto_post_log.json"
 
 # ── Voice Settings ─────────────────────────────────────────────────────────────
 CHANNEL_VOICES = {
-    "bsg": "el_rachel",   # Rachel — calm female (ElevenLabs)
-    "tmf": "el_adam",     # Adam   — deep male narrator (ElevenLabs)
+    "bsg": "en-US-JennyNeural",   # Jenny  — warm female (edge-tts; ElevenLabs Rachel retired May 2026)
+    "tmf": "en-US-GuyNeural",     # Guy    — deep male (edge-tts; ElevenLabs Adam 401 issues May 2026)
 }
 
 CHANNEL_LABELS = {
