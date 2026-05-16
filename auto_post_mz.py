@@ -525,13 +525,33 @@ def generate_script(topic: str, format_tag: str) -> dict:
             return data
 
         print(f"  ⚠️  Validator failed attempt {attempt}/3: {' | '.join(problems)}")
+
+        # Build an expansion hint for the LENGTH FAIL case — show the rejected script
+        # and pinpoint exactly which beat needs more words, so GPT doesn't just reshuffle.
+        length_hint = ""
+        if not wc_ok:
+            rejected_script = (data.get("script") or "").strip()
+            need_more = (lo - word_count)
+            length_hint = (
+                f"\n\nYour rejected narration ({word_count} words) is shown below. "
+                f"You must add at least {need_more} more words — NOT by repeating or padding, "
+                f"but by expanding the minute_zero beat with:\n"
+                f"  • The exact date/time the crisis peaked\n"
+                f"  • Specific dollar figures or numeric thresholds\n"
+                f"  • Who made the key decision and what they actually did\n"
+                f"  • What would have happened if they had waited 24 more hours\n"
+                f"  • The emotional/internal state inside the company at that moment\n"
+                f"Keep all other beats as-is. Only expand minute_zero.\n\n"
+                f"REJECTED SCRIPT:\n{rejected_script}"
+            )
+
         extra = (
             "\n\nIMPORTANT — your previous draft was REJECTED:\n- "
             + "\n- ".join(problems)
             + f"\n\nFix ALL issues. The narration (script field) MUST be {lo}–{hi} words. "
               f"edge-tts speaks at ~2.5 words/sec — {lo}w = ~{int(lo/2.5)}s, {hi}w = ~{int(hi/2.5)}s. "
-              f"Expand every beat with specific details, dollar figures, timestamps, and reactions. "
               f"Do NOT shorten or summarise."
+            + length_hint
         )
 
     # All retries exhausted — skip this post rather than publish a bad title.
