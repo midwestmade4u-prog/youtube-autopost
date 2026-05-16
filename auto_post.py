@@ -381,12 +381,20 @@ TITLE RULES (strict — titles drive 20× view differences in this channel):
 - If your draft doesn't start with "Why You" or "Why Your", REWRITE it. No exceptions.
 
 HOOK RULES (78.7% of viewers currently swipe away — this is the #1 fix):
-- Scene 1 narration = ONE shocking claim or uncomfortable question. 10–18 words MAX.
-- NO context. NO "Did you know." NO "Imagine." NO naming the effect. Drop them in mid-tension.
+- Scene 1 narration = your hook. 10–18 words MAX. Drop them mid-tension. NO context. NO "Did you know." NO "Imagine." NO naming the effect.
 - Scene 2 must DEEPEN or PAY OFF the hook, not pivot or define a term.
 - Never name the academic effect until scene 4 or later (if at all).
-- GOOD hook: "Most people will lie to your face and genuinely believe they're being honest."
-- BAD hook: "The false consensus effect is when people assume others share their views."
+
+HOOK VARIANTS (REQUIRED — produce all 3. YouTube 2026 algorithm penalizes channels that repeat the same hook pattern. Rotate keeps the channel safe from suppression):
+  shocking_claim   — A flat, specific, uncomfortable truth. No question mark. States it as fact.
+                     Example: "Most people will lie to your face and genuinely believe they're being honest."
+  uncomfortable_question — A second-person question the viewer can't say no to.
+                     Example: "Have you ever noticed you work harder to keep things you already have than to gain something new?"
+  behavioral_contradiction — Open with a paradox: two behaviors that contradict each other and both feel true.
+                     Example: "The smarter someone is, the worse they are at spotting their own blind spots."
+
+The script's Scene 1 narration should be the shocking_claim variant (default). Produce all 3 in hook_variants so the pipeline can rotate them.
+- BAD hook (all types): "The false consensus effect is when people assume others share their views." ← defines, not dramatizes
 
 BODY & PAYOFF:
 - Sentences average 10–14 words. Short, punchy, spoken rhythm.
@@ -433,6 +441,11 @@ Channel style: {style_guide}
 Output ONLY valid JSON in this exact format:
 {{
   "title": "Title following TITLE RULES above",
+  "hook_variants": {{
+    "shocking_claim":            "<Scene 1 narration, shocking_claim style, 10–18 words>",
+    "uncomfortable_question":    "<Scene 1 narration, uncomfortable_question style, 10–18 words>",
+    "behavioral_contradiction":  "<Scene 1 narration, behavioral_contradiction style, 10–18 words>"
+  }},
   "scenes": [
     {{
       "narration": "Spoken narration, 20–32 words, sentences averaging 10–14 words.",
@@ -513,6 +526,27 @@ PROSE QUALITY — NO AI TELLS (applies to every narration field):
 
                 if not problems:
                     print(f"    ✅ Script passed validators (title + {word_count}w + unique)")
+                    # ── Hook rotation (suppression filter) ──────────────────
+                    # YouTube 2026 penalises channels that repeat the same
+                    # hook style every video. Rotate across the 3 variants so
+                    # the channel never looks like a format-farm to the algo.
+                    hook_variants = script.get("hook_variants", {})
+                    HOOK_STYLES = [
+                        "shocking_claim",
+                        "uncomfortable_question",
+                        "behavioral_contradiction",
+                    ]
+                    available_hooks = {
+                        k: v for k, v in hook_variants.items()
+                        if k in HOOK_STYLES and isinstance(v, str) and v.strip()
+                    }
+                    if available_hooks:
+                        chosen_style = random.choice(list(available_hooks))
+                        chosen_hook  = available_hooks[chosen_style].strip()
+                        if script.get("scenes") and chosen_hook:
+                            script["scenes"][0]["narration"] = chosen_hook
+                            script["_hook_style_used"] = chosen_style
+                            print(f"    🎣 Hook style selected: {chosen_style}")
                     return script
 
                 print(f"    ⚠️  Validator problems on attempt {attempt}: {' | '.join(problems)}")
