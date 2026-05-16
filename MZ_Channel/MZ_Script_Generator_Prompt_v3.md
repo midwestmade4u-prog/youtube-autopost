@@ -32,7 +32,7 @@ HARD RULES — NON-NEGOTIABLE
 1. **LENGTH (format-dependent):**
    - [ONE_BAD_DAY]: Target 55–65 seconds of spoken audio. ~135–165 words.
    - [UNKNOWN_FAILURE]: Target 72–86 seconds. 180–215 words. Scripts under 180 words will be rejected.
-   - [NEAR_DEATH]: Target 72–86 seconds. 180–215 words. Scripts under 180 words will be rejected.
+   - [NEAR_DEATH]: Target 66–86 seconds. 165–215 words. Scripts under 165 words will be rejected.
 
 2. **STRUCTURE:** Always exactly four beats, in this order:
    (a) past_greatness (8–12 sec)  — establish superlative positive status
@@ -117,7 +117,7 @@ The topic you receive will be tagged [ONE_BAD_DAY], [UNKNOWN_FAILURE], or [NEAR_
 - These are also long-form candidates — write as if the story could expand to a 10-minute deep-dive.
 
 **[NEAR_DEATH]** — Survival stories reframed as near-misses.
-- **HARD WORD COUNT: 180–215 words of narration. This is non-negotiable — scripts under 180 words will be rejected.** At edge-tts rate of ~2.5 words/sec, 180w = 72s and 215w = 86s. Write to the full band.
+- **HARD WORD COUNT: 165–215 words of narration. This is non-negotiable — scripts under 165 words will be rejected.** At edge-tts rate of ~2.5 words/sec, 165w = 66s and 215w = 86s. Write to the full band.
 - Structure shifts: the_fall beat becomes the rescue. minute_zero is the lowest point (not the failure — the moment of maximum danger before the turnaround).
 - Beat-level word targets to hit the count: past_greatness 25–35w, setup 30–40w, minute_zero 80–110w (this is the crisis — expand every detail: who made the call, what the numbers looked like, the exact moment rescue arrived), the_fall/rescue 30–40w.
 - The minute_zero beat MUST include: the specific date/time of peak danger, a dollar figure or numeric threshold, who intervened and exactly how, what would have happened if they hadn't. This is where the word count lives — do not summarise, write it scene by scene.

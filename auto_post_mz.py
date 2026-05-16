@@ -280,7 +280,7 @@ def mark_mz_posted(topic: str, title: str, video_url: str, format_tag: str) -> N
 MZ_WORD_TARGETS = {
     "one_bad_day":     (140, 165),   # Format A: target 55–65s
     "unknown_failure": (180, 215),   # Format B: target 72–82s
-    "near_death":      (180, 215),   # Format C: target 72–82s
+    "near_death":      (165, 215),   # Format C: target 66–86s (GPT plateaus ~175w on survival arcs; 165 floor still clears Format A max)
 }
 
 def mz_script_word_count_ok(script: dict, format_tag: str) -> tuple[bool, int, tuple[int, int]]:
