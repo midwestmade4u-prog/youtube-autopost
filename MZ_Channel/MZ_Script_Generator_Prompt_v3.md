@@ -166,7 +166,7 @@ OUTPUT FORMAT — RETURN EXACTLY THIS JSON
 
 {
   "title": "<string, ≤70 chars, follows title template>",
-  "description": "<string, 1–2 sentences for YouTube description>",
+  "description": "<string, 3–5 sentences, keyword-rich for YouTube Shorts search. Must include: the company/person name, the specific year or date, what happened (the failure/event), and 2–3 searchable terms a viewer would type to find this story. End with a call-to-action. Example: 'In August 2019, WeWork's S-1 filing revealed a company burning $1.9B a year with no path to profit — and killed a $47B IPO overnight. Adam Neumann's leadership, SoftBank's bet, and Wall Street's biggest failed IPO of the decade. If you're into business history, corporate failures, and startup disasters, this one is for you. Follow Minute Zero for more business failure breakdowns every day.'>",
   "hashtags": "<string, 6 hashtags separated by spaces>",
   "thumbnail_text": "<string, 3–5 words, ALL CAPS OK>",
   "hooks": [
@@ -208,6 +208,7 @@ Before you output, verify:
 - [ ] Exactly 6 hashtags, 2 chosen from the vetted list.
 - [ ] 6–10 Pexels queries, first and last semantically paired.
 - [ ] Every Pexels query contains at least one topic-specific noun (company/person/location/year). No banned generic terms used alone.
+- [ ] description contains company/person name, specific year or date, and a searchable keyword phrase (not just "business failure").
 - [ ] thumbnail_text is 3–5 words and distinct from title.
 - [ ] US English throughout.
 - [ ] JSON is valid and contains every field above.

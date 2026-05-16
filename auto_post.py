@@ -722,23 +722,63 @@ def api_get(path: str, timeout: int = 30) -> dict:
 
 # ── YouTube Metadata ───────────────────────────────────────────────────────────
 
-def build_yt_metadata(channel: str, title: str) -> dict:
+def build_yt_metadata(channel: str, title: str, topic: str = "") -> dict:
+    """Build YouTube description + tags for a channel.
+
+    Description is keyword-rich for Shorts search discoverability (Jan 2026 Shorts
+    search filter update means descriptions now drive meaningful traffic). Topic string
+    is embedded so each video gets unique, searchable copy rather than boilerplate.
+    """
+    # Extract the core subject from topic (everything before the " — " dash if present)
+    topic_subject = topic.split(" — ")[0].strip() if " — " in topic else topic.strip()
+    # Extract the hook/angle (everything after the " — " dash)
+    topic_angle   = topic.split(" — ", 1)[1].strip() if " — " in topic else ""
+
     if channel == "bsg":
-        description = (
-            f"✝️ {title}\n\n"
-            "Bible Stories for Kids — brought to you by Bible Story Garden! "
-            "Faith-filled, family-friendly shorts that bring Scripture to life.\n\n"
-            "#BibleStories #KidsFaith #BibleForKids #ChristianKids #YouTubeShorts"
-        )
+        if topic_subject:
+            description = (
+                f"✝️ {title}\n\n"
+                f"{topic_subject} — {topic_angle + ' ' if topic_angle else ''}"
+                f"Bible Stories for Kids, brought to you by Bible Story Garden. "
+                f"Faith-filled, family-friendly shorts that bring Scripture to life. "
+                f"Perfect for Christian families, Sunday school, and kids who love God's Word.\n\n"
+                "#BibleStories #KidsFaith #BibleForKids #ChristianKids #YouTubeShorts"
+            )
+        else:
+            description = (
+                f"✝️ {title}\n\n"
+                "Bible Stories for Kids — brought to you by Bible Story Garden! "
+                "Faith-filled, family-friendly shorts that bring Scripture to life.\n\n"
+                "#BibleStories #KidsFaith #BibleForKids #ChristianKids #YouTubeShorts"
+            )
         tags = "Bible,Bible Stories,Kids,Faith,Jesus,God,Christian,Children,YouTube Shorts,Bible for Kids"
+        if topic_subject:
+            # Add topic keywords as extra tags (YouTube uses tags for search ranking too)
+            topic_words = [w for w in topic_subject.replace("'", "").split() if len(w) > 3]
+            tags += "," + ",".join(topic_words[:5])
     else:
-        description = (
-            f"🧠 {title}\n\n"
-            "Dark psychology and human behavior explained — brought to you by The Mind Files. "
-            "Why humans do what they do.\n\n"
-            "#Psychology #DarkPsychology #HumanBehavior #MindFiles #YouTubeShorts"
-        )
+        # TMF
+        if topic_subject:
+            description = (
+                f"🧠 {title}\n\n"
+                f"{topic_subject}"
+                f"{' — ' + topic_angle if topic_angle else ''}. "
+                f"Dark psychology and human behavior explained — brought to you by The Mind Files. "
+                f"Why do people do what they do? Explore the science behind manipulation, "
+                f"personality, and the hidden forces shaping every decision.\n\n"
+                "#Psychology #DarkPsychology #HumanBehavior #MindFiles #YouTubeShorts"
+            )
+        else:
+            description = (
+                f"🧠 {title}\n\n"
+                "Dark psychology and human behavior explained — brought to you by The Mind Files. "
+                "Why humans do what they do.\n\n"
+                "#Psychology #DarkPsychology #HumanBehavior #MindFiles #YouTubeShorts"
+            )
         tags = "psychology,dark psychology,human behavior,mind,mental health,behavioral science,YouTube Shorts,The Mind Files"
+        if topic_subject:
+            topic_words = [w for w in topic_subject.replace("'", "").split() if len(w) > 3]
+            tags += "," + ",".join(topic_words[:5])
 
     return {"description": description, "tags": tags}
 
@@ -801,7 +841,7 @@ def run_headless(channel: str, topic: str, script: dict) -> str:
         sys.exit(1)
 
     print(f"\n📤 Uploading to YouTube ({label})...")
-    yt_meta = build_yt_metadata(channel, title)
+    yt_meta = build_yt_metadata(channel, title, topic=topic)
     try:
         # Use the Flask server's upload endpoint via direct import
         from video_app import youtube_upload as yt_upload_func
@@ -896,7 +936,7 @@ def run_via_server(channel: str, topic: str, script: dict) -> str:
     print(f"  ✅ Video ready: {filename}")
 
     # ── Step: Upload to YouTube ───────────────────────────────────────────────
-    yt_meta = build_yt_metadata(channel, title)
+    yt_meta = build_yt_metadata(channel, title, topic=topic)
     print(f"\n📤 Uploading to YouTube ({label})...")
     try:
         upload_resp = api_post("/youtube-upload", {
