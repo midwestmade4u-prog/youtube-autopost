@@ -445,7 +445,16 @@ Structural rules:
 - Exactly {num_scenes} scenes
 - SCENE 1 follows HOOK RULES above — shortest scene, highest tension
 - Each image_prompt: specific, visual, cinematic — NOT abstract.
-- No markdown, no explanation, ONLY the JSON object"""
+- No markdown, no explanation, ONLY the JSON object
+
+PROSE QUALITY — NO AI TELLS (applies to every narration field):
+- No adverbs. Cut "deeply," "truly," "completely," "suddenly," "ultimately," "essentially," "clearly."
+- Active voice only. Every sentence needs a human subject doing something. Not: "The behavior is driven by fear." → "Fear drives the behavior."
+- No inanimate subjects performing human actions. Not: "The pattern emerges from childhood." → "Children learn this pattern early."
+- No em-dashes anywhere in narration.
+- No throat-clearing openers: "What this means is," "Here's the thing," "It's worth noting," "In other words," "Make no mistake," "The truth is."
+- Two items beat three. Cut the third item from every list.
+- Vary sentence rhythm. Never three consecutive sentences of matching length."""
 
     try:
         import openai

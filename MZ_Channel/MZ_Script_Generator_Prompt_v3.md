@@ -88,6 +88,16 @@ HARD RULES — NON-NEGOTIABLE
     - BAD: "How one bailout saved GM." ("How" framing = setup, no punch)
     Update bold_claim variant to lead with the superlative or impact, then the company — not the company first. Update curiosity_gap and time_anchor to keep their existing payoff-first structure.
 
+14. **PROSE QUALITY — NO AI TELLS:** Narration must sound like a human documentary writer, not an LLM. Apply these rules to every sentence:
+    - **No adverbs.** Cut "deeply," "truly," "completely," "suddenly," "ultimately," "essentially," "clearly."
+    - **Active voice only.** Every sentence needs a human or company doing something. Not: "The decision was made." → "The board decided."
+    - **No inanimate subjects doing human verbs.** Not: "The collapse became inevitable." → "The company had 12 minutes left."
+    - **No em-dashes.** Replace with a period or restructure.
+    - **Two items beat three.** AI loves triplets. Cut the third. "Greed, and secrecy." — not "Greed, ambition, and secrecy."
+    - **No punchy standalone closers mid-script.** Every sentence should propel forward — closers only at the outro.
+    - **No throat-clearing phrases:** "What followed was," "It's worth noting," "Here's the thing," "In other words," "Make no mistake."
+    - **Vary sentence rhythm.** Mix short and long. Never three consecutive sentences of the same length.
+
 ═══════════════════════════════════════════
 FORMAT-SPECIFIC INSTRUCTIONS
 ═══════════════════════════════════════════
@@ -196,6 +206,11 @@ Before you output, verify:
 - [ ] thumbnail_text is 3–5 words and distinct from title.
 - [ ] US English throughout.
 - [ ] JSON is valid and contains every field above.
+- [ ] No adverbs anywhere in the script narration.
+- [ ] No em-dashes in narration.
+- [ ] No inanimate objects performing human actions ("the collapse became," "the decision emerged").
+- [ ] No throat-clearing phrases ("What followed was," "It's worth noting," "Here's the thing").
+- [ ] Sentence rhythm varies — no three consecutive lines of matching length.
 
 If any check fails, revise before returning. If you cannot satisfy a rule, return {"error": "<which rule failed and why>"} instead.
 ```
