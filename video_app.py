@@ -528,7 +528,7 @@ async def _gen_audio_async(text, path, voice):
     # Microsoft TTS connection blocks the background thread forever.
     await asyncio.wait_for(
         edge_tts.Communicate(text, voice).save(str(path)),
-        timeout=45,
+        timeout=20,
     )
 
 
@@ -662,7 +662,11 @@ def generate_audio(text, path, voice):
         generate_audio_xtts(text, path)
         return None
 
-    # ElevenLabs voices — request timestamps for animated captions
+    # ElevenLabs voices — request timestamps for animated captions.
+    # IMPORTANT: if ElevenLabs fails for an el_* channel, do NOT fall through
+    # to edge-tts. A TMF video with Michelle's voice instead of Adam is garbage
+    # quality and would hurt the channel. Fail fast so the job exits in seconds
+    # rather than hanging for 15 minutes on edge-tts retries.
     if voice.startswith("el_") and get_elevenlabs_key():
         voice_id = ELEVENLABS_VOICES.get(voice)
         if voice_id:
@@ -670,29 +674,36 @@ def generate_audio(text, path, voice):
                 timings = _elevenlabs_audio(text, path, voice_id, get_timestamps=True)
                 return timings
             except Exception as e:
-                emit(f"  ⚠️ ElevenLabs error: {str(e)[:60]} — falling back to Edge TTS")
+                raise RuntimeError(
+                    f"ElevenLabs audio failed for el_* voice '{voice}' — "
+                    f"not falling back to edge-tts (voice mismatch would ruin video quality). "
+                    f"Error: {str(e)[:120]}"
+                )
+        raise RuntimeError(f"Unknown ElevenLabs voice ID for '{voice}' — check ELEVENLABS_VOICES dict.")
 
-    # Edge TTS — use streaming mode to capture word timing for animated captions
-    # This means ALL voices (free or premium) get word-by-word animated captions
+    # Edge TTS — use streaming mode to capture word timing for animated captions.
+    # Timeout reduced to 20s (was 45s) and retries capped at 2 so worst-case
+    # per-scene time is 2 × 20s = 40s. 8 scenes × 40s = 320s max, well under
+    # the 900s GH Actions job deadline.
     tts_voice = voice if voice in EDGE_TTS_VOICES else "en-US-MichelleNeural"
     fallback_voices = ["en-US-MichelleNeural", "en-US-JennyNeural", "en-US-AriaNeural"]
-    for attempt in range(3):
+    for attempt in range(2):   # 2 attempts, not 3
         try:
             timings = asyncio.run(_gen_audio_with_timing_async(text, path, tts_voice))
             if timings:
                 emit(f"  ✨ {len(timings)} word timings — animated captions active")
             else:
                 emit(f"  ℹ️ No word timings from edge-tts — using static text overlay")
-            return timings  # returns word timings for captions (or None if streaming gave none)
+            return timings
         except (Exception, asyncio.TimeoutError) as tts_err:
-            err_msg = "timed out (45s)" if isinstance(tts_err, asyncio.TimeoutError) else str(tts_err)[:60]
-            if attempt < 2:
-                emit(f"  ⚠️ Voice attempt {attempt+1}/3 failed ({err_msg}) — retrying in 2s...")
+            err_msg = "timed out (20s)" if isinstance(tts_err, asyncio.TimeoutError) else str(tts_err)[:60]
+            if attempt < 1:
+                emit(f"  ⚠️ Voice attempt {attempt+1}/2 failed ({err_msg}) — retrying in 2s...")
                 time.sleep(2)
                 tts_voice = fallback_voices[attempt + 1]
             else:
                 raise Exception(
-                    f"Audio generation failed after 3 attempts. "
+                    f"Audio generation failed after 2 attempts. "
                     f"Check your internet connection and try again. ({tts_err})"
                 )
     return None
