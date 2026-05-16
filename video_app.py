@@ -641,7 +641,7 @@ def _elevenlabs_audio(text, path, voice_id, get_timestamps=False):
 ELEVENLABS_VOICES = {
     "el_sarah":   "EXAVITQu4vr4xnSDxMaL",   # Sarah — warm, clear female
     "el_rachel":  "21m00Tcm4TlvDq8ikWAM",   # Rachel — calm female
-    "el_adam":    "pNInz6obpgDQGcFmaJgB",   # Adam — deep male narrator
+    "el_adam":    "auq43ws1oslv0tO4BDa7",   # Adam Stone — smooth, deep male narrator (added May 2026)
     "el_antoni":  "ErXwobaYiN019PkySvjV",   # Antoni — warm male
     "el_josh":    "TxGEqnHWrfWFTfGW9XjX",   # Josh — deep storytelling male
 }
