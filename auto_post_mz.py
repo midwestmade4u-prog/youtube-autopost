@@ -548,10 +548,10 @@ def generate_script(topic: str, format_tag: str) -> dict:
         problems = []
         if not wc_ok:
             est_sec = int(word_count / 2.5)
+            direction = "too long" if word_count > hi else "too short"
             problems.append(
-                f"LENGTH FAIL: narration is {word_count} words (~{est_sec}s at edge-tts rate). "
-                f"Must be {lo}–{hi} words (target {int(lo/2.5)}–{int(hi/2.5)}s). "
-                f"Write MORE narration — do not summarise, expand each beat fully."
+                f"LENGTH FAIL ({direction}): narration is {word_count} words (~{est_sec}s at edge-tts rate). "
+                f"Must be {lo}–{hi} words (target {int(lo/2.5)}–{int(hi/2.5)}s)."
             )
         if not title_ok:
             problems.append(f"TITLE FAIL: {title_reason}")
@@ -564,31 +564,46 @@ def generate_script(topic: str, format_tag: str) -> dict:
 
         print(f"  ⚠️  Validator failed attempt {attempt}/3: {' | '.join(problems)}")
 
-        # Build an expansion hint for the LENGTH FAIL case — show the rejected script
-        # and pinpoint exactly which beat needs more words, so GPT doesn't just reshuffle.
+        # Build a targeted hint for LENGTH FAIL — direction matters.
+        # Under limit: expand minute_zero with specific detail checklist.
+        # Over limit: trim — removing filler is more effective than generic "shorten".
         length_hint = ""
         if not wc_ok:
             rejected_script = (data.get("script") or "").strip()
-            need_more = (lo - word_count)
-            length_hint = (
-                f"\n\nYour rejected narration ({word_count} words) is shown below. "
-                f"You must add at least {need_more} more words — NOT by repeating or padding, "
-                f"but by expanding the minute_zero beat with:\n"
-                f"  • The exact date/time the crisis peaked\n"
-                f"  • Specific dollar figures or numeric thresholds\n"
-                f"  • Who made the key decision and what they actually did\n"
-                f"  • What would have happened if they had waited 24 more hours\n"
-                f"  • The emotional/internal state inside the company at that moment\n"
-                f"Keep all other beats as-is. Only expand minute_zero.\n\n"
-                f"REJECTED SCRIPT:\n{rejected_script}"
-            )
+            if word_count < lo:
+                need_more = lo - word_count
+                length_hint = (
+                    f"\n\nYour rejected narration ({word_count} words) is shown below. "
+                    f"You must ADD at least {need_more} more words — NOT by repeating or padding, "
+                    f"but by expanding the minute_zero beat with:\n"
+                    f"  • The exact date/time the crisis peaked\n"
+                    f"  • Specific dollar figures or numeric thresholds\n"
+                    f"  • Who made the key decision and what they actually did\n"
+                    f"  • What would have happened if they had waited 24 more hours\n"
+                    f"  • The emotional/internal state inside the company at that moment\n"
+                    f"Keep all other beats as-is. Only expand minute_zero.\n\n"
+                    f"REJECTED SCRIPT:\n{rejected_script}"
+                )
+            else:  # word_count > hi — script is too long, need to trim
+                need_cut = word_count - hi
+                length_hint = (
+                    f"\n\nYour rejected narration ({word_count} words) is shown below — it is "
+                    f"{need_cut} words TOO LONG. You must CUT {need_cut}+ words by:\n"
+                    f"  • Removing throat-clearing phrases and filler transitions\n"
+                    f"  • Compressing the setup beat — one punchy sentence per fact, not two\n"
+                    f"  • Cutting redundant restatements of the same idea\n"
+                    f"  • Trimming the past_greatness beat to 1–2 sentences max\n"
+                    f"Do NOT cut the minute_zero beat — that is the payoff. Cut setup and framing.\n\n"
+                    f"REJECTED SCRIPT:\n{rejected_script}"
+                )
 
+        trim_or_expand = "Do NOT pad or summarise." if word_count < lo else "Do NOT add new content — trim existing sentences."
         extra = (
             "\n\nIMPORTANT — your previous draft was REJECTED:\n- "
             + "\n- ".join(problems)
             + f"\n\nFix ALL issues. The narration (script field) MUST be {lo}–{hi} words. "
               f"edge-tts speaks at ~2.5 words/sec — {lo}w = ~{int(lo/2.5)}s, {hi}w = ~{int(hi/2.5)}s. "
-              f"Do NOT shorten or summarise."
+            + trim_or_expand
             + length_hint
         )
 
@@ -707,29 +722,57 @@ def main() -> int:
     print(f"\n📖 Format: {format_tag}")
     print(f"📖 Topic : {topic}")
 
-    # 2. Generate script
+    # 2. Generate script — with Format B fallback if primary format exhausts retries.
+    # Format B (unknown_failure / US fraud stories) has been the most reliable generator,
+    # so if Format A or C can't produce a valid script in 3 attempts we pivot to B
+    # rather than skip entirely. This makes true skips nearly impossible.
     print(f"\n✍️  Generating v3 script (backend: {MODEL_BACKEND}) ...")
+    def _mark_topic_used(t: str) -> None:
+        """Add topic to dedup log so the same stubborn topic isn't retried next run."""
+        log = _load_log()
+        used = log.get("mz_topics_used", [])
+        if t not in used:
+            used.append(t)
+            log["mz_topics_used"] = used
+            _save_log(log)
+            print(f"   📝 Marked skipped topic as used: {t[:60]}")
+
     try:
         script_data = generate_script(topic, format_tag)
     except ValueError as e:
         err = str(e)
-        if err.startswith("TITLE_VALIDATION_SKIP"):
-            # Intentional skip — title validator rejected all 3 attempts.
-            # Exit 0 (green in GH Actions) and log to Sheets so it's visible but not alarming.
-            print(f"\n⏭️  SKIPPED (title validation): {err}")
-            print("   No video posted. A bad title is worse than no post — this is expected behavior.")
+        if not err.startswith("TITLE_VALIDATION_SKIP"):
+            raise
+
+        # Primary format failed — mark topic used and try Format B fallback
+        # (skip fallback if we were already running Format B to avoid infinite loop)
+        print(f"\n⚠️  Primary format ({format_tag}) exhausted retries: {err[22:120]}")
+        _mark_topic_used(topic)
+
+        if format_tag != "unknown_failure":
+            print("   🔄 Falling back to Format B (unknown_failure) ...")
+            fb_topic, fb_format_tag = pick_topic("B")
+            print(f"   📖 Fallback topic: {fb_topic}")
+            try:
+                script_data = generate_script(fb_topic, fb_format_tag)
+                format_tag = fb_format_tag
+                topic = fb_topic
+                print(f"   ✅ Fallback succeeded — posting Format B instead")
+            except ValueError as e2:
+                err2 = str(e2)
+                if err2.startswith("TITLE_VALIDATION_SKIP"):
+                    _mark_topic_used(fb_topic)
+                    print(f"\n⏭️  SKIPPED — both primary and fallback failed.")
+                    append_to_google_sheets(
+                        f"[SKIPPED] primary+fallback failed — {err[22:80]}", "", format_tag
+                    )
+                    return 0
+                raise
+        else:
+            # Was already Format B — no further fallback
+            print(f"\n⏭️  SKIPPED (Format B, no further fallback): {err[22:100]}")
             append_to_google_sheets(f"[SKIPPED] {err[22:100]}", "", format_tag)
-            # Mark the topic as used so the same failing topic isn't re-picked on
-            # the next run — prevents infinite retry loops on stubborn topics.
-            log = _load_log()
-            used = log.get("mz_topics_used", [])
-            if topic not in used:
-                used.append(topic)
-                log["mz_topics_used"] = used
-                _save_log(log)
-                print(f"   📝 Marked skipped topic as used to prevent retry loop: {topic[:60]}")
             return 0
-        raise
     print(f"  ✅ Title: {script_data['title']}")
     print(f"  ✅ Duration target: {script_data.get('target_duration_sec', '?')}s")
     # Hook rotation telemetry (v3 → v4): log each variant's style + validity.
