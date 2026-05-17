@@ -40,10 +40,15 @@ ALERT_EMAIL     = "wisseinc@gmail.com"
 FROM_EMAIL      = "wisseinc@gmail.com"
 SHEETS_URL      = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit#gid=0"
 
-# YouTube monetization thresholds
-YT_SUB_THRESHOLD         = 1000
-YT_WATCH_HOURS_THRESHOLD = 4000
-YT_SHORTS_VIEWS_THRESHOLD = 10_000_000
+# YouTube monetization thresholds (per-path)
+# Standard YPP (ad revenue):   1,000 subs + 4,000 watch hours OR 1,000 subs + 10M Shorts views
+# Tier-1 YPP (fan funding):      500 subs + 3,000 watch hours OR  500 subs + 3M Shorts views
+YT_SUB_THRESHOLD_FULL         = 1000
+YT_SUB_THRESHOLD_TIER1        = 500
+YT_WATCH_HOURS_THRESHOLD_FULL = 4000
+YT_WATCH_HOURS_THRESHOLD_T1   = 3000
+YT_SHORTS_VIEWS_FULL          = 10_000_000
+YT_SHORTS_VIEWS_TIER1         = 3_000_000
 
 CHANNELS = {
     "tmf": {
@@ -55,6 +60,8 @@ CHANNELS = {
         "niche":          "dark psychology / human behavior Shorts",
         "title_rule":     "Must start with 'Why You' or 'Why Your'",
         "top_video_note": "Best titles are 'Why You [observable behavior]' — 400-1300 views",
+        "sub_target":     YT_SUB_THRESHOLD_FULL,   # targeting full YPP
+        "wh_target":      YT_WATCH_HOURS_THRESHOLD_FULL,
     },
     "bsg": {
         "label":          "Bible Story Garden",
@@ -65,6 +72,8 @@ CHANNELS = {
         "niche":          "Bible stories for families / kids Shorts",
         "title_rule":     "Story-focused, no verse recitation",
         "top_video_note": "45-55s stories with payoff thumbnails perform best",
+        "sub_target":     YT_SUB_THRESHOLD_FULL,
+        "wh_target":      YT_WATCH_HOURS_THRESHOLD_FULL,
     },
     "mz": {
         "label":          "Minute Zero",
@@ -74,7 +83,9 @@ CHANNELS = {
         "expected_posts": 2,
         "niche":          "Business failures / fraud Shorts",
         "title_rule":     "Lead with dollar figure, date, or punch superlative in first 3 words",
-        "top_video_note": "US stories outperform foreign; Format B (fraud) shows strong early signals",
+        "top_video_note": "US stories outperform foreign; recovery/survival narratives outperform pure destruction",
+        "sub_target":     YT_SUB_THRESHOLD_TIER1,   # Tier-1 first, then full YPP
+        "wh_target":      YT_WATCH_HOURS_THRESHOLD_T1,
     },
 }
 
@@ -129,7 +140,7 @@ def get_videos_in_window(svc, channel_id: str, days_ago_start: int, days_ago_end
         if not video_ids:
             return []
 
-        # Get stats for each video
+        # Get stats for each video (include contentDetails for duration → watch hours estimate)
         stats_resp = svc.videos().list(
             part="statistics,snippet,contentDetails",
             id=",".join(video_ids),
@@ -138,6 +149,7 @@ def get_videos_in_window(svc, channel_id: str, days_ago_start: int, days_ago_end
         results = []
         for item in stats_resp.get("items", []):
             stats = item.get("statistics", {})
+            duration = item.get("contentDetails", {}).get("duration", "PT0S")
             results.append({
                 "video_id":    item["id"],
                 "title":       item["snippet"]["title"],
@@ -145,6 +157,7 @@ def get_videos_in_window(svc, channel_id: str, days_ago_start: int, days_ago_end
                 "views":       int(stats.get("viewCount", 0)),
                 "likes":       int(stats.get("likeCount", 0)),
                 "comments":    int(stats.get("commentCount", 0)),
+                "duration":    duration,
                 "url":         f"https://youtu.be/{item['id']}",
             })
         results.sort(key=lambda x: x["views"], reverse=True)
@@ -355,11 +368,62 @@ def send_digest_email(all_channel_data: list[dict], week_label: str) -> None:
         </div>
         """
 
+    # Build monetization summary table
+    mono_rows = ""
+    for ch in all_channel_data:
+        mono = ch.get("mono", {})
+        if not mono:
+            continue
+        sub_pct   = mono.get("sub_pct", 0)
+        wh_pct    = mono.get("wh_pct", 0)
+        subs      = mono.get("subscribers", 0)
+        sub_tgt   = mono.get("sub_target", 1000)
+        est_wh    = mono.get("est_watch_hours", 0)
+        wh_tgt    = mono.get("wh_target", 4000)
+        eta       = mono.get("sub_eta", "?")
+        bar_color = "#27ae60" if sub_pct >= 50 else "#e67e22" if sub_pct >= 20 else "#c0392b"
+        mono_rows += f"""
+        <tr>
+          <td style="padding:8px 12px;font-weight:bold">{ch['label']}</td>
+          <td style="padding:8px 12px">
+            <div style="background:#eee;border-radius:4px;height:10px;width:140px;display:inline-block;vertical-align:middle">
+              <div style="background:{bar_color};width:{min(sub_pct,100)}%;height:100%;border-radius:4px"></div>
+            </div>
+            &nbsp;{subs:,}/{sub_tgt:,} ({sub_pct}%)
+          </td>
+          <td style="padding:8px 12px">
+            <div style="background:#eee;border-radius:4px;height:10px;width:100px;display:inline-block;vertical-align:middle">
+              <div style="background:#2980b9;width:{min(wh_pct,100)}%;height:100%;border-radius:4px"></div>
+            </div>
+            &nbsp;~{est_wh:.0f}/{wh_tgt:,} hrs ({wh_pct}%)
+          </td>
+          <td style="padding:8px 12px;color:#666;font-size:13px">{eta}</td>
+        </tr>"""
+
+    monetization_block = f"""
+        <div style="background:#fff8e1;border:1px solid #f39c12;border-radius:6px;padding:16px;margin-bottom:24px">
+          <h3 style="margin:0 0 12px 0;color:#e67e22">💰 Monetization Tracker</h3>
+          <table style="border-collapse:collapse;width:100%;font-size:14px">
+            <tr style="color:#888;font-size:12px">
+              <th style="text-align:left;padding:4px 12px">Channel</th>
+              <th style="text-align:left;padding:4px 12px">Subscribers</th>
+              <th style="text-align:left;padding:4px 12px">Watch Hours</th>
+              <th style="text-align:left;padding:4px 12px">ETA to subs goal</th>
+            </tr>
+            {mono_rows}
+          </table>
+          <p style="font-size:11px;color:#999;margin:10px 0 0 0">
+            Watch hours estimated from view × duration × completion rate. Sub ETA based on this week's view pace.
+            MZ targets Tier-1 (500 subs). TMF + BSG target full YPP (1,000 subs + 4,000 hrs).
+          </p>
+        </div>"""
+
     body_html = f"""
     <div style="font-family:sans-serif;max-width:620px;margin:0 auto;padding:16px">
       <h2 style="color:#2c3e50;border-bottom:2px solid #2980b9;padding-bottom:8px">
         📊 YouTube Weekly Digest — {week_label}
       </h2>
+      {monetization_block}
       {channel_blocks}
       <div style="text-align:center;margin-top:24px">
         <a href="{SHEETS_URL}"
@@ -391,12 +455,90 @@ def send_digest_email(all_channel_data: list[dict], week_label: str) -> None:
 
 # ─── Monetization tracker ─────────────────────────────────────────────────────
 
-def monetization_status(subscribers: int) -> str:
-    """Return a one-line monetization progress string."""
-    subs_pct = min(100, int((subscribers / YT_SUB_THRESHOLD) * 100))
-    if subscribers >= YT_SUB_THRESHOLD:
-        return f"✅ Monetization: {subscribers:,} subs (threshold met — need 4K watch hours)"
-    return f"🎯 Monetization: {subscribers:,}/{YT_SUB_THRESHOLD:,} subs ({subs_pct}%)"
+def estimate_watch_hours(videos_with_duration: list[dict]) -> float:
+    """Estimate total watch hours from video list (duration × views × 0.5 completion).
+    Requires videos fetched with contentDetails part (duration field).
+    Duration is ISO 8601 e.g. PT1M5S → parse to seconds.
+    """
+    import re
+    total_seconds = 0.0
+    for v in videos_with_duration:
+        if "error" in v:
+            continue
+        dur_str = v.get("duration", "PT0S")
+        # Parse ISO 8601 duration
+        m = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", dur_str)
+        if not m:
+            continue
+        h = int(m.group(1) or 0)
+        mn = int(m.group(2) or 0)
+        s = int(m.group(3) or 0)
+        dur_sec = h * 3600 + mn * 60 + s
+        views = v.get("views", 0)
+        # Shorts (<= 90s): ~50% completion; Long-form (> 90s): ~40% completion
+        completion = 0.50 if dur_sec <= 90 else 0.40
+        total_seconds += views * dur_sec * completion
+    return total_seconds / 3600.0   # convert to hours
+
+
+def monetization_status_full(ch_cfg: dict, subscribers: int, est_watch_hours: float,
+                              sub_growth_per_week: float) -> dict:
+    """Return structured monetization progress for both email + Sheets.
+
+    Returns a dict with:
+      one_liner   — compact status line (used in email header per-channel box)
+      detail      — multi-line breakdown shown in monetization section
+      weeks_to_subs — estimated weeks to hit sub target (None if already met)
+    """
+    sub_target = ch_cfg["sub_target"]
+    wh_target  = ch_cfg["wh_target"]
+    label      = ch_cfg["label"]
+
+    sub_pct = min(100, round(subscribers / sub_target * 100, 1))
+    wh_pct  = min(100, round(est_watch_hours / wh_target * 100, 1))
+
+    # Estimate weeks to sub target
+    if subscribers >= sub_target:
+        weeks_to_subs = 0
+        sub_eta = "✅ met"
+    elif sub_growth_per_week and sub_growth_per_week > 0:
+        weeks_to_subs = int((sub_target - subscribers) / sub_growth_per_week)
+        sub_eta = f"~{weeks_to_subs}w at current pace"
+    else:
+        weeks_to_subs = None
+        sub_eta = "pace unknown"
+
+    # Which channel is on Tier-1 vs full path
+    tier_note = "(Tier-1 target)" if sub_target == YT_SUB_THRESHOLD_TIER1 else "(Full YPP target)"
+
+    one_liner = (
+        f"🎯 {subscribers:,}/{sub_target:,} subs {tier_note} ({sub_pct}%) | "
+        f"~{est_watch_hours:.0f}/{wh_target:,} watch hrs ({wh_pct}%) | "
+        f"{sub_eta}"
+    )
+
+    detail_lines = [
+        f"Subscribers:   {subscribers:,} / {sub_target:,} {tier_note} — {sub_pct}% — {sub_eta}",
+        f"Watch hours:   ~{est_watch_hours:.0f} / {wh_target:,} hrs — {wh_pct}% (estimated from view × duration × completion rate)",
+    ]
+    if sub_target == YT_SUB_THRESHOLD_TIER1:
+        detail_lines.append(
+            f"MZ note:       Tier-1 unlocks fan funding. Full ad revenue needs 1,000 subs + 4,000 watch hrs. "
+            f"Long-form views are your fastest path to watch hours."
+        )
+
+    return {
+        "one_liner":      one_liner,
+        "detail":         "\n".join(detail_lines),
+        "weeks_to_subs":  weeks_to_subs,
+        "sub_pct":        sub_pct,
+        "wh_pct":         wh_pct,
+        "subscribers":    subscribers,
+        "sub_target":     sub_target,
+        "est_watch_hours": est_watch_hours,
+        "wh_target":      wh_target,
+        "sub_eta":        sub_eta,
+    }
 
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
@@ -444,8 +586,22 @@ def main() -> int:
             top_this   = this_week_clean[0]["title"] if this_week_clean else "none"
             top_all_t  = top_all[0]["title"] if top_all and "error" not in top_all[0] else "n/a"
 
+            # Watch hours estimate — use all videos we know about (this week + last week + top all)
+            all_known_videos = {v["video_id"]: v for v in this_week_clean + last_week_clean
+                                if "video_id" in v}
+            est_wh = estimate_watch_hours(list(all_known_videos.values()))
+
+            # Sub growth rate: subs gained this week vs last week is tricky without historical data.
+            # Use this week's view-to-sub conversion as proxy: assume 1 sub per ~20 views.
+            # Rough but good enough for ETA estimation.
+            sub_growth_est = max(0.1, this_views / 20.0)
+
+            mono = monetization_status_full(ch, subs, est_wh, sub_growth_est)
+
             print(f"  This week: {len(this_week_clean)} videos, {this_views:,} views")
             print(f"  Last week: {len(last_week_clean)} videos, {last_views:,} views")
+            print(f"  Subs: {subs:,} / {ch['sub_target']:,} ({mono['sub_pct']}%) | "
+                  f"Watch hrs: ~{est_wh:.0f} / {ch['wh_target']:,} ({mono['wh_pct']}%)")
             print(f"  Generating Claude analysis ...")
 
             suggestions = analyze_with_claude(ch, this_week_clean, last_week_clean, top_all, ch_stats)
@@ -462,7 +618,9 @@ def main() -> int:
                 "top_this_week":     top_this,
                 "alltime_top":       top_all_t,
                 "suggestions":       suggestions,
-                "monetization_status": monetization_status(subs),
+                "monetization_status": mono["one_liner"],
+                "monetization_detail": mono["detail"],
+                "mono":              mono,
             })
 
         except Exception as e:
@@ -480,6 +638,8 @@ def main() -> int:
                 "alltime_top":       "error",
                 "suggestions":       f"• Error fetching data: {str(e)[:100]}",
                 "monetization_status": "unknown",
+                "monetization_detail": "",
+                "mono":              {},
             })
 
     # Write to Sheets
