@@ -79,19 +79,32 @@ BSG_TOPICS = [
     "Gideon's 300 Warriors — How a TINY Army Defeated 135,000 Enemies",
     "Samson's Incredible Strength — Betrayed, Blinded, Yet He Destroyed His Enemies",
     "Joshua and the Walls of Jericho — They FELL by Simply Walking Around Them",
-    "Mary and Martha — Jesus Had SHOCKING News for Martha",
     "Lazarus Raised From the Dead — Dead 4 Days, Then Jesus Said ONE Thing",
-    "Psalm 23 — The MOST Powerful Prayer of Protection Ever",
     "Jesus Calms the Storm — His Disciples Watched Him DO the IMPOSSIBLE",
     "Peter Walks on Water — Until He Made ONE Mistake",
-    "The Beatitudes — Jesus Revealed the SECRET to True Happiness",
     "The Lost Sheep — Jesus Leaves 99 to Find ONE",
     "Shadrach, Meshach, Abednego — Thrown Into a Fiery Furnace, They SURVIVED",
     "Nehemiah Rebuilds Jerusalem — One Man's IMPOSSIBLE Mission to Rebuild the Walls",
-    "Elisha and the Widow's Oil — An IMPOSSIBLE Miracle That Saved a Widow's Life",
     "Samuel Hears God's Voice — A Boy Chosen to Become a POWERFUL Prophet",
-    "David and Jonathan — A Friendship STRONGER Than Family",
     "Deborah the Judge — A Woman Who DEFEATED an Entire Army",
+    # Removed May 2026 (analytics confirm doctrine/teaching underperforms):
+    # "Psalm 23" — no story arc, pure doctrine
+    # "The Beatitudes" — moral teaching list, no action/conflict
+    # "Mary and Martha" — low-stakes teaching moment
+    # "David and Jonathan" — friendship theme, not high-stakes action
+    # "Elisha and the Widow's Oil" — quiet miracle, limited visual spectacle
+    # Added May 2026 — narrative-heavy, high-stakes, clear visual payoff:
+    "The Ten Plagues of Egypt — God's Most DEVASTATING Display of Power",
+    "Jacob Wrestles an Angel — The Night a Man Fought God and SURVIVED",
+    "Paul and Silas in Prison — Chains FELL OFF at Midnight",
+    "Balaam's Donkey — The Day a Donkey Spoke to SAVE a Prophet's Life",
+    "The Transfiguration — Jesus Revealed His FULL GLORY on a Mountain",
+    "Ananias and Sapphira — The Couple Who Lied to God and DIED Instantly",
+    "Stephen's Stoning — The First Christian Martyr's FINAL Words",
+    "The Feeding of 5000 — 5 Loaves, 2 Fish, 5,000 People FED",
+    "Elijah Fed by Ravens — God Provided in the Most IMPOSSIBLE Way",
+    "Jesus Clears the Temple — He Was FURIOUS and Flipped EVERYTHING",
+    "Joshua Stops the Sun — God Made Time STAND STILL for One Battle",
 ]
 
 # Topic mix is intentionally weighted:
@@ -158,6 +171,24 @@ TMF_TOPICS = [
     "Why Dangerous People Always Seem Completely Normal at First",
     # Retired (soft behavioral, underperformed): procrastination, imposter syndrome,
     # planning fallacy, regret, tiredness — these drift away from dark psychology core.
+
+    # ── Cognitive bias + relatable behavior hybrids (added May 2026) ──────────
+    # Analytics confirmed: psychological mechanism framed as "Why You" behavior
+    # outperforms pure toxic-relationship angles. Top performers blend both.
+    "Why You Believe Lies You've Heard Twice — The Illusory Truth Effect",
+    "Why Your Brain Ignores Logic When You're Emotionally Invested",
+    "Why You Trust Someone More Just Because They Sound Confident",
+    "Why You're Easier to Manipulate When You Think You're Immune",
+    "Why You Give Away Your Power Without Realizing It",
+    "Why You Misread Silence as Approval — And Manipulators Know It",
+    "Why Smart People Are the Easiest to Fool With a Good Story",
+    "Why You Remember Humiliation More Vividly Than Praise",
+    "Why Being Watched Makes You Behave Differently — Even When You're Alone",
+    "Why Your Brain Can't Tell the Difference Between Rejection and Physical Pain",
+    "Why You Automatically Trust People Who Share One Thing in Common With You",
+    "Why You Work Harder to Keep Something Than You Ever Did to Get It",
+    "Why You Let People Interrupt You — And Why It's Not About Politeness",
+    "Why You Assume Everyone Can See How Anxious You Really Are",
 ]
 
 # ── Topic Log ──────────────────────────────────────────────────────────────────
@@ -372,6 +403,7 @@ TITLE RULES (strict — titles drive 20× view differences in this channel):
   • "Why One Bad Thing Erases Ten Good Ones" ← 722 views
   • "Why the Least Skilled People Are Most Confident" ← strong
   • "Why You Can't Leave — The Sunk Cost Fallacy" ← effect name AFTER behavior
+  • "Why You Believe Lies You've Heard Twice" ← cognitive mechanism as behavior = SWEET SPOT
 - BAD examples (data-backed <50 views each):
   • "The Secret Fear of High Achievers" ← starts with "The [noun]" — BANNED
   • "The Haunting Regret of Inaction" ← concept label, not behavior — BANNED
@@ -379,6 +411,14 @@ TITLE RULES (strict — titles drive 20× view differences in this channel):
   • "Why You're Always Right: The Mind Trap" ← colon mid-title kills it
   • "Anchoring Bias: The Invisible Mind Trap" ← effect name lead — BANNED
 - If your draft doesn't start with "Why You" or "Why Your", REWRITE it. No exceptions.
+
+CONTENT SWEET SPOT (May 2026 analytics — critical):
+- The #1 and #2 all-time performers ("Illusory Truth Effect" 1,304 views, "Framing Effect" 913 views) are NAMED PSYCHOLOGICAL MECHANISMS dressed as relatable behavior.
+- Pure "toxic relationship" angles (loyalty, attraction, abuse) top out at 130–180 views.
+- The winning formula: a named cognitive bias or psychological mechanism + the everyday behavior it produces in the viewer.
+- Every script should answer: "What is the NAME of this effect, and what does it make the viewer DO without realizing it?"
+- The effect name belongs in scene 4–5, NEVER in scene 1. Lead with the behavior; reveal the mechanism as the payoff.
+- Example: topic = "Illusory Truth Effect" → title = "Why You Believe Lies You've Heard Twice" → scene 1 hook = the behavior (believing repeated lies) → scene 4 reveals the mechanism name.
 
 HOOK RULES (78.7% of viewers currently swipe away — this is the #1 fix):
 - Scene 1 narration = your hook. 10–18 words MAX. Drop them mid-tension. NO context. NO "Did you know." NO "Imagine." NO naming the effect.
@@ -423,6 +463,14 @@ STORY SELECTION PRIORITY — focus on ICONIC, visually rich stories with clear a
 - TIER 1 (proven top performers): Creation, Noah's Ark, Adam & Eve, David vs Goliath, Moses & Red Sea, Easter, Christmas, Daniel in Lion's Den, Jonah, Joseph's Coat
 - TIER 2 (strong visual/action): Jesus Feeds 5000, Jesus Walks on Water, Lazarus, Shadrach/Meshach/Abednego, Samson, Jericho, Elijah vs 450 Prophets, Jesus Calms Storm
 - TIER 3 (use sparingly): lesser-known narratives without clear visual spectacle
+
+NARRATIVE VS DOCTRINE (critical — analytics May 2026):
+- Ask before writing: "Is this a STORY with action, conflict, and a turning point — or a TEACHING LIST?"
+- GOOD (story): Character faces impossible odds → dramatic moment → God intervenes → shocking outcome. Views: 109–383.
+- BAD (doctrine): A list of moral principles, virtues, or lessons without a clear narrative arc. Views: 1–3.
+- Confirmed underperformers: The Beatitudes (1 view), Peter Walks on Water when framed as a lesson (3 views), any "Jesus teaches that..." framing.
+- Every script must have: (1) a named character in danger or need, (2) a specific impossible moment, (3) a dramatic turning point, (4) a concrete outcome with stakes.
+- If the story is primarily a teaching (Sermon on the Mount, Beatitudes, Parables without action) — reframe it around the most dramatic moment IN the story, not the lesson itself.
 
 HOOK RULES:
 - Scene 1: a dramatic moment or question that stops the scroll.

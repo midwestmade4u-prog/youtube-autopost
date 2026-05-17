@@ -52,14 +52,18 @@ HARD RULES — NON-NEGOTIABLE
    - "How [Company] [Verb]ed in [N] [Minutes / Hours / Days]"
    - "$[X] [Vanished / Gone / Lost] in [N] [Minutes / Hours]"
    - "[N] [Minutes / Seconds]: How [Company] Died"
+   - "The [Specific Event] That [Verb]ed [Company]"  ← PROVEN WINNER (May 2026 analytics)
+     Examples: "The Weekend That Killed Lehman Brothers", "The Phone Call That Killed Blockbuster", "The 31 Minutes That Shattered Groupon"
+     Rule: [Specific Event] must be a concrete noun (weekend, phone call, memo, trade, vote, meeting, email) — NOT a vague time-of-day ("The Night", "The Day", "The Moment").
 
    **BANNED title openers (confirmed low-performers in analytics):**
    - "The Night..." → "The Night Washington Mutual Vanished" = 83 views
    - "The Day..." → proven weak
    - "The Moment..." → "The Moment Bernie Madoff..." = underperformed
-   - "The [Company] Story" → generic, no urgency
+   - "The Hour...", "The Week..." → generic, no urgency
+   - "The [Company] Story" → no hook
 
-5. **TITLE FORBIDDEN:** Never start with "The Night", "The Day", "The Moment", or any vague time-of-day opener. Never start with a concept or term (e.g. "Hubris:", "Groupthink:"). Titles MUST start with "How", a dollar figure, or a number. Data shows "How [Company] Survived/Died" drives 5–10× more views than "The Night/Moment" framing.
+5. **TITLE FORBIDDEN:** Never start with "The Night", "The Day", "The Moment", "The Hour", or bare "The Week". Never start with a concept or term (e.g. "Hubris:", "Groupthink:"). Titles MUST use one of the proven templates above. "The [Specific Event] That [Verb]ed" is now co-equal with "How" as the top-performing opener.
 
 6. **THE LITERAL COUNTDOWN:** In the minute_zero beat, insert at least one precise timestamp or number — "At 9:30 AM, the algorithm went live…" / "12 minutes later, $440 million was gone." Concrete numbers hit harder than vague time language.
 
@@ -113,6 +117,7 @@ The topic you receive will be tagged [ONE_BAD_DAY], [UNKNOWN_FAILURE], or [NEAR_
 - All topics are US companies/people.
 - **Hook rule (critical):** For lesser-known companies, the hook MUST lead with the most unbelievable fact — NOT the company name. The name is irrelevant until the viewer is already hooked. Example: "A 16-year-old built a $300M empire. It was entirely fake." — THEN name the company.
 - For well-known names (Madoff, Martha Stewart), the name can lead but must be followed immediately by the most shocking number or fact.
+- **Recovery/outcome angle (May 2026 — analytics-backed):** Analytics show "how they survived / what the surprising outcome was" outperforms pure destruction framing. Lead with the survival mechanism or the surprising result, not just the collapse. Example: instead of "How FTX Lost $32 Billion," frame toward the outcome — "The Collapse That Created an Opportunity" or "How One Leak Ended a $32B Empire in 72 Hours." The destruction is the hook; the surprising aftermath or human consequence is the payoff.
 - Emotional beat: "The audacity. The scale. The fact that nobody stopped it sooner."
 - These are also long-form candidates — write as if the story could expand to a 10-minute deep-dive.
 

@@ -81,6 +81,11 @@ ONE_BAD_DAY_TOPICS = [
     "RJR Nabisco — 1988 — the 'Premier' smokeless cigarette launch call",
     # Moved to end — same company as GM bailout (already posted Apr 28); space these out
     "General Motors — 2001 — the 57¢ ignition switch cost-cut decision",
+    # Added May 2026
+    "Kodak — 1975 — internal engineers invent the digital camera; management shelves it to protect film revenue; Kodak files bankruptcy 36 years later",
+    "Radio Shack — 2015 — files bankruptcy; was once America's #1 consumer electronics brand with 7,000 stores",
+    "Toys 'R' Us — 2000 — signs exclusive deal to sell toys only on Amazon; Amazon opens the marketplace to competitors 2 years later; Toys 'R' Us is locked in and dies",
+    "Fyre Festival — Apr 27 2017 — the morning 5,000 festival-goers arrive to FEMA tents and cheese sandwiches; Billy McFarland had sold $26M in tickets for an event that didn't exist",
 ]
 # Removed from ONE_BAD_DAY (Apr 30 2026 cleanup):
 # - Barings Bank (UK), Société Générale (France), Swissair (Switzerland),
@@ -120,6 +125,10 @@ UNKNOWN_FAILURE_TOPICS_TIER2 = [
     "Qwest / Joseph Nacchio — 2002 — CEO convicted of 19 counts of insider trading; sold $52M in stock while publicly hyping a company he knew was collapsing",
     "Symbol Technologies — 2004 — CEO Tomo Razmilovic flees to Sweden to avoid arrest for $230M fraud; FBI has to extradite him back",
     "Rite Aid — Jun 2003 — CEO Martin Grass sentenced to 8 years; $1.6B accounting fraud at the nation's third-largest drugstore chain",
+    # Added May 2026
+    "Nikola Motors — Sep 2020 — short seller Hindenburg Research publishes report; CEO Trevor Milton had faked a truck rolling downhill as self-driving; $35B market cap collapses in days",
+    "Insys Therapeutics — 2019 — founder John Kapoor convicted of racketeering; company paid doctors cash bribes to prescribe fentanyl to patients who didn't need it; 47 dead linked to the scheme",
+    "Outcome Health — 2017 — startup valued at $5.5B; executives charged with defrauding advertisers by inflating installation numbers; doctors' waiting room screens showed ads that never ran",
 ]
 
 NEAR_DEATH_TOPICS = [
@@ -143,6 +152,13 @@ NEAR_DEATH_TOPICS = [
     "Polaroid — 1975 — engineers invent the digital camera, management shelves it; Polaroid files bankruptcy 26 years later having never shipped it",
     # Moved to end — GM bailout already posted Apr 28; space same-company stories out
     "GM — Jun 1, 2009 — Chapter 11, $82B federal bailout",
+    # Added May 2026 — analytics confirm recovery/survival narratives outperform destruction
+    "Marvel — 1996 — declares bankruptcy with $700M debt; Ike Perlmutter buys the company for $82.5M; goes on to build the MCU worth $53B",
+    "Levi Strauss — 2003 — closes all US factories, $6B in debt; CEO Phil Marineau's turnaround saves the brand without going bankrupt",
+    "Best Buy — 2012 — CEO ousted in sex scandal, stock at $11, Amazon declared it dead; Hubert Joly's 60-day turnaround plan saves the company",
+    "Old Spice — 2008 — brand dying, P&G nearly discontinues it; 'The Man Your Man Could Smell Like' campaign reverses a decade of decline in 30 days",
+    "Hostess — Nov 2012 — shuts down entirely, 18,500 jobs gone; private equity buys the brand 8 months later and brings back Twinkies",
+    "Atari — 1984 — the Great Video Game Crash wipes $536M in revenue; Jack Tramiel buys the company for $50M and pivots to computers",
 ]
 # Removed from NEAR_DEATH (Apr 30 2026 cleanup):
 # - Marvel → already posted Apr 28, removed to prevent duplicate
@@ -298,9 +314,13 @@ def mz_script_word_count_ok(script: dict, format_tag: str) -> tuple[bool, int, t
 def mz_title_ok(title: str) -> tuple[bool, str]:
     """MZ title guardrails — data-backed from analytics (May 2026).
 
-    Winners: "How One Buyout Saved Harley-Davidson" (919 views), "How Marvel Survived" (all-time #1)
-    Losers:  "The Night Washington Mutual Vanished" (83 views), "The Moment Bernie Madoff..." (314 views)
-    Rule: titles MUST open with 'How' OR lead with a dollar/number figure in the first 5 words.
+    Proven winners:
+      Pattern 1 — "How [X]...":  "How One Buyout Saved Harley-Davidson" (919 views), "How Marvel Survived" (all-time #1)
+      Pattern 2 — Number/$:      "$440M Gone in 12 Minutes", "31 Minutes That Shattered Groupon"
+      Pattern 3 — "The [X] That [Verb]ed": "The Weekend That Killed Lehman", "The Phone Call That Killed Blockbuster"
+
+    Confirmed losers (banned):
+      "The Night..." (83 views), "The Day..." (weak), "The Moment..." (underperformed), "The Hour...", bare "The Week..."
     """
     t = (title or "").strip()
     if len(t) < 10:
@@ -311,26 +331,44 @@ def mz_title_ok(title: str) -> tuple[bool, str]:
     t_lower = t.lower()
     words = t_lower.split()
 
-    # Ban confirmed weak openers
-    banned_openers = ("the night", "the day", "the moment", "the hour", "the week")
-    for banned in banned_openers:
-        if t_lower.startswith(banned):
-            return False, (
-                f"title starts with '{banned}' — confirmed underperformer. "
-                f"Must start with 'How' or lead with a dollar/number figure. "
-                f"Example: 'How [Company] Nearly Died' or '$440M Vanished in 12 Minutes'"
-            )
+    # Ban confirmed weak openers — use exact first-two-word match to avoid
+    # accidentally blocking "the weekend" (which starts with "the week").
+    banned_first_two = {"the night", "the day", "the moment", "the hour"}
+    first_two = " ".join(words[:2])
+    if first_two in banned_first_two:
+        return False, (
+            f"title starts with '{first_two}' — confirmed underperformer. "
+            f"Use 'How [Company] Survived/Died', a dollar/number lead, or "
+            f"'The [X] That [Verb]ed [Company]'. "
+            f"Example: 'The Weekend That Killed Lehman Brothers'"
+        )
+    # Also ban bare "the week" but NOT "the weekend" (The Weekend That Killed Lehman = winner)
+    if t_lower.startswith("the week ") and not t_lower.startswith("the weekend"):
+        return False, (
+            "title starts with 'the week' — confirmed underperformer. "
+            "Use 'The Weekend That...' or reframe as 'How [Company]...'"
+        )
 
-    # Require "How" opener OR a number/dollar sign in the first 5 words
+    # Pattern 1: "How [X]..." — proven #1 opener
     starts_with_how = t_lower.startswith("how ")
+
+    # Pattern 2: dollar/number in the first 5 words
     first_five = " ".join(words[:5])
     has_number_or_dollar = any(c.isdigit() or c == "$" for c in first_five)
 
-    if not starts_with_how and not has_number_or_dollar:
+    # Pattern 3: "The [X] That [Verb]ed [Company]" — proven winner (May 2026 analytics)
+    # "The Weekend That Killed Lehman", "The Phone Call That Killed Blockbuster",
+    # "The 31 Minutes That Shattered Groupon"
+    the_x_that = t_lower.startswith("the ") and " that " in t_lower
+
+    if not (starts_with_how or has_number_or_dollar or the_x_that):
         return False, (
-            f"title must start with 'How' or contain a number/$dollar in the first 5 words. "
+            f"title must use a proven pattern: "
+            f"(1) start with 'How', "
+            f"(2) lead with a dollar/number figure, or "
+            f"(3) 'The [X] That [Verb]ed [Company]' structure. "
             f"Got: \"{t[:50]}\". "
-            f"Good examples: 'How Harley-Davidson Survived', '$440M Gone in 12 Minutes'"
+            f"Good: 'How Harley Survived', '$440M Gone in 12 Minutes', 'The Call That Killed Blockbuster'"
         )
 
     return True, ""
