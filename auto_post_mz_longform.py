@@ -2,9 +2,9 @@
 """
 auto_post_mz_longform.py — Minute Zero Long-Form (8–10 min) Auto-Post
 ══════════════════════════════════════════════════════════════════════
-Generates, renders, and uploads a private 16:9 YouTube video for Minute Zero.
-Sends an email notification to Matt with the YouTube Studio review link.
-Matt manually reviews and flips to public / schedules.
+Generates, renders, and uploads a public 16:9 YouTube video for Minute Zero.
+Sends an email notification to Matt confirming what was posted.
+Runs automatically Mon/Wed/Fri at 9 AM CT via mz-longform.yml.
 
 Usage:
     python3 auto_post_mz_longform.py
@@ -108,7 +108,7 @@ def mark_posted(topic: str, title: str, url: str) -> None:
     log["mz_longform_topics_used"] = used
     posts = log.get("mz_longform_posts", [])
     ts = datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d %H:%M:%S")
-    posts.append({"timestamp": ts, "topic": topic, "title": title, "url": url, "status": "private"})
+    posts.append({"timestamp": ts, "topic": topic, "title": title, "url": url, "status": "public"})
     log["mz_longform_posts"] = posts
     _save_log(log)
 
@@ -739,7 +739,7 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
             "categoryId":  "25",  # News & Politics
         },
         "status": {
-            "privacyStatus":           "private",  # Matt reviews before publishing
+            "privacyStatus":           "public",   # Auto-posts public (May 18 2026)
             "selfDeclaredMadeForKids": False,
         }
     }
@@ -797,24 +797,23 @@ def send_review_email(title: str, video_url: str, studio_url: str,
     duration_str = f"{int(duration_sec // 60)}:{int(duration_sec % 60):02d}"
     ts = datetime.now(ZoneInfo("America/Chicago")).strftime("%b %d, %Y at %I:%M %p CT")
 
-    subject = f"[MZ Long-Form Ready] {title}"
+    subject = f"[MZ Long-Form Posted] {title}"
     html = f"""
     <html><body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <h2 style="color: #1a1a2e;">📹 New Long-Form Ready for Review</h2>
-    <p style="color: #666;">Generated {ts} | Duration: {duration_str}</p>
+    <h2 style="color: #1a1a2e;">✅ New Long-Form Posted — Minute Zero</h2>
+    <p style="color: #666;">Posted {ts} | Duration: {duration_str}</p>
     <hr>
     <h3>{title}</h3>
     <p><strong>Topic:</strong> {topic}</p>
-    <p>The video has been uploaded as <strong>PRIVATE</strong> to the Minute Zero channel.
-    Review it in YouTube Studio and flip to public (or schedule) when you're happy with it.</p>
+    <p>The video has been uploaded as <strong>PUBLIC</strong> to the Minute Zero channel automatically.</p>
     <p>
-      <a href="{studio_url}" style="background:#ff0000;color:white;padding:12px 24px;
+      <a href="{video_url}" style="background:#ff0000;color:white;padding:12px 24px;
          text-decoration:none;border-radius:4px;display:inline-block;margin-right:10px;">
-        ▶ Review in YouTube Studio
+        ▶ Watch on YouTube
       </a>
-      <a href="{video_url}" style="background:#333;color:white;padding:12px 24px;
+      <a href="{studio_url}" style="background:#333;color:white;padding:12px 24px;
          text-decoration:none;border-radius:4px;display:inline-block;">
-        🔗 Direct Video Link
+        📊 View in Studio
       </a>
     </p>
     <hr>
