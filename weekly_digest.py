@@ -150,15 +150,22 @@ def get_videos_in_window(svc, channel_id: str, days_ago_start: int, days_ago_end
         for item in stats_resp.get("items", []):
             stats = item.get("statistics", {})
             duration = item.get("contentDetails", {}).get("duration", "PT0S")
+            thumb_map = item["snippet"].get("thumbnails", {})
+            thumb_url = (
+                thumb_map.get("maxres") or
+                thumb_map.get("high") or
+                thumb_map.get("medium") or {}
+            ).get("url", "")
             results.append({
-                "video_id":    item["id"],
-                "title":       item["snippet"]["title"],
-                "published":   item["snippet"]["publishedAt"],
-                "views":       int(stats.get("viewCount", 0)),
-                "likes":       int(stats.get("likeCount", 0)),
-                "comments":    int(stats.get("commentCount", 0)),
-                "duration":    duration,
-                "url":         f"https://youtu.be/{item['id']}",
+                "video_id":      item["id"],
+                "title":         item["snippet"]["title"],
+                "published":     item["snippet"]["publishedAt"],
+                "views":         int(stats.get("viewCount", 0)),
+                "likes":         int(stats.get("likeCount", 0)),
+                "comments":      int(stats.get("commentCount", 0)),
+                "duration":      duration,
+                "url":           f"https://youtu.be/{item['id']}",
+                "thumbnail_url": thumb_url,
             })
         results.sort(key=lambda x: x["views"], reverse=True)
         return results
@@ -200,6 +207,50 @@ def get_top_videos_alltime(svc, channel_id: str, limit: int = 10) -> list[dict]:
         return results[:limit]
     except Exception as e:
         return [{"error": str(e)[:80]}]
+
+
+# ─── Thumbnail duplicate detection ───────────────────────────────────────────
+
+def check_thumbnail_diversity(videos: list[dict], label: str) -> dict | None:
+    """Download up to 8 recent thumbnails, hash with MD5.
+    Returns an alert dict if 3+ share the same hash (identical image = broken pipeline).
+    Returns None if thumbnails look healthy.
+    """
+    import urllib.request
+    import hashlib
+
+    recent = [v for v in videos if "error" not in v and v.get("thumbnail_url")][:8]
+    if len(recent) < 3:
+        return None
+
+    hashes: dict[str, list[dict]] = {}
+    for v in recent:
+        try:
+            req = urllib.request.Request(
+                v["thumbnail_url"],
+                headers={"User-Agent": "Mozilla/5.0"},
+            )
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                data = resp.read()
+            h = hashlib.md5(data).hexdigest()
+            if h not in hashes:
+                hashes[h] = []
+            hashes[h].append({"title": v["title"], "video_url": v["url"]})
+        except Exception:
+            continue
+
+    if not hashes:
+        return None
+
+    worst_hash, worst_videos = max(hashes.items(), key=lambda x: len(x[1]))
+    if len(worst_videos) >= 3:
+        return {
+            "channel":         label,
+            "duplicate_count": len(worst_videos),
+            "total_checked":   len(recent),
+            "videos":          worst_videos[:5],  # show up to 5 examples
+        }
+    return None
 
 
 # ─── Claude analysis ──────────────────────────────────────────────────────────
@@ -334,7 +385,62 @@ def send_digest_email(all_channel_data: list[dict], week_label: str) -> None:
     lines.append(f"Full report: {SHEETS_URL}")
     body_text = "\n".join(lines)
 
+    # Build thumbnail alert blocks (plain text)
+    thumb_alert_lines: list[str] = []
+    for ch in all_channel_data:
+        alert = ch.get("thumb_alert")
+        if alert:
+            thumb_alert_lines.append(
+                f"⚠️  DUPLICATE THUMBNAILS — {alert['channel']}: "
+                f"{alert['duplicate_count']}/{alert['total_checked']} videos share the same image."
+            )
+            thumb_alert_lines.append("   Likely cause: FAL AI credits exhausted (check fal.ai/dashboard)")
+            for v in alert["videos"][:3]:
+                thumb_alert_lines.append(f"   • {v['title'][:60]}  {v['video_url']}")
+    if thumb_alert_lines:
+        lines.insert(3, "\n".join(["🚨 THUMBNAIL ALERTS", "─" * 40] + thumb_alert_lines + [""]))
+
     # Build HTML
+    # Thumbnail alert HTML block
+    thumb_alert_html = ""
+    for ch in all_channel_data:
+        alert = ch.get("thumb_alert")
+        if alert:
+            video_list_html = "".join(
+                f'<li style="margin-bottom:4px"><a href="{v["video_url"]}" style="color:#c0392b">'
+                f'{v["title"][:70]}</a></li>'
+                for v in alert["videos"]
+            )
+            thumb_alert_html += f"""
+        <div style="background:#fff0f0;border:2px solid #e74c3c;border-radius:6px;
+                    padding:16px;margin-bottom:12px">
+          <h4 style="margin:0 0 8px 0;color:#c0392b">
+            ⚠️ DUPLICATE THUMBNAILS — {alert["channel"]}
+          </h4>
+          <p style="margin:0 0 8px 0;font-size:14px">
+            <b>{alert["duplicate_count"]}/{alert["total_checked"]}</b> recent videos share an
+            <b>identical thumbnail image</b>. This tanks CTR and signals a broken visual pipeline.
+          </p>
+          <p style="margin:0 0 6px 0;font-size:13px"><b>Most likely causes:</b></p>
+          <ul style="font-size:13px;margin:0 0 8px 0;padding-left:20px">
+            <li><b>FAL AI credits ran out</b> — check
+              <a href="https://fal.ai/dashboard" style="color:#2980b9">fal.ai/dashboard</a>
+              and top up if balance is near zero</li>
+            <li><b>Pollinations fallback seed collision</b> — identical seeds generate identical images;
+              verify <code>video_app.py</code> topic-seed hashing is live</li>
+          </ul>
+          <p style="margin:0 0 4px 0;font-size:13px"><b>Affected videos:</b></p>
+          <ul style="font-size:13px;margin:0;padding-left:20px">{video_list_html}</ul>
+        </div>"""
+
+    thumbnail_alerts_block = ""
+    if thumb_alert_html:
+        thumbnail_alerts_block = f"""
+        <div style="margin-bottom:24px">
+          <h3 style="color:#c0392b;margin:0 0 10px 0">🚨 Thumbnail Alerts</h3>
+          {thumb_alert_html}
+        </div>"""
+
     channel_blocks = ""
     for ch in all_channel_data:
         delta = ch["this_views"] - ch["last_views"]
@@ -423,6 +529,7 @@ def send_digest_email(all_channel_data: list[dict], week_label: str) -> None:
       <h2 style="color:#2c3e50;border-bottom:2px solid #2980b9;padding-bottom:8px">
         📊 YouTube Weekly Digest — {week_label}
       </h2>
+      {thumbnail_alerts_block}
       {monetization_block}
       {channel_blocks}
       <div style="text-align:center;margin-top:24px">
@@ -578,6 +685,24 @@ def main() -> int:
             this_week_clean = [v for v in this_week if "error" not in v]
             last_week_clean = [v for v in last_week if "error" not in v]
 
+            # Thumbnail diversity check — most recent 8 across this+last week
+            seen_ids: set = set()
+            all_recent: list = []
+            for v in sorted(
+                this_week_clean + last_week_clean,
+                key=lambda x: x.get("published", ""),
+                reverse=True,
+            ):
+                if v.get("video_id") not in seen_ids:
+                    seen_ids.add(v["video_id"])
+                    all_recent.append(v)
+            print(f"  Checking thumbnail diversity ({min(len(all_recent), 8)} videos) ...")
+            thumb_alert = check_thumbnail_diversity(all_recent, ch["label"])
+            if thumb_alert:
+                print(f"  ⚠️  DUPLICATE THUMBNAILS: {thumb_alert['duplicate_count']}/{thumb_alert['total_checked']} identical!")
+            else:
+                print(f"  ✅ Thumbnails look diverse")
+
             this_views = sum(v["views"] for v in this_week_clean)
             last_views = sum(v["views"] for v in last_week_clean)
             this_avg   = this_views / max(len(this_week_clean), 1)
@@ -621,6 +746,7 @@ def main() -> int:
                 "monetization_status": mono["one_liner"],
                 "monetization_detail": mono["detail"],
                 "mono":              mono,
+                "thumb_alert":       thumb_alert,
             })
 
         except Exception as e:
@@ -640,6 +766,7 @@ def main() -> int:
                 "monetization_status": "unknown",
                 "monetization_detail": "",
                 "mono":              {},
+                "thumb_alert":       None,
             })
 
     # Write to Sheets
