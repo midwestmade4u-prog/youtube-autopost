@@ -113,19 +113,19 @@ CHANNEL_STYLES = {
         "label":      "The Mind Files",
         "watermark":  "The Mind Files",
         "style":      (
-            "Dark cinematic still photograph, black and white or heavily desaturated, film noir aesthetic. "
-            "Atmospheric and symbolic: {prompt}. "
-            "Use dramatic objects, environments, shadows, textures, and silhouettes — "
-            "absolutely NO faces, NO identifiable people, NO portraits. "
-            "Examples: empty chairs, worn clocks, burning candles, heavy chains, long corridors, "
-            "cracked mirrors, hands gripping objects, locked doors, broken glass. "
-            "High contrast lighting, deep blacks, moody atmosphere. "
-            "Photorealistic editorial photography style. Full frame composition. No text. No logos."
+            "Dark cinematic portrait photography, heavily desaturated or black and white, film noir aesthetic. "
+            "{prompt}. "
+            "Subject: a young woman, 25–35, with a striking, intense expression — pensive, guarded, or emotionally raw. "
+            "She is the emotional anchor of the scene: facing away, in silhouette, partially lit, or caught in a candid moment of reflection. "
+            "Lighting: single dramatic source — a window, candle, streetlight, or bare bulb casting deep shadows across her face. "
+            "Mood: psychological tension, introspection, quiet unease. "
+            "Style: high-end editorial photography, photorealistic, cinematic depth of field, dark background. "
+            "No text. No logos. No explicit content. Full frame composition."
         ),
         "fallback_generic": [
-            "dark empty hallway with a single overhead light casting long shadows, black and white cinematic photography, high contrast, no people",
-            "close-up of a worn clock face on a dark wooden table, dramatic side lighting, black and white photorealistic, no people",
-            "heavy iron chains coiled on concrete floor, dramatic high-contrast lighting, black and white symbolic photography, no people",
+            "young woman in silhouette standing at rain-streaked window, single light source, black and white cinematic photography, film noir, emotional",
+            "close-up of a woman's face half in shadow, candlelight, pensive expression, high contrast black and white, photorealistic editorial",
+            "young woman alone on dark city street at night, looking away from camera, film noir lighting, cinematic, desaturated",
         ],
     },
 }

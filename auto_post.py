@@ -375,10 +375,13 @@ def generate_script_for_topic(topic: str, channel: str, num_scenes: int = 8) -> 
         style_guide = (
             "Dark psychology / human behavior educational content for adults. "
             "Tone: calm, analytical, slightly unsettling. "
-            "Image prompts MUST be atmospheric and symbolic — NO faces, NO people, NO portraits. "
-            "Use objects, environments, shadows, hands (no face), silhouettes, abstract compositions. "
-            "Examples: burning money on a desk, broken clock, empty interrogation chair, heavy chains. "
-            "Style: black and white / heavily desaturated film noir, high contrast, photorealistic."
+            "Image prompts MUST feature a young woman (25–35) as the emotional focal point — this is data-backed: female-portrait images outperform all other visuals on this channel. "
+            "Each prompt should describe: (1) what the woman is doing or feeling, (2) the lighting source, (3) the environment or background. "
+            "She should feel psychologically present — pensive, guarded, introspective, or emotionally raw. Never smiling or posed. "
+            "Examples: 'woman staring at her own reflection in a cracked mirror, single candle, dark room' / "
+            "'woman sitting alone at a diner table at 2am, neon light through rain window, looking down' / "
+            "'close-up of woman's face half in shadow, tears on cheek, blurred city lights behind her'. "
+            "Style: cinematic, film noir, desaturated, photorealistic editorial photography. No text, no logos."
         )
     else:
         style_guide = (
