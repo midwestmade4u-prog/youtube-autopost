@@ -350,16 +350,22 @@ def _normalize_portrait(path, target_w, target_h):
         emit(f"  ⚠️ Portrait normalisation failed for {path}: {e}")
 
 
-def generate_image(prompt, output_path, scene_num, width=1280, height=720, channel="bsg"):
+def generate_image(prompt, output_path, scene_num, width=1280, height=720, channel="bsg", topic=""):
     """
-    Primary: DALL-E 3 (if API key set). Fallback: Pollinations with retries.
+    Primary: fal.ai Flux Pro. Secondary: DALL-E 3. Fallback: Pollinations with retries.
     Never gives up — always produces a real image.
     After every successful download the image is normalised to portrait
     (target width × height) so FFmpeg always receives portrait pixels.
+
+    topic: the video topic string — used to seed Pollinations so fallback images
+    are unique per video, not identical across all videos of the same channel.
     """
     p     = prompt.strip()
     style = CHANNEL_STYLES.get(channel, CHANNEL_STYLES["bsg"])
     styled = style["style"].format(prompt=p)
+    # Topic-based seed offset — prevents the fallback from producing the same image
+    # for every video. Without this, scene_num * 42 = 0 for scene 0 on every run.
+    topic_seed = abs(hash(topic or prompt)) % 100_000
 
     # ── fal.ai Flux Pro (primary — cheapest, best quality) ────────────────────
     if get_fal_key():
@@ -391,13 +397,13 @@ def generate_image(prompt, output_path, scene_num, width=1280, height=720, chann
     # ── Pollinations fallback ──────────────────────────────────────────────────
     generics = style["fallback_generic"]
     fallback_attempts = [
-        (styled,                                                  scene_num * 42),
-        (styled,                                                  scene_num * 77),
-        (style["style"].format(prompt=p[:120]),                   scene_num * 31),
-        (style["style"].format(prompt=p[:60]),                    scene_num * 67),
-        (style["style"].format(prompt=p[:30]),                    scene_num * 101),
-        (generics[0],                                             scene_num * 23),
-        (generics[1] if len(generics) > 1 else generics[0],      scene_num * 37),
+        (styled,                                                  topic_seed + scene_num * 42),
+        (styled,                                                  topic_seed + scene_num * 77),
+        (style["style"].format(prompt=p[:120]),                   topic_seed + scene_num * 31),
+        (style["style"].format(prompt=p[:60]),                    topic_seed + scene_num * 67),
+        (style["style"].format(prompt=p[:30]),                    topic_seed + scene_num * 101),
+        (generics[scene_num % len(generics)],                     topic_seed + scene_num * 23),
+        (generics[(scene_num + 1) % len(generics)],               topic_seed + scene_num * 37),
     ]
 
     for i, (prompt_str, seed) in enumerate(fallback_attempts):
@@ -1017,7 +1023,7 @@ def run_video_job(title, scenes, voice, fmt="vertical", channel="bsg"):
             audio     = TEMP_DIR / f"scene_{i:02d}_audio.mp3"
             clip      = TEMP_DIR / f"scene_{i:02d}_clip.mp4"
 
-            generate_image(scene["image_prompt"], raw_img, i, width=vid_w, height=vid_h, channel=channel)
+            generate_image(scene["image_prompt"], raw_img, i, width=vid_w, height=vid_h, channel=channel, topic=title)
             emit(f"  ✅ Image {i+1} saved")
 
             emit(f"  🎙️ Generating narration...")
