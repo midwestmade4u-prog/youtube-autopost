@@ -546,12 +546,15 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
                         "https://api.pexels.com/v1/search",
                         headers={"Authorization": pexels_key},
                         params={"query": q, "orientation": "landscape",
-                                "per_page": 3, "size": "large"},
+                                "per_page": 5, "size": "large"},
                         timeout=10,
                     )
                     photos = r.json().get("photos", [])
                     if photos:
-                        photo_url = photos[0]["src"]["large"]  # ~1280px wide
+                        # Use title hash to pick a different photo per video
+                        # so two videos with similar queries don't share a thumbnail
+                        pick = abs(hash(title)) % len(photos)
+                        photo_url = photos[pick]["src"]["large"]  # ~1280px wide
                         img_r = _req.get(photo_url, timeout=20)
                         bg = Image.open(BytesIO(img_r.content)).convert("RGB")
                         print(f"  📸 Thumbnail photo: {q[:45]}")
