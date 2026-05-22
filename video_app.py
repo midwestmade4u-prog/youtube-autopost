@@ -690,9 +690,9 @@ def generate_audio(text, path, voice):
         raise RuntimeError(f"Unknown ElevenLabs voice ID for '{voice}' — check ELEVENLABS_VOICES dict.")
 
     # Edge TTS — use streaming mode to capture word timing for animated captions.
-    # Timeout reduced to 20s (was 45s) and retries capped at 2 so worst-case
-    # per-scene time is 2 × 20s = 40s. 8 scenes × 40s = 320s max, well under
-    # the 900s GH Actions job deadline.
+    # 2 attempts with fallback voices. If BOTH timing attempts fail, we fall back
+    # to _gen_audio_async (static captions, no crash). This prevents the render
+    # thread from dying and guarantees a video is always produced.
     tts_voice = voice if voice in EDGE_TTS_VOICES else "en-US-MichelleNeural"
     fallback_voices = ["en-US-MichelleNeural", "en-US-JennyNeural", "en-US-AriaNeural"]
     for attempt in range(2):   # 2 attempts, not 3
@@ -704,16 +704,24 @@ def generate_audio(text, path, voice):
                 emit(f"  ℹ️ No word timings from edge-tts — using static text overlay")
             return timings
         except (Exception, asyncio.TimeoutError) as tts_err:
-            err_msg = "timed out (20s)" if isinstance(tts_err, asyncio.TimeoutError) else str(tts_err)[:60]
+            err_msg = "timed out (45s)" if isinstance(tts_err, asyncio.TimeoutError) else str(tts_err)[:60]
             if attempt < 1:
                 emit(f"  ⚠️ Voice attempt {attempt+1}/2 failed ({err_msg}) — retrying in 2s...")
                 time.sleep(2)
                 tts_voice = fallback_voices[attempt + 1]
             else:
-                raise Exception(
-                    f"Audio generation failed after 2 attempts. "
-                    f"Check your internet connection and try again. ({tts_err})"
-                )
+                # Both timing attempts failed — fall back to simple audio (no word timing)
+                # This guarantees the render completes with static captions rather than crashing.
+                emit(f"  ⚠️ Both timing attempts failed — falling back to static audio (no karaoke captions)")
+                try:
+                    asyncio.run(_gen_audio_async(text, path, tts_voice))
+                    emit(f"  ✅ Static audio generated successfully")
+                except Exception as fallback_err:
+                    raise Exception(
+                        f"Audio generation failed completely (timing + static both failed). "
+                        f"Check internet connection. ({fallback_err})"
+                    )
+                return None   # No timings — static caption overlay will be used
     return None
 
 def generate_audio_xtts(text, output_path):
