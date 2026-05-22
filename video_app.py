@@ -532,9 +532,11 @@ async def _gen_audio_async(text, path, voice):
     import edge_tts
     # 45s timeout — edge-tts has no built-in timeout; without this a hung
     # Microsoft TTS connection blocks the background thread forever.
+    # NOTE: was 20s — raised to 45s because MS TTS endpoint often takes 20-35s
+    # under load, causing silent TimeoutError failures on 2 of 3 daily TMF runs.
     await asyncio.wait_for(
         edge_tts.Communicate(text, voice).save(str(path)),
-        timeout=20,
+        timeout=45,
     )
 
 
