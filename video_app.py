@@ -21,6 +21,7 @@ Then Chrome opens automatically at: http://localhost:5002
 """
 
 import asyncio
+import concurrent.futures
 import json
 import os
 import queue
@@ -226,44 +227,59 @@ def emit_error(err):
     progress_queue.put({"error": str(err)})
 
 
+def _fal_image_inner(prompt_str, output_path, width=1280, height=720):
+    """Raw FAL call — run inside a thread so wall-clock timeout can be enforced."""
+    import json as _json
+    api_key = get_fal_key()
+    if not api_key:
+        return False
+    # Always request square to avoid rotation artifacts (same strategy as DALL-E)
+    # _normalize_portrait() will center-crop to 9:16 after download
+    payload = _json.dumps({
+        "prompt": prompt_str,
+        "image_size": "square_hd",   # 1024x1024
+        "num_images": 1,
+        "enable_safety_checker": False,
+        "output_format": "jpeg",
+    }).encode()
+    req = urllib.request.Request(
+        "https://fal.run/fal-ai/flux-pro",
+        data=payload,
+        headers={
+            "Authorization": f"Key {api_key}",
+            "Content-Type": "application/json",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=60) as r:
+        result = _json.loads(r.read())
+    image_url = result["images"][0]["url"]
+    img_req = urllib.request.Request(image_url, headers={"User-Agent": "VideoStudio/1.0"})
+    with urllib.request.urlopen(img_req, timeout=30) as r:
+        data = r.read()
+    if len(data) > 5000:
+        with open(output_path, "wb") as f:
+            f.write(data)
+        return True
+    return False
+
+
 def _fal_image(prompt_str, output_path, width=1280, height=720):
     """Generate image using fal.ai Flux Pro. Returns True on success.
-    ~40% cheaper than DALL-E 3 at equivalent quality."""
-    try:
-        import json as _json
-        api_key = get_fal_key()
-        if not api_key:
+    ~40% cheaper than DALL-E 3 at equivalent quality.
+    Uses a hard 90s wall-clock timeout via ThreadPoolExecutor — urlopen's
+    socket timeout alone won't fire if FAL sends keepalive bytes."""
+    if not get_fal_key():
+        return False
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+        future = ex.submit(_fal_image_inner, prompt_str, output_path, width, height)
+        try:
+            return future.result(timeout=90)
+        except concurrent.futures.TimeoutError:
+            emit("  ⚠️ fal.ai wall-clock timeout (90s) — falling back")
             return False
-        # Always request square to avoid rotation artifacts (same strategy as DALL-E)
-        # _normalize_portrait() will center-crop to 9:16 after download
-        payload = _json.dumps({
-            "prompt": prompt_str,
-            "image_size": "square_hd",   # 1024x1024
-            "num_images": 1,
-            "enable_safety_checker": False,
-            "output_format": "jpeg",
-        }).encode()
-        req = urllib.request.Request(
-            "https://fal.run/fal-ai/flux-pro",
-            data=payload,
-            headers={
-                "Authorization": f"Key {api_key}",
-                "Content-Type": "application/json",
-            },
-        )
-        with urllib.request.urlopen(req, timeout=90) as r:
-            result = _json.loads(r.read())
-        image_url = result["images"][0]["url"]
-        img_req = urllib.request.Request(image_url, headers={"User-Agent": "VideoStudio/1.0"})
-        with urllib.request.urlopen(img_req, timeout=60) as r:
-            data = r.read()
-        if len(data) > 5000:
-            with open(output_path, "wb") as f:
-                f.write(data)
-            return True
-    except Exception as e:
-        emit(f"  ⚠️ fal.ai error: {str(e)[:80]}")
-    return False
+        except Exception as e:
+            emit(f"  ⚠️ fal.ai error: {str(e)[:80]}")
+            return False
 
 
 def _dalle_image(prompt_str, output_path, width=1280, height=720):
