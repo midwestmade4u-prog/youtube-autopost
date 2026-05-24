@@ -38,7 +38,12 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          sudo apt-get install -y ffmpeg fonts-liberation
+          # Install Oswald Bold (Impact-style font for thumbnails)
+          sudo mkdir -p /usr/local/share/fonts
+          curl -sL "https://fonts.gstatic.com/s/oswald/v53/TK3_WkUHHAIjg75cFRf3bXL8LICs13NvgUFoZAaRliE.ttf" \
+            -o /usr/local/share/fonts/Oswald-Bold.ttf
+          fc-cache -f
 
       - name: Install Python dependencies
         run: |
@@ -52,6 +57,7 @@ jobs:
 
       - name: Run MZ Long-Form auto-post
         env:
+          DEEPSEEK_API_KEY:  ${{ secrets.DEEPSEEK_API_KEY }}
           OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           PEXELS_API_KEY:    ${{ secrets.PEXELS_API_KEY }}

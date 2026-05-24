@@ -88,7 +88,48 @@ def _save_log(log: dict) -> None:
     LOG_FILE.write_text(json.dumps(log, indent=2))
 
 
+LONGFORM_QUEUE_FILE = BASE_DIR / "longform_queue.json"
+
+
+def _load_longform_queue() -> list:
+    """Load the short→longform amplification queue written by the daily monitor."""
+    if LONGFORM_QUEUE_FILE.exists():
+        try:
+            return json.loads(LONGFORM_QUEUE_FILE.read_text())
+        except Exception:
+            pass
+    return []
+
+
+def _save_longform_queue(queue: list) -> None:
+    LONGFORM_QUEUE_FILE.write_text(json.dumps(queue, indent=2))
+
+
 def pick_topic() -> str:
+    """Pick a long-form topic.
+
+    Priority order:
+    1. Short→Longform queue (high-performing Shorts queued by daily monitor)
+       — if a Short hit ≥700 views, it's already proven the audience wants more.
+    2. Random from LONGFORM_TOPICS bank (excluding already-used topics).
+    """
+    # ── Priority 1: amplification queue ───────────────────────────────────────
+    queue = _load_longform_queue()
+    pending = [item for item in queue if item.get("status") == "pending"]
+    if pending:
+        # Pick the highest-view pending item
+        best = max(pending, key=lambda x: x.get("views", 0))
+        print(f"  🚀 Longform queue hit! Amplifying short-form breakout: {best.get('title', '')[:60]}")
+        print(f"     Views: {best.get('views', 0)} | Short URL: {best.get('short_url', '')}")
+        # Mark as used in queue
+        for item in queue:
+            if item.get("topic") == best.get("topic"):
+                item["status"] = "used"
+        _save_longform_queue(queue)
+        # The topic from the queue is already a full topic string
+        return best.get("topic", "")
+
+    # ── Priority 2: random from topic bank ────────────────────────────────────
     log = _load_log()
     used = set(log.get("mz_longform_topics_used", []))
     available = [t for t in LONGFORM_TOPICS if t not in used]

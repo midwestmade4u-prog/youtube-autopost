@@ -42,6 +42,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
 LOG_FILE = BASE_DIR / "auto_post_log.json"
+LONGFORM_QUEUE_FILE = BASE_DIR / "longform_queue.json"   # short→longform amplification queue
 MZ_CHANNEL_DIR = BASE_DIR / "MZ_Channel"
 MZ_PROMPT_V3 = MZ_CHANNEL_DIR / "MZ_Script_Generator_Prompt_v3.md"
 MZ_OUTPUT_DIR = BASE_DIR / "MZ_Output"
@@ -167,6 +168,102 @@ NEAR_DEATH_TOPICS = [
 # - GM moved to end (same company as Apr 28 bailout video — space them out)
 
 
+# ── Household brand tier (for Format A weighting) ─────────────────────────────
+# Analytics confirm: iconic household names (Boeing, FedEx, GM, Marvel, Kodak)
+# dramatically outperform obscure companies. Weight them 3× in random selection.
+MZ_HOUSEHOLD_BRANDS = {
+    "knight capital", "coca-cola", "yahoo", "blockbuster", "quaker oats",
+    "jcpenney", "aol", "enron", "theranos", "ftx", "long-term capital",
+    "arthur andersen", "borders", "wells fargo", "boeing", "myspace",
+    "bear stearns", "lehman brothers", "sears", "groupon", "wework",
+    "rjr nabisco", "general motors", "kodak", "radio shack", "toys r us",
+    "fyre festival", "apple", "ibm", "chrysler", "disney", "fedex",
+    "starbucks", "harley", "ford", "american express", "delta", "netflix",
+    "best buy", "domino's", "airbnb", "marvel", "polaroid", "gm",
+    "bernie madoff", "worldcom", "tyco", "imclone", "martha stewart",
+    "washington mutual", "countrywide", "adelphia", "nikola",
+}
+
+def _extract_company_name(topic: str) -> str:
+    """Extract company name from topic string (text before first ' — ')."""
+    raw = topic.split(" — ")[0].strip()
+    # Strip leading date-like tokens (e.g. "FTX — Nov 2..." → raw = "FTX")
+    return raw.lower()
+
+
+def _company_posted_recently(company_name: str, days: int = 30) -> bool:
+    """True if the same company was posted (short or longform) in the last 30 days.
+    Prevents FTX 3× or Blockbuster 2× within a rolling month."""
+    log = _load_log()
+    cutoff = dt.datetime.now() - dt.timedelta(days=days)
+    company_lc = company_name.lower()
+    for post in log.get("posts", []):
+        if post.get("channel") != "mz":
+            continue
+        try:
+            post_dt = dt.datetime.strptime(post.get("posted_at", ""), "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            continue
+        if post_dt < cutoff:
+            continue
+        # Check company name in post's topic string
+        post_company = _extract_company_name(post.get("topic", ""))
+        # Fuzzy: use substring match to catch "General Motors" vs "GM"
+        if company_lc in post_company or post_company in company_lc:
+            return True
+    return False
+
+
+def _is_household_brand(topic: str) -> bool:
+    """True if the topic's company is an iconic household name."""
+    company = _extract_company_name(topic)
+    for brand in MZ_HOUSEHOLD_BRANDS:
+        if brand in company or company in brand:
+            return True
+    return False
+
+
+# ── Short→Longform amplification queue ────────────────────────────────────────
+
+def load_longform_queue() -> list:
+    """Load the list of high-performing short topics queued for long-form."""
+    if LONGFORM_QUEUE_FILE.exists():
+        try:
+            return json.loads(LONGFORM_QUEUE_FILE.read_text())
+        except Exception:
+            pass
+    return []
+
+
+def save_longform_queue(queue: list) -> None:
+    LONGFORM_QUEUE_FILE.write_text(json.dumps(queue, indent=2))
+
+
+def queue_for_longform(topic: str, title: str, video_url: str,
+                       short_views: int, threshold: int = 700) -> bool:
+    """If a short crosses the view threshold, add to longform queue.
+    Called by the daily monitor after checking analytics (7 days post-publish).
+    Returns True if queued."""
+    if short_views < threshold:
+        return False
+    queue = load_longform_queue()
+    # Don't double-queue the same topic
+    existing_topics = {item.get("topic", "") for item in queue}
+    if topic in existing_topics:
+        return False
+    queue.append({
+        "topic":      topic,
+        "title":      title,
+        "short_url":  video_url,
+        "views":      short_views,
+        "queued_at":  time.strftime("%Y-%m-%d %H:%M:%S"),
+        "status":     "pending",  # → "used" when longform posts
+    })
+    save_longform_queue(queue)
+    print(f"  📋 Queued for long-form (views={short_views}): {topic[:60]}...")
+    return True
+
+
 # ─── Rotation logic ──────────────────────────────────────────────────────────
 
 def pick_format_for_slot(weekday: int, hour_ct: int) -> str:
@@ -190,7 +287,14 @@ def pick_format_for_slot(weekday: int, hour_ct: int) -> str:
 
 
 def pick_topic(format_letter: str) -> tuple[str, str]:
-    """Return (topic_string, format_tag_for_prompt)."""
+    """Return (topic_string, format_tag_for_prompt).
+
+    Guardrails applied:
+    - 30-day company-name dedup across ALL MZ posts (short + longform)
+      prevents FTX 3×, Blockbuster 2×, etc.
+    - Format A (ONE_BAD_DAY): household brand topics weighted 3× over obscure ones.
+    - Format B (UNKNOWN_FAILURE): Tier 1 (household names) exhausted before Tier 2.
+    """
     log = _load_log()
     used = set(log.get("mz_topics_used", []))
 
@@ -211,15 +315,35 @@ def pick_topic(format_letter: str) -> tuple[str, str]:
     else:
         raise ValueError(f"Invalid format letter: {format_letter}")
 
-    available = [t for t in pool if t not in used]
+    # ── Apply 30-day company-name dedup ───────────────────────────────────────
+    available = [
+        t for t in pool
+        if t not in used
+        and not _company_posted_recently(_extract_company_name(t), days=30)
+    ]
+
     if not available:
-        print(f"  🔄 All MZ Format {format_letter} topics used — resetting cycle")
+        print(f"  🔄 All MZ Format {format_letter} topics used (or company-deduped) — resetting cycle")
         # Clear only this format's used-set — preserve other formats' rotation
         for t in pool:
             used.discard(t)
         log["mz_topics_used"] = list(used)
         _save_log(log)
-        available = pool[:]
+        # Loosen to cycle-only dedup (keep company dedup to avoid immediate repeat)
+        available = [
+            t for t in pool
+            if not _company_posted_recently(_extract_company_name(t), days=14)
+        ]
+        if not available:
+            available = pool[:]  # Last resort: full pool
+
+    # ── Format A: weight household brands 3× ─────────────────────────────────
+    if format_letter == "A" and available:
+        weights = [3 if _is_household_brand(t) else 1 for t in available]
+        chosen = random.choices(available, weights=weights, k=1)[0]
+        brand_label = "household" if _is_household_brand(chosen) else "obscure"
+        print(f"  🏢 MZ Format A topic selected [{brand_label}]: {chosen[:70]}...")
+        return chosen, tag
 
     return random.choice(available), tag
 
@@ -444,6 +568,25 @@ def load_system_prompt() -> str:
     return "\n".join(lines)
 
 
+def _call_deepseek(system: str, user: str) -> str:
+    """Call DeepSeek V3 (OpenAI-compatible API). ~95% cheaper than GPT-4o."""
+    from openai import OpenAI
+    api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("DEEPSEEK_API_KEY is missing or empty")
+    client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+    r = client.chat.completions.create(
+        model="deepseek-chat",
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user",   "content": user},
+        ],
+        temperature=0.8,
+    )
+    return r.choices[0].message.content
+
+
 def _call_openai(system: str, user: str) -> str:
     """Call OpenAI and return raw content string."""
     from openai import OpenAI
@@ -505,10 +648,15 @@ def generate_script(topic: str, format_tag: str) -> dict:
     system = load_system_prompt()
     user_base = f"[{format_tag.upper()}] {topic}"
 
-    # Determine call order based on MODEL_BACKEND setting
+    # Determine call order based on available keys + MODEL_BACKEND setting.
+    # Priority: DeepSeek (95% cheaper, same quality) → OpenAI → Anthropic
+    deepseek_available = bool(os.environ.get("DEEPSEEK_API_KEY", "").strip())
     if MODEL_BACKEND == "anthropic":
         primary_fn,  primary_name  = _call_anthropic, "anthropic"
         fallback_fn, fallback_name = _call_openai,    "openai"
+    elif deepseek_available:
+        primary_fn,  primary_name  = _call_deepseek, "deepseek-chat"
+        fallback_fn, fallback_name = _call_openai,   "openai"
     else:
         primary_fn,  primary_name  = _call_openai,    "openai"
         fallback_fn, fallback_name = _call_anthropic,  "anthropic"

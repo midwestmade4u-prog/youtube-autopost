@@ -23,13 +23,14 @@ import argparse
 import json
 import os
 import random
+import re as _re_imports
 import subprocess
 import sys
 import time
 import urllib.request
 import urllib.error
+from datetime import datetime, timedelta
 from pathlib import Path
-from datetime import datetime
 from zoneinfo import ZoneInfo
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
@@ -191,6 +192,89 @@ TMF_TOPICS = [
     "Why You Assume Everyone Can See How Anxious You Really Are",
 ]
 
+# ── BSG Tier 1 stories (proven top performers — weighted 3× in topic selection) ─
+BSG_TIER1_KEYWORDS = [
+    "noah", "david vs goliath", "moses parted", "birth of jesus",
+    "daniel in the lion", "jonah", "joseph's coat", "adam and eve",
+    "creation story", "easter story", "christmas story", "lazarus",
+    "jesus walks on water", "jesus feeds 5000", "shadrach",
+    "joshua and the walls", "elijah on mount carmel",
+]
+
+def _bsg_story_tier(topic: str) -> int:
+    """Return 1 (Tier 1, weight 3×) or 2 (other, weight 1×)."""
+    tl = topic.lower()
+    for kw in BSG_TIER1_KEYWORDS:
+        if kw in tl:
+            return 1
+    return 2
+
+
+def _bsg_story_name(topic: str) -> str:
+    """Extract core story name for dedup (text before first ' — ')."""
+    return topic.split(" — ")[0].strip().lower()
+
+
+def _bsg_story_posted_recently(topic: str, days: int = 60) -> bool:
+    """True if the same Bible story was posted in the last `days` days."""
+    log = load_log()
+    story = _bsg_story_name(topic)
+    cutoff = datetime.now(ZoneInfo("America/Chicago")) - timedelta(days=days)
+    for post in log.get("posts", []):
+        if post.get("channel") != "bsg":
+            continue
+        try:
+            post_dt = datetime.strptime(post.get("posted_at", ""), "%Y-%m-%d %H:%M:%S")
+            post_dt = post_dt.replace(tzinfo=ZoneInfo("America/Chicago"))
+        except ValueError:
+            continue
+        if post_dt < cutoff:
+            continue
+        if _bsg_story_name(post.get("topic", "")) == story:
+            return True
+    return False
+
+
+# ── TMF 7-day concept-level dedup ─────────────────────────────────────────────
+
+_TMF_STOP_WORDS = {
+    "your", "you're", "that", "they", "their", "with", "from", "have", "this",
+    "even", "most", "some", "when", "what", "will", "more", "less", "just",
+    "very", "always", "never", "every", "been", "after", "before", "into",
+    "people", "person", "someone", "other", "about", "while", "think", "feel",
+}
+
+def _topic_keywords(topic: str) -> set:
+    """Extract meaningful 5+ char keywords from a topic string."""
+    words = _re_imports.findall(r"[a-z]+", topic.lower())
+    return {w for w in words if len(w) >= 5 and w not in _TMF_STOP_WORDS}
+
+
+def _tmf_topic_too_similar_to_recent(topic: str, days: int = 7) -> bool:
+    """True if this topic shares ≥2 concept keywords with any TMF post in the last 7 days.
+    Prevents 'narcissism week' or back-to-back manipulation topics."""
+    log = load_log()
+    cutoff = datetime.now(ZoneInfo("America/Chicago")) - timedelta(days=days)
+    candidate_kw = _topic_keywords(topic)
+    if not candidate_kw:
+        return False
+    for post in log.get("posts", []):
+        if post.get("channel") != "tmf":
+            continue
+        try:
+            posted_str = post.get("posted_at", "")
+            post_dt = datetime.strptime(posted_str, "%Y-%m-%d %H:%M:%S")
+            post_dt = post_dt.replace(tzinfo=ZoneInfo("America/Chicago"))
+        except ValueError:
+            continue
+        if post_dt < cutoff:
+            continue
+        recent_kw = _topic_keywords(post.get("topic", ""))
+        if len(candidate_kw & recent_kw) >= 2:
+            return True
+    return False
+
+
 # ── Topic Log ──────────────────────────────────────────────────────────────────
 
 def load_log() -> dict:
@@ -208,17 +292,49 @@ def save_log(log: dict) -> None:
 
 
 def pick_topic(channel: str) -> str:
-    """Pick a topic not yet used in this cycle. Resets when all are used."""
+    """Pick a topic not yet used in this cycle, applying channel-specific guardrails.
+
+    BSG: 60-day story dedup + Tier 1 weighted selection (proven stories 3× more likely).
+    TMF: 7-day concept-overlap dedup (prevents back-to-back thematically identical topics).
+    """
     log = load_log()
     topics = BSG_TOPICS if channel == "bsg" else TMF_TOPICS
     used = set(log.get(channel, []))
-    available = [t for t in topics if t not in used]
 
+    # ── First pass: full guard (cycle dedup + channel-specific dedup) ──────────
+    if channel == "bsg":
+        available = [
+            t for t in topics
+            if t not in used and not _bsg_story_posted_recently(t, days=60)
+        ]
+    elif channel == "tmf":
+        available = [
+            t for t in topics
+            if t not in used and not _tmf_topic_too_similar_to_recent(t, days=7)
+        ]
+    else:
+        available = [t for t in topics if t not in used]
+
+    # ── Cycle reset: all topics used (or all exhausted by strict dedup) ────────
     if not available:
-        print(f"  🔄 All {len(topics)} topics used — starting a new cycle!")
+        print(f"  🔄 All {len(topics)} topics used (or filtered by dedup) — starting new cycle!")
         log[channel] = []
         save_log(log)
-        available = topics[:]
+        # Second pass: only cycle dedup (loosen 60-day / 7-day filter on reset)
+        if channel == "bsg":
+            available = [t for t in topics if not _bsg_story_posted_recently(t, days=60)]
+        elif channel == "tmf":
+            available = [t for t in topics if not _tmf_topic_too_similar_to_recent(t, days=7)]
+        if not available:
+            available = topics[:]  # Last resort: pick from full bank
+
+    # ── BSG: Tier 1 weighted selection ─────────────────────────────────────────
+    if channel == "bsg":
+        weights = [3 if _bsg_story_tier(t) == 1 else 1 for t in available]
+        chosen = random.choices(available, weights=weights, k=1)[0]
+        tier_label = "Tier 1 (3×)" if _bsg_story_tier(chosen) == 1 else "Tier 2"
+        print(f"  📖 BSG topic selected [{tier_label}]: {chosen[:70]}...")
+        return chosen
 
     return random.choice(available)
 
@@ -531,8 +647,16 @@ PROSE QUALITY — NO AI TELLS (applies to every narration field):
 
     try:
         import openai
-        print(f"    Connecting to OpenAI API...")
-        client = openai.OpenAI(api_key=api_key)
+        # ── Model backend: DeepSeek V3 primary (95% cheaper), GPT-4o fallback ──
+        deepseek_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+        if deepseek_key:
+            client = openai.OpenAI(api_key=deepseek_key, base_url="https://api.deepseek.com")
+            model_name = "deepseek-chat"
+            print(f"    Connecting to DeepSeek API (deepseek-chat)...")
+        else:
+            client = openai.OpenAI(api_key=api_key)
+            model_name = "gpt-4o"
+            print(f"    Connecting to OpenAI API (gpt-4o)...")
 
         user_msg = f"Write a {num_scenes}-scene script about: {topic}"
         extra_constraints = ""  # accumulated feedback for retries
@@ -550,7 +674,7 @@ PROSE QUALITY — NO AI TELLS (applies to every narration field):
                 {"role": "user", "content": user_msg},
             ]
             resp = client.chat.completions.create(
-                model="gpt-4o",
+                model=model_name,
                 messages=messages,
                 max_tokens=2000,
                 temperature=0.8,
