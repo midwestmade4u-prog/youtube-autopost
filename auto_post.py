@@ -649,13 +649,16 @@ PROSE QUALITY — NO AI TELLS (applies to every narration field):
         import openai
         # ── Model backend: DeepSeek V3 primary (95% cheaper), GPT-4o fallback ──
         deepseek_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+        openai_client = openai.OpenAI(api_key=api_key)   # always available as fallback
         if deepseek_key:
             client = openai.OpenAI(api_key=deepseek_key, base_url="https://api.deepseek.com")
             model_name = "deepseek-chat"
+            _fallback_available = True
             print(f"    Connecting to DeepSeek API (deepseek-chat)...")
         else:
-            client = openai.OpenAI(api_key=api_key)
+            client = openai_client
             model_name = "gpt-4o"
+            _fallback_available = False
             print(f"    Connecting to OpenAI API (gpt-4o)...")
 
         user_msg = f"Write a {num_scenes}-scene script about: {topic}"
@@ -673,12 +676,28 @@ PROSE QUALITY — NO AI TELLS (applies to every narration field):
                 {"role": "system", "content": system_prompt + extra_constraints},
                 {"role": "user", "content": user_msg},
             ]
-            resp = client.chat.completions.create(
-                model=model_name,
-                messages=messages,
-                max_tokens=2000,
-                temperature=0.8,
-            )
+            try:
+                resp = client.chat.completions.create(
+                    model=model_name,
+                    messages=messages,
+                    max_tokens=2000,
+                    temperature=0.8,
+                )
+            except Exception as api_err:
+                if _fallback_available:
+                    print(f"    ⚠️  DeepSeek failed ({type(api_err).__name__}: {str(api_err)[:80]})")
+                    print(f"    🔄 Falling back to GPT-4o...")
+                    client = openai_client
+                    model_name = "gpt-4o"
+                    _fallback_available = False
+                    resp = client.chat.completions.create(
+                        model=model_name,
+                        messages=messages,
+                        max_tokens=2000,
+                        temperature=0.8,
+                    )
+                else:
+                    raise
             raw = resp.choices[0].message.content.strip()
             if raw.startswith("```"):
                 raw = raw.split("```")[1]
