@@ -313,19 +313,33 @@ def _dalle_image(prompt_str, output_path, width=1280, height=720):
     return False
 
 
-def _pollinations_image(prompt_str, seed, output_path, width=1280, height=720, timeout=60):
-    """Fallback: fetch image from Pollinations.ai."""
+def _pollinations_image_inner(prompt_str, seed, output_path, width=1280, height=720):
+    """Raw Pollinations call — run inside a thread for wall-clock enforcement."""
     encoded = urllib.parse.quote(prompt_str)
     url = (f"https://image.pollinations.ai/prompt/{encoded}"
            f"?width={width}&height={height}&seed={seed}&nologo=true")
     req = urllib.request.Request(url, headers={"User-Agent": "VideoStudio/1.0"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    with urllib.request.urlopen(req, timeout=30) as r:
         data = r.read()
     if len(data) > 5000:
         with open(output_path, "wb") as f:
             f.write(data)
         return True
     return False
+
+
+def _pollinations_image(prompt_str, seed, output_path, width=1280, height=720, timeout=40):
+    """Fallback: fetch image from Pollinations.ai.
+    Uses 40s wall-clock timeout via ThreadPoolExecutor — socket timeout alone
+    won't fire if Pollinations sends keepalive bytes during a slow download."""
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+        future = ex.submit(_pollinations_image_inner, prompt_str, seed, output_path, width, height)
+        try:
+            return future.result(timeout=timeout)
+        except concurrent.futures.TimeoutError:
+            return False
+        except Exception:
+            return False
 
 
 def _normalize_portrait(path, target_w, target_h):
@@ -410,14 +424,12 @@ def generate_image(prompt, output_path, scene_num, width=1280, height=720, chann
             time.sleep(2)
         emit(f"  ⚠️ DALL-E failed 3 times — switching to backup image service...")
 
-    # ── Pollinations fallback ──────────────────────────────────────────────────
+    # ── Pollinations fallback (5 attempts × 40s wall-clock = 200s max per scene) ─
     generics = style["fallback_generic"]
     fallback_attempts = [
         (styled,                                                  topic_seed + scene_num * 42),
-        (styled,                                                  topic_seed + scene_num * 77),
         (style["style"].format(prompt=p[:120]),                   topic_seed + scene_num * 31),
         (style["style"].format(prompt=p[:60]),                    topic_seed + scene_num * 67),
-        (style["style"].format(prompt=p[:30]),                    topic_seed + scene_num * 101),
         (generics[scene_num % len(generics)],                     topic_seed + scene_num * 23),
         (generics[(scene_num + 1) % len(generics)],               topic_seed + scene_num * 37),
     ]
@@ -431,7 +443,7 @@ def generate_image(prompt, output_path, scene_num, width=1280, height=720, chann
                 return True
         except Exception:
             pass
-        time.sleep(3)
+        time.sleep(2)
 
     # Last resort placeholder
     emit(f"  ❌ All image attempts failed for scene {scene_num+1}")

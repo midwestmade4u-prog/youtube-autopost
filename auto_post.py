@@ -1128,7 +1128,7 @@ def run_via_server(channel: str, topic: str, script: dict) -> str:
 
     # Poll until video is done (can take 3-10 minutes)
     print("  ⏳ Processing video (this takes a few minutes)...")
-    deadline = time.time() + 900   # 15 min max
+    deadline = time.time() + 1500  # 25 min max (FAL→DALL-E→Pollinations chain can take ~15-20min for 8 scenes)
     while time.time() < deadline:
         time.sleep(5)
         try:
