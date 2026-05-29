@@ -39,11 +39,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg fonts-liberation
-          # Install Oswald Bold for thumbnails
+          # Install Oswald Bold for thumbnails (with fallback)
           sudo mkdir -p /usr/local/share/fonts
-          curl -sL "https://fonts.gstatic.com/s/oswald/v53/TK3_WkUHHAIjg75cFRf3bXL8LICs13NvgUFoZAaRliE.ttf" \
-            -o /usr/local/share/fonts/Oswald-Bold.ttf
-          fc-cache -f
+          curl -sL --retry 3 --max-time 30 \
+            "https://fonts.gstatic.com/s/oswald/v53/TK3_WkUHHAIjg75cFRf3bXL8LICs13NvgUFoZAaRliE.ttf" \
+            -o /usr/local/share/fonts/Oswald-Bold.ttf || echo "Font download failed — will use fallback font"
+          fc-cache -f || true
 
       - name: Install Python dependencies
         run: |
