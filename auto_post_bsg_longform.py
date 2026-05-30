@@ -89,7 +89,9 @@ def _save_log(log: dict) -> None:
     LOG_FILE.write_text(json.dumps(log, indent=2))
 
 
-LONGFORM_QUEUE_FILE = BASE_DIR / "bsg_longform_queue.json"
+LONGFORM_QUEUE_FILE  = BASE_DIR / "bsg_longform_queue.json"
+# Permanent dedup ledger — never repeats a title regardless of source
+BSG_POSTED_LEDGER    = BASE_DIR / "bsg_longform_posted.json"
 
 
 def _load_longform_queue() -> list:
@@ -105,40 +107,83 @@ def _save_longform_queue(queue: list) -> None:
     LONGFORM_QUEUE_FILE.write_text(json.dumps(queue, indent=2))
 
 
+def _load_posted_ledger() -> dict:
+    """Load the permanent record of every title and topic ever posted."""
+    if BSG_POSTED_LEDGER.exists():
+        try:
+            return json.loads(BSG_POSTED_LEDGER.read_text())
+        except Exception:
+            pass
+    return {"titles": [], "topics": []}
+
+
+def _save_posted_ledger(ledger: dict) -> None:
+    BSG_POSTED_LEDGER.write_text(json.dumps(ledger, indent=2))
+
+
+def _already_posted(topic: str) -> bool:
+    """Check if this topic or a very similar one has already been posted."""
+    ledger = _load_posted_ledger()
+    posted_topics = set(t.lower().strip() for t in ledger.get("topics", []))
+    return topic.lower().strip() in posted_topics
+
+
 def pick_topic() -> str:
+    """Pick a longform topic, guaranteed never to repeat.
+
+    Priority:
+    1. Pending queue items (high-performing shorts) — highest views first
+    2. Static topic bank — items never posted before
+    If both are exhausted, exits with VALIDATION_SKIP so nothing posts.
+    """
+    ledger = _load_posted_ledger()
+    posted_topics = set(t.lower().strip() for t in ledger.get("topics", []))
+
+    # ── Priority 1: queue ─────────────────────────────────────────────────────
     queue = _load_longform_queue()
-    pending = [item for item in queue if item.get("status") == "pending"]
+    pending = [
+        item for item in queue
+        if item.get("status") == "pending"
+        and item.get("topic", "").lower().strip() not in posted_topics
+    ]
     if pending:
         best = max(pending, key=lambda x: x.get("views", 0))
-        print(f"  🌿 Queue hit! Amplifying short breakout: {best.get('title', '')[:60]}")
+        print(f"  🌿 Queue hit! Amplifying short: {best.get('title', '')[:60]} ({best.get('views',0):,} views)")
         for item in queue:
-            if item.get("topic") == best.get("topic"):
+            if item.get("video_id") == best.get("video_id"):
                 item["status"] = "used"
         _save_longform_queue(queue)
         return best.get("topic", "")
 
-    log = _load_log()
-    used = set(log.get("bsg_longform_topics_used", []))
-    available = [t for t in LONGFORM_TOPICS if t not in used]
-    if not available:
-        print("  🔄 All long-form topics used — resetting cycle")
-        log["bsg_longform_topics_used"] = []
-        _save_log(log)
-        available = LONGFORM_TOPICS[:]
-    return random.choice(available)
+    # ── Priority 2: static bank ───────────────────────────────────────────────
+    available = [t for t in LONGFORM_TOPICS if t.lower().strip() not in posted_topics]
+    if available:
+        return random.choice(available)
+
+    # ── Exhausted — do NOT repeat ─────────────────────────────────────────────
+    raise ValueError(
+        "VALIDATION_SKIP: all BSG longform topics have been posted — "
+        "add more topics to LONGFORM_TOPICS or wait for new queue items"
+    )
 
 
 def mark_posted(topic: str, title: str, url: str) -> None:
+    """Record this post in both the log and the permanent dedup ledger."""
+    # Update auto_post_log.json
     log = _load_log()
-    used = log.get("bsg_longform_topics_used", [])
-    if topic not in used:
-        used.append(topic)
-    log["bsg_longform_topics_used"] = used
     posts = log.get("bsg_longform_posts", [])
     ts = datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d %H:%M:%S")
     posts.append({"timestamp": ts, "topic": topic, "title": title, "url": url, "status": "public"})
     log["bsg_longform_posts"] = posts
     _save_log(log)
+
+    # Update permanent dedup ledger — never resets
+    ledger = _load_posted_ledger()
+    if topic not in ledger["topics"]:
+        ledger["topics"].append(topic)
+    if title not in ledger["titles"]:
+        ledger["titles"].append(title)
+    _save_posted_ledger(ledger)
 
 
 def load_system_prompt() -> str:
