@@ -264,6 +264,109 @@ def send_alert_email(subject: str, body_text: str, body_html: str) -> None:
         print(f"  ⚠️  Email failed: {e}")
 
 
+# ─── Longform Queue Feeding ───────────────────────────────────────────────────
+
+LONGFORM_QUEUES = {
+    "tmf": {"file": "tmf_longform_queue.json", "threshold": 500},
+    "mz":  {"file": "mz_longform_queue.json",  "threshold": 700},
+    "bsg": {"file": "bsg_longform_queue.json",  "threshold": 300},
+}
+
+
+def update_longform_queue(channel_key: str, channel_id: str, token_file: str) -> int:
+    """
+    Check channel's shorts for breakout views. Any short crossing the threshold
+    that isn't already in the queue gets added as a pending longform seed topic.
+    Returns number of new items added.
+    """
+    cfg = LONGFORM_QUEUES.get(channel_key)
+    if not cfg:
+        return 0
+
+    queue_file = cfg["file"]
+    threshold  = cfg["threshold"]
+
+    # Load existing queue
+    from pathlib import Path
+    queue = []
+    if Path(queue_file).exists():
+        try:
+            queue = json.loads(Path(queue_file).read_text())
+        except Exception:
+            pass
+    existing_ids = {item.get("video_id") for item in queue}
+
+    try:
+        svc = get_yt_service(token_file)
+
+        # Fetch up to 50 most-viewed videos from this channel
+        search_resp = svc.search().list(
+            part="id,snippet",
+            channelId=channel_id,
+            type="video",
+            maxResults=50,
+            order="viewCount",
+        ).execute()
+
+        video_ids = [
+            i["id"]["videoId"]
+            for i in search_resp.get("items", [])
+            if i.get("id", {}).get("videoId")
+        ]
+        if not video_ids:
+            return 0
+
+        # Get view counts + duration to filter shorts only
+        stats_resp = svc.videos().list(
+            part="statistics,contentDetails,snippet",
+            id=",".join(video_ids[:50]),
+        ).execute()
+
+        added = 0
+        for video in stats_resp.get("items", []):
+            vid_id   = video["id"]
+            title    = video["snippet"]["title"]
+            views    = int(video.get("statistics", {}).get("viewCount", 0))
+            duration = video.get("contentDetails", {}).get("duration", "PT99M")
+
+            # Parse ISO 8601 duration — keep only shorts (< 3 min)
+            import re
+            m = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration)
+            hours   = int(m.group(1) or 0) if m else 0
+            minutes = int(m.group(2) or 0) if m else 99
+            seconds = int(m.group(3) or 0) if m else 0
+            total_sec = hours * 3600 + minutes * 60 + seconds
+            if total_sec > 180:
+                continue  # skip long-form videos already on channel
+
+            if views >= threshold and vid_id not in existing_ids:
+                queue.append({
+                    "video_id":  vid_id,
+                    "title":     title,
+                    "topic":     title,   # longform scripts use title as seed
+                    "views":     views,
+                    "status":    "pending",
+                    "queued_at": datetime.now(CT).strftime("%Y-%m-%d"),
+                    "channel":   channel_key,
+                    "short_url": f"https://youtu.be/{vid_id}",
+                })
+                existing_ids.add(vid_id)
+                added += 1
+                print(f"    🚀 Queued for longform: {title[:55]} ({views:,} views)")
+
+        if added > 0:
+            Path(queue_file).write_text(json.dumps(queue, indent=2))
+            print(f"  ✅ {added} new topic(s) added to {queue_file}")
+        else:
+            print(f"  ℹ️  No new breakouts above {threshold:,} views for {channel_key.upper()}")
+
+        return added
+
+    except Exception as e:
+        print(f"  ⚠️  Longform queue update failed ({channel_key}): {e}")
+        return 0
+
+
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 def main() -> int:
@@ -337,6 +440,11 @@ def main() -> int:
             gh_status = f"✅ {len(runs)} run(s) succeeded"
 
         print(f"  GitHub:  {gh_status}")
+
+        # 3. Feed longform queue from top-performing shorts
+        if token_json:
+            print(f"  Checking longform queue...")
+            update_longform_queue(key, ch["channel_id"], ch["token_file"])
 
         # Sheet row: date | channel | yt_status | gh_status
         sheet_rows.append([date_str, ch["label"], yt_status, gh_status])
