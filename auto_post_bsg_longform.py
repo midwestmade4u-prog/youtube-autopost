@@ -672,7 +672,7 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
             "categoryId":  "22",  # People & Blogs (fits faith/family content)
         },
         "status": {
-            "privacyStatus":           "public",
+            "privacyStatus":           "private",
             "selfDeclaredMadeForKids": False,
         }
     }
