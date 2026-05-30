@@ -41,7 +41,7 @@ BSG_LONGFORM_PLAYLIST_ID = os.getenv("BSG_LONGFORM_PLAYLIST_ID", "PLWwJ5gjyjteow
 NOTIFY_EMAIL    = "wisseinc@gmail.com"
 
 # Word targets: 1,100–1,400w at 2.5 wps = ~7.3–9.3 min
-WORD_MIN, WORD_MAX = 1100, 1400
+WORD_MIN, WORD_MAX = 1200, 1500
 
 # ── Topic bank ────────────────────────────────────────────────────────────────
 LONGFORM_TOPICS = [
@@ -183,10 +183,10 @@ def generate_script(topic: str) -> dict:
     )
 
     PROSE_USER = (
-        f"Write a complete 7–9 minute Bible story narration about: {topic}\n\n"
+        f"Write a complete 8–10 minute Bible story narration about: {topic}\n\n"
         f"Use this exact 4-act structure. Write ONLY the narration prose — no labels, no act headings, "
         f"no JSON, no markdown. Just the continuous spoken narration.\n\n"
-        f"REQUIRED word counts per act (total must be 1,100–1,400 words):\n\n"
+        f"REQUIRED word counts per act (total must be 1,200–1,500 words):\n\n"
         f"  Act 1 — THE WORLD (230 words): Open with the world of the story. Paint the setting vividly — "
         f"the land, the era, the people. Introduce the central character(s) with humanity and specificity. "
         f"First sentence should be vivid and immediate. End with the tension or question that drives the story.\n\n"
@@ -245,7 +245,8 @@ def generate_script(topic: str) -> dict:
                 f"\n\nYour previous draft was {len(narration.split())} words — "
                 f"REJECTED. Must be 1,100–1,400 words. "
                 f"Expand every act: Act 1: 230w, Act 2: 390w, Act 3: 390w, Act 4: 280w. "
-                f"Add more sensory detail, character emotion, and specific scripture detail."
+                f"Add more sensory detail, character emotion, and specific scripture detail. "
+                f"Each act must hit its target: Act 1: 250w, Act 2: 420w, Act 3: 420w, Act 4: 300w."
             )
         )
         wc = len(narration.split())
@@ -566,34 +567,45 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
             line1 = thumb_text
             line2 = line3 = ""
 
-        def _text(draw, x, y, text, font, fill=(255, 255, 255), stroke=(100, 45, 0), sw=6):
+        def _text(draw, x, y, text, font, fill=(255, 255, 255), stroke=(100, 45, 0), sw=7):
             draw.text((x, y), text, font=font, fill=fill,
                       anchor="mm", stroke_width=sw, stroke_fill=stroke)
 
-        # White text on warm gradient — bright and clean
+        # Story text — centered in upper 2/3, leaving room for branding bar
         if line3:
-            _text(draw, 640, 270, line1, font_lg)
-            _text(draw, 640, 410, line2, font_xl, fill=(255, 240, 180))
-            _text(draw, 640, 560, line3, font_lg)
+            _text(draw, 640, 230, line1, font_lg)
+            _text(draw, 640, 370, line2, font_xl, fill=(255, 240, 180))
+            _text(draw, 640, 510, line3, font_lg)
         elif line2:
-            _text(draw, 640, 310, line1, font_xl)
-            _text(draw, 640, 470, line2, font_xl, fill=(255, 240, 180))
+            _text(draw, 640, 270, line1, font_xl)
+            _text(draw, 640, 430, line2, font_xl, fill=(255, 240, 180))
         else:
-            _text(draw, 640, 380, line1, font_xl)
+            _text(draw, 640, 340, line1, font_xl)
 
-        # ── "BIBLE STORY GARDEN" branding at bottom ───────────────────────────
+        # ── Branding bar at bottom ────────────────────────────────────────────
+        # Dark amber band across the bottom
+        draw.rectangle([(0, 610), (1280, 720)], fill=(120, 50, 5))
+        # Thin gold divider line
+        draw.rectangle([(0, 610), (1280, 616)], fill=(255, 190, 30))
+
+        # "📖 BIBLE STORY GARDEN" centered in the bar — use font_sm (100px) scaled down
         brand_font = font_sm
-        try:
-            brand_font = ImageFont.truetype([fp for fp in [
-                "/usr/local/share/fonts/Oswald-Bold.ttf",
-                "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-                "/Library/Fonts/Impact.ttf",
-            ] if __import__('pathlib').Path(fp).exists()][0], size=42)
-        except Exception:
-            pass
-        draw.text((640, 670), "BIBLE STORY GARDEN", font=brand_font,
-                  fill=(255, 220, 100), anchor="mm",
-                  stroke_width=3, stroke_fill=(100, 45, 0))
+        for fp in [
+            "/usr/local/share/fonts/Oswald-Bold.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+            "/Library/Fonts/Impact.ttf",
+            "/System/Library/Fonts/Supplemental/Impact.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        ]:
+            try:
+                brand_font = ImageFont.truetype(fp, size=58)
+                break
+            except Exception:
+                continue
+
+        draw.text((640, 665), "✦  BIBLE STORY GARDEN  ✦", font=brand_font,
+                  fill=(255, 220, 80), anchor="mm",
+                  stroke_width=2, stroke_fill=(80, 30, 0))
 
         bg.save(str(thumb_path), quality=95)
         print(f"  ✅ Thumbnail (text card): {thumb_path.name}")
