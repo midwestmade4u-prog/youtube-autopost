@@ -41,7 +41,7 @@ BSG_LONGFORM_PLAYLIST_ID = os.getenv("BSG_LONGFORM_PLAYLIST_ID", "PLWwJ5gjyjteow
 NOTIFY_EMAIL    = "wisseinc@gmail.com"
 
 # Word targets: 1,100–1,400w at 2.5 wps = ~7.3–9.3 min
-WORD_MIN, WORD_MAX = 1200, 1500
+WORD_MIN, WORD_MAX = 1300, 1600
 
 # ── Topic bank ────────────────────────────────────────────────────────────────
 LONGFORM_TOPICS = [
@@ -186,7 +186,7 @@ def generate_script(topic: str) -> dict:
         f"Write a complete 8–10 minute Bible story narration about: {topic}\n\n"
         f"Use this exact 4-act structure. Write ONLY the narration prose — no labels, no act headings, "
         f"no JSON, no markdown. Just the continuous spoken narration.\n\n"
-        f"REQUIRED word counts per act (total must be 1,200–1,500 words):\n\n"
+        f"REQUIRED word counts per act (total must be 1,300–1,600 words):\n\n"
         f"  Act 1 — THE WORLD (230 words): Open with the world of the story. Paint the setting vividly — "
         f"the land, the era, the people. Introduce the central character(s) with humanity and specificity. "
         f"First sentence should be vivid and immediate. End with the tension or question that drives the story.\n\n"
