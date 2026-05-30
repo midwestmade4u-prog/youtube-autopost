@@ -492,71 +492,46 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
     ], capture_output=True)
     print(f"  ✅ Video: {output_path.name}")
 
-    # ── 5. Thumbnail ──────────────────────────────────────────────────────────
+    # ── 5. Thumbnail — Option B: Bold text card (warm gradient, no photo) ────
     thumb_path = out_dir / f"{video_id}_thumb.jpg"
     try:
-        import requests as _req
-        from io import BytesIO
-        from PIL import ImageFont, ImageFilter
+        from PIL import ImageFont, ImageDraw as _ImageDraw
 
         thumb_text = script_data.get("thumbnail_text", title[:40].upper())
-        # BSG thumbnail: warm golden landscape
-        warm_queries = [f"golden sunrise {q}" for q in queries[:2]] + queries[2:]
 
-        bg = None
-        if pexels_key and warm_queries:
-            for q in warm_queries[:6]:
-                try:
-                    r = _req.get(
-                        "https://api.pexels.com/v1/search",
-                        headers={"Authorization": pexels_key},
-                        params={"query": q, "orientation": "landscape",
-                                "per_page": 5, "size": "large"},
-                        timeout=10,
-                    )
-                    photos = r.json().get("photos", [])
-                    if photos:
-                        pick = abs(hash(title)) % len(photos)
-                        img_r = _req.get(photos[pick]["src"]["large"], timeout=20)
-                        bg = Image.open(BytesIO(img_r.content)).convert("RGB")
-                        print(f"  📸 Thumbnail photo: {q[:45]}")
-                        break
-                except Exception:
-                    continue
+        # ── Build warm gradient background ───────────────────────────────────
+        # Top: deep amber/burnt orange → Bottom: bright golden yellow
+        bg = Image.new("RGB", (1280, 720))
+        draw_bg = _ImageDraw.Draw(bg)
+        top_color    = (180, 80, 10)    # deep amber
+        bottom_color = (255, 190, 30)   # bright golden yellow
+        for y in range(720):
+            t = y / 719
+            r = int(top_color[0] + (bottom_color[0] - top_color[0]) * t)
+            g = int(top_color[1] + (bottom_color[1] - top_color[1]) * t)
+            b = int(top_color[2] + (bottom_color[2] - top_color[2]) * t)
+            draw_bg.rectangle([(0, y), (1280, y + 1)], fill=(r, g, b))
 
-        if bg is None:
-            bg = Image.new("RGB", (1280, 720), (26, 18, 8))
+        # Subtle vignette — slightly darken edges for depth
+        from PIL import ImageFilter
+        vignette = Image.new("RGBA", (1280, 720), (0, 0, 0, 0))
+        v_draw = _ImageDraw.Draw(vignette)
+        for margin in range(120):
+            alpha = int(80 * (1 - margin / 120))
+            v_draw.rectangle(
+                [(margin, margin), (1280 - margin, 720 - margin)],
+                outline=(0, 0, 0, alpha)
+            )
+        bg = Image.alpha_composite(bg.convert("RGBA"), vignette).convert("RGB")
 
-        # Scale to 1280×720
-        bg_w, bg_h = bg.size
-        scale = max(1280 / bg_w, 720 / bg_h)
-        new_w, new_h = int(bg_w * scale), int(bg_h * scale)
-        bg = bg.resize((new_w, new_h), Image.LANCZOS)
-        left = (new_w - 1280) // 2
-        top  = (new_h - 720)  // 2
-        bg   = bg.crop((left, top, left + 1280, top + 720))
-        # No blur — keep the image crisp and bright for Option A
-        # BSG Option A: barely darkened, warm sunrise feel
-        # Very light global darkening — just enough to make text readable
-        dark_layer = Image.new("RGBA", (1280, 720), (0, 0, 0, 30))
-        bg = Image.alpha_composite(bg.convert("RGBA"), dark_layer)
+        # ── Decorative top and bottom bars ───────────────────────────────────
+        draw = _ImageDraw.Draw(bg)
+        bar_color = (120, 50, 5)   # dark amber bar
+        draw.rectangle([(0, 0),   (1280, 18)],  fill=bar_color)
+        draw.rectangle([(0, 702), (1280, 720)], fill=bar_color)
 
-        # Warm amber gradient ONLY at the bottom quarter — text area only
-        overlay = Image.new("RGBA", (1280, 720), (0, 0, 0, 0))
-        ov_draw = ImageDraw.Draw(overlay)
-        grad_top = 480  # only bottom 240px darkened
-        for y in range(grad_top, 720):
-            t = (y - grad_top) / (720 - grad_top)
-            alpha = int(160 * t)       # lighter than before
-            r_val = int(30 * t)        # very subtle warm amber tint
-            g_val = int(15 * t)
-            b_val = 0
-            ov_draw.rectangle([(0, y), (1280, y + 1)], fill=(r_val, g_val, b_val, alpha))
-        bg = Image.alpha_composite(bg, overlay).convert("RGB")
-
-        # Font
-        draw = ImageDraw.Draw(bg)
-        font_large = font_small = None
+        # ── Font ─────────────────────────────────────────────────────────────
+        font_xl = font_lg = font_sm = None
         for fp in [
             "/Library/Fonts/Impact.ttf",
             "/System/Library/Fonts/Supplemental/Impact.ttf",
@@ -565,33 +540,63 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
             "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
         ]:
             try:
-                font_large = ImageFont.truetype(fp, size=120)
-                font_small = ImageFont.truetype(fp, size=95)
+                font_xl = ImageFont.truetype(fp, size=155)
+                font_lg = ImageFont.truetype(fp, size=125)
+                font_sm = ImageFont.truetype(fp, size=100)
                 break
             except Exception:
                 continue
-        if font_large is None:
-            font_large = font_small = ImageFont.load_default()
+        if font_xl is None:
+            font_xl = font_lg = font_sm = ImageFont.load_default()
 
+        # ── Layout text ──────────────────────────────────────────────────────
+        # Split into up to 3 lines for big readable text
         words_t = thumb_text.split()
-        mid   = max(1, len(words_t) // 2)
-        line1 = " ".join(words_t[:mid])
-        line2 = " ".join(words_t[mid:]) if len(words_t) > 1 else ""
-
-        def _outlined(draw, x, y, text, font, fill, stroke_fill=(80, 40, 0), stroke_w=5):
-            # Warm dark brown stroke instead of black — feels warmer on bright images
-            draw.text((x, y), text, font=font, fill=fill,
-                      anchor="mm", stroke_width=stroke_w, stroke_fill=stroke_fill)
-
-        if line2:
-            # Both lines golden/warm white — bright and inviting
-            _outlined(draw, 640, 600, line1, font_large, fill=(255, 248, 220))  # warm white
-            _outlined(draw, 640, 680, line2, font_small,  fill=(255, 210, 60))  # bright gold
+        if len(words_t) >= 4:
+            third = len(words_t) // 3
+            line1 = " ".join(words_t[:third])
+            line2 = " ".join(words_t[third:third*2])
+            line3 = " ".join(words_t[third*2:])
+        elif len(words_t) >= 2:
+            mid   = len(words_t) // 2
+            line1 = " ".join(words_t[:mid])
+            line2 = " ".join(words_t[mid:])
+            line3 = ""
         else:
-            _outlined(draw, 640, 640, line1, font_large, fill=(255, 248, 220))
+            line1 = thumb_text
+            line2 = line3 = ""
+
+        def _text(draw, x, y, text, font, fill=(255, 255, 255), stroke=(100, 45, 0), sw=6):
+            draw.text((x, y), text, font=font, fill=fill,
+                      anchor="mm", stroke_width=sw, stroke_fill=stroke)
+
+        # White text on warm gradient — bright and clean
+        if line3:
+            _text(draw, 640, 270, line1, font_lg)
+            _text(draw, 640, 410, line2, font_xl, fill=(255, 240, 180))
+            _text(draw, 640, 560, line3, font_lg)
+        elif line2:
+            _text(draw, 640, 310, line1, font_xl)
+            _text(draw, 640, 470, line2, font_xl, fill=(255, 240, 180))
+        else:
+            _text(draw, 640, 380, line1, font_xl)
+
+        # ── "BIBLE STORY GARDEN" branding at bottom ───────────────────────────
+        brand_font = font_sm
+        try:
+            brand_font = ImageFont.truetype([fp for fp in [
+                "/usr/local/share/fonts/Oswald-Bold.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+                "/Library/Fonts/Impact.ttf",
+            ] if __import__('pathlib').Path(fp).exists()][0], size=42)
+        except Exception:
+            pass
+        draw.text((640, 670), "BIBLE STORY GARDEN", font=brand_font,
+                  fill=(255, 220, 100), anchor="mm",
+                  stroke_width=3, stroke_fill=(100, 45, 0))
 
         bg.save(str(thumb_path), quality=95)
-        print(f"  ✅ Thumbnail: {thumb_path.name}")
+        print(f"  ✅ Thumbnail (text card): {thumb_path.name}")
     except Exception as e:
         print(f"  ⚠️  Thumbnail generation failed: {e}")
 
