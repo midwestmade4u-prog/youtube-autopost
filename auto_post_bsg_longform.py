@@ -535,19 +535,21 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
         left = (new_w - 1280) // 2
         top  = (new_h - 720)  // 2
         bg   = bg.crop((left, top, left + 1280, top + 720))
-        bg   = bg.filter(ImageFilter.GaussianBlur(radius=1.0))
-
-        # Warm golden overlay (BSG palette — amber/gold, not red or purple)
-        dark_layer = Image.new("RGBA", (1280, 720), (0, 0, 0, 80))
+        # No blur — keep the image crisp and bright for Option A
+        # BSG Option A: barely darkened, warm sunrise feel
+        # Very light global darkening — just enough to make text readable
+        dark_layer = Image.new("RGBA", (1280, 720), (0, 0, 0, 30))
         bg = Image.alpha_composite(bg.convert("RGBA"), dark_layer)
+
+        # Warm amber gradient ONLY at the bottom quarter — text area only
         overlay = Image.new("RGBA", (1280, 720), (0, 0, 0, 0))
         ov_draw = ImageDraw.Draw(overlay)
-        grad_top = 220
+        grad_top = 480  # only bottom 240px darkened
         for y in range(grad_top, 720):
             t = (y - grad_top) / (720 - grad_top)
-            alpha = int(190 * t)
-            r_val = int(40 * t)
-            g_val = int(20 * t)
+            alpha = int(160 * t)       # lighter than before
+            r_val = int(30 * t)        # very subtle warm amber tint
+            g_val = int(15 * t)
             b_val = 0
             ov_draw.rectangle([(0, y), (1280, y + 1)], fill=(r_val, g_val, b_val, alpha))
         bg = Image.alpha_composite(bg, overlay).convert("RGB")
@@ -576,16 +578,17 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
         line1 = " ".join(words_t[:mid])
         line2 = " ".join(words_t[mid:]) if len(words_t) > 1 else ""
 
-        def _outlined(draw, x, y, text, font, fill, stroke_fill=(0, 0, 0), stroke_w=6):
+        def _outlined(draw, x, y, text, font, fill, stroke_fill=(80, 40, 0), stroke_w=5):
+            # Warm dark brown stroke instead of black — feels warmer on bright images
             draw.text((x, y), text, font=font, fill=fill,
                       anchor="mm", stroke_width=stroke_w, stroke_fill=stroke_fill)
 
         if line2:
-            # White line 1, warm gold line 2 — BSG palette
-            _outlined(draw, 640, 565, line1, font_large, fill=(255, 255, 255))
-            _outlined(draw, 640, 660, line2, font_small,  fill=(255, 210, 80))
+            # Both lines golden/warm white — bright and inviting
+            _outlined(draw, 640, 600, line1, font_large, fill=(255, 248, 220))  # warm white
+            _outlined(draw, 640, 680, line2, font_small,  fill=(255, 210, 60))  # bright gold
         else:
-            _outlined(draw, 640, 620, line1, font_large, fill=(255, 255, 255))
+            _outlined(draw, 640, 640, line1, font_large, fill=(255, 248, 220))
 
         bg.save(str(thumb_path), quality=95)
         print(f"  ✅ Thumbnail: {thumb_path.name}")
