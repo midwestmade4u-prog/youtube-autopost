@@ -701,7 +701,7 @@ def _format_description(desc: str) -> str:
 
 def upload_to_youtube(video_path: Path, title: str, description: str,
                       tags: list, thumb_path: Path | None = None) -> tuple[str, str]:
-    """Upload as PRIVATE. Returns (video_url, studio_url)."""
+    """Upload as PUBLIC. Returns (video_url, studio_url)."""
     from google.oauth2.credentials import Credentials
     from google.auth.transport.requests import Request
     from googleapiclient.discovery import build
@@ -779,7 +779,7 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
     else:
         print("  ℹ️  TMF_LONGFORM_PLAYLIST_ID not set — skipping playlist")
 
-    print(f"  ✅ Uploaded (PRIVATE): {video_url}")
+    print(f"  ✅ Uploaded (PUBLIC): {video_url}")
     return video_url, studio_url
 
 
@@ -794,15 +794,15 @@ def send_review_email(title: str, video_url: str, studio_url: str,
     duration_str = f"{int(duration_sec // 60)}:{int(duration_sec % 60):02d}"
     ts = datetime.now(ZoneInfo("America/Chicago")).strftime("%b %d, %Y at %I:%M %p CT")
 
-    subject = f"[TMF Long-Form — PRIVATE] {title}"
+    subject = f"[TMF Long-Form — PUBLIC] {title}"
     html = f"""
     <html><body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <h2 style="color: #1a0a2e;">🧠 New Long-Form Ready for Review — The Mind Files</h2>
-    <p style="color: #666;">Generated {ts} | Duration: {duration_str} | Status: <strong>PRIVATE</strong></p>
+    <h2 style="color: #1a0a2e;">🧠 New Long-Form Posted — The Mind Files</h2>
+    <p style="color: #666;">Generated {ts} | Duration: {duration_str} | Status: <strong>PUBLIC</strong></p>
     <hr>
     <h3>{title}</h3>
     <p><strong>Topic:</strong> {topic}</p>
-    <p>The video is uploaded as <strong>PRIVATE</strong>. Review in Studio, then schedule or publish.</p>
+    <p>The video is live as <strong>PUBLIC</strong>. Review in Studio to edit or adjust.</p>
     <p>
       <a href="{studio_url}" style="background:#6a0dad;color:white;padding:12px 24px;
          text-decoration:none;border-radius:4px;display:inline-block;margin-right:10px;">
@@ -901,7 +901,7 @@ def main() -> int:
         print(f"  Video: {render_result['video_path']}")
         return 0
 
-    print(f"\n📤 Uploading to YouTube (PRIVATE)...")
+    print(f"\n📤 Uploading to YouTube (PUBLIC)...")
     description = script_data.get("description", f"{title}\n\n#psychology #darkpsychology")
     description = _format_description(description)
     tags        = script_data.get("tags", ["psychology", "dark psychology", "human behavior"])
@@ -915,7 +915,7 @@ def main() -> int:
     send_review_email(title, video_url, studio_url, topic, render_result["duration_sec"])
 
     print(f"\n{'═' * 60}")
-    print(f"  ✅ DONE — Uploaded PRIVATE (review before publishing)")
+    print(f"  ✅ DONE — Uploaded PUBLIC and live")
     print(f"  Title   : {title}")
     print(f"  Duration: {render_result['duration_sec']/60:.1f} min")
     print(f"  Review  : {studio_url}")
