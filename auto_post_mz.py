@@ -41,7 +41,9 @@ import time
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
-LOG_FILE = BASE_DIR / "auto_post_log.json"
+LOG_FILE    = BASE_DIR / "auto_post_log.json"
+# Per-channel log — MZ workflow commits only this file, no merge conflicts with TMF/BSG
+MZ_LOG_FILE = BASE_DIR / "mz_post_log.json"
 LONGFORM_QUEUE_FILE = BASE_DIR / "longform_queue.json"   # short→longform amplification queue
 MZ_CHANNEL_DIR = BASE_DIR / "MZ_Channel"
 MZ_PROMPT_V3 = MZ_CHANNEL_DIR / "MZ_Script_Generator_Prompt_v3.md"
@@ -351,16 +353,40 @@ def pick_topic(format_letter: str) -> tuple[str, str]:
 # ─── Log helpers ─────────────────────────────────────────────────────────────
 
 def _load_log() -> dict:
+    """Load MZ log from per-channel file (primary), merging shared log for compat."""
+    data: dict = {"posts": [], "mz_topics_used": []}
+    if MZ_LOG_FILE.exists():
+        try:
+            data = json.loads(MZ_LOG_FILE.read_text())
+        except Exception:
+            pass
+    # Merge any MZ entries from the shared log not yet in the per-channel file
     if LOG_FILE.exists():
         try:
-            return json.loads(LOG_FILE.read_text())
+            shared = json.loads(LOG_FILE.read_text())
+            existing_ats = {p.get("posted_at") for p in data.get("posts", [])}
+            for p in shared.get("posts", []):
+                if p.get("channel") == "mz" and p.get("posted_at") not in existing_ats:
+                    data.setdefault("posts", []).append(p)
         except Exception:
-            return {}
-    return {}
+            pass
+    return data
 
 
 def _save_log(log: dict) -> None:
-    LOG_FILE.write_text(json.dumps(log, indent=2))
+    """Save to per-channel MZ log file (primary) and update shared log (compat)."""
+    MZ_LOG_FILE.write_text(json.dumps(log, indent=2))
+    try:
+        shared: dict = {"posts": []}
+        if LOG_FILE.exists():
+            shared = json.loads(LOG_FILE.read_text())
+        shared_ats = {p.get("posted_at") for p in shared.get("posts", []) if p.get("channel") == "mz"}
+        for p in log.get("posts", []):
+            if p.get("posted_at") not in shared_ats:
+                shared.setdefault("posts", []).append(p)
+        LOG_FILE.write_text(json.dumps(shared, indent=2))
+    except Exception:
+        pass
 
 
 def append_to_google_sheets(title: str, url: str, format_tag: str) -> None:

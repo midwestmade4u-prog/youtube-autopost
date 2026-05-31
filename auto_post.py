@@ -35,7 +35,11 @@ from zoneinfo import ZoneInfo
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).parent
-LOG_FILE = BASE_DIR / "auto_post_log.json"
+LOG_FILE     = BASE_DIR / "auto_post_log.json"
+# Per-channel dedup files — each workflow only commits its own file, preventing
+# merge conflicts when all three channels run concurrently in GH Actions.
+BSG_LOG_FILE = BASE_DIR / "bsg_post_log.json"
+TMF_LOG_FILE = BASE_DIR / "tmf_post_log.json"
 
 # ── Voice Settings ─────────────────────────────────────────────────────────────
 CHANNEL_VOICES = {
@@ -215,10 +219,49 @@ def _bsg_story_name(topic: str) -> str:
     return topic.split(" — ")[0].strip().lower()
 
 
+# Canonical slug map: catches AI-generated title variations for the same story.
+# Key = canonical slug, value = list of substrings that map to it.
+_BSG_STORY_SLUGS: dict[str, list[str]] = {
+    "daniel-lions-den":    ["daniel in the lion", "daniel's lion", "daniel and the lion"],
+    "feeding-5000":        ["feeding 5,000", "feeding 5000", "jesus feeds 5,000", "jesus feeds 5000",
+                            "feeding the 5,000", "feeds 5000", "feeds 5,000"],
+    "good-samaritan":      ["good samaritan"],
+    "prodigal-son":        ["prodigal son"],
+    "moses-red-sea":       ["moses parts the red sea", "moses and the red sea", "moses red sea",
+                            "parts the red sea", "red sea crossing"],
+    "walls-of-jericho":    ["walls of jericho", "joshua's jericho", "joshua and the walls",
+                            "wall of jericho", "jericho wall"],
+    "david-goliath":       ["david and goliath", "david vs goliath", "david versus goliath"],
+    "elijah-fire":         ["elijah's fiery", "elijah on mount carmel", "elijah and the fire",
+                            "elijah's fire", "fire from heaven", "fiery challenge", "fiery showdown",
+                            "elijah's challenge"],
+    "noahs-ark":           ["noah's ark"],
+    "deborah-judge":       ["deborah the judge", "deborah: the brave", "deborah brave judge"],
+    "joseph-coat":         ["joseph's coat", "joseph and the coat", "coat of many colors"],
+    "samson-strength":     ["samson and the lion", "samson's strength", "samson's incredible"],
+    "elisha-oil":          ["elisha's oil", "elisha's impossible oil"],
+    "zacchaeus":           ["zacchaeus"],
+    "ten-commandments":    ["ten commandments", "moses & the ten", "moses and the ten"],
+    "ten-plagues":         ["ten plagues", "the plagues of egypt"],
+    "birth-of-jesus":      ["birth of jesus", "christmas bible story", "christmas story"],
+    "easter-story":        ["easter story", "resurrection of jesus"],
+}
+
+
+def _bsg_story_slug(topic: str) -> str:
+    """Return a canonical story slug for dedup. Catches AI title variations."""
+    name = _bsg_story_name(topic)
+    for slug, aliases in _BSG_STORY_SLUGS.items():
+        if any(alias in name for alias in aliases):
+            return slug
+    return name  # fallback: use normalized name as-is
+
+
 def _bsg_story_posted_recently(topic: str, days: int = 60) -> bool:
-    """True if the same Bible story was posted in the last `days` days."""
-    log = load_log()
-    story = _bsg_story_name(topic)
+    """True if the same Bible story (by canonical slug) was posted within `days` days.
+    Uses per-channel log for reliable persistence across GH Actions runs."""
+    log = _load_channel_log("bsg")
+    slug = _bsg_story_slug(topic)
     cutoff = datetime.now(ZoneInfo("America/Chicago")) - timedelta(days=days)
     for post in log.get("posts", []):
         if post.get("channel") != "bsg":
@@ -230,12 +273,14 @@ def _bsg_story_posted_recently(topic: str, days: int = 60) -> bool:
             continue
         if post_dt < cutoff:
             continue
-        if _bsg_story_name(post.get("topic", "")) == story:
+        if _bsg_story_slug(post.get("topic", "")) == slug:
             return True
     return False
 
 
-# ── TMF 7-day concept-level dedup ─────────────────────────────────────────────
+# ── TMF 14-day concept-level dedup ────────────────────────────────────────────
+# Window raised from 7→14 days: at 2x/day (14 posts/week), a 7-day window was
+# too narrow — exact-title duplicates slipped through on the boundary day.
 
 _TMF_STOP_WORDS = {
     "your", "you're", "that", "they", "their", "with", "from", "have", "this",
@@ -250,10 +295,10 @@ def _topic_keywords(topic: str) -> set:
     return {w for w in words if len(w) >= 5 and w not in _TMF_STOP_WORDS}
 
 
-def _tmf_topic_too_similar_to_recent(topic: str, days: int = 7) -> bool:
-    """True if this topic shares ≥2 concept keywords with any TMF post in the last 7 days.
-    Prevents 'narcissism week' or back-to-back manipulation topics."""
-    log = load_log()
+def _tmf_topic_too_similar_to_recent(topic: str, days: int = 14) -> bool:
+    """True if this topic shares ≥2 concept keywords with any TMF post in the last 14 days.
+    Prevents toxic/guilt/manipulation cluster saturation. Uses per-channel log."""
+    log = _load_channel_log("tmf")
     cutoff = datetime.now(ZoneInfo("America/Chicago")) - timedelta(days=days)
     candidate_kw = _topic_keywords(topic)
     if not candidate_kw:
@@ -277,8 +322,57 @@ def _tmf_topic_too_similar_to_recent(topic: str, days: int = 7) -> bool:
 
 # ── Topic Log ──────────────────────────────────────────────────────────────────
 
+def _channel_log_file(channel: str) -> Path:
+    """Return the per-channel log file path."""
+    return BSG_LOG_FILE if channel == "bsg" else TMF_LOG_FILE if channel == "tmf" else LOG_FILE
+
+
+def _load_channel_log(channel: str) -> dict:
+    """Load per-channel log, merging any legacy entries from the shared log."""
+    ch_file = _channel_log_file(channel)
+    data: dict = {"posts": [], channel: []}
+    if ch_file.exists():
+        try:
+            data = json.loads(ch_file.read_text())
+        except Exception:
+            pass
+    # Backwards compat: pull in any entries from shared log not yet in channel file
+    if LOG_FILE.exists():
+        try:
+            shared = json.loads(LOG_FILE.read_text())
+            existing_ats = {p.get("posted_at") for p in data.get("posts", [])}
+            for p in shared.get("posts", []):
+                if p.get("channel") == channel and p.get("posted_at") not in existing_ats:
+                    data.setdefault("posts", []).append(p)
+            existing_topics = set(data.get(channel, []))
+            for t in shared.get(channel, []):
+                if t not in existing_topics:
+                    data.setdefault(channel, []).append(t)
+        except Exception:
+            pass
+    return data
+
+
+def _save_channel_log(channel: str, log: dict) -> None:
+    """Save to per-channel file (primary) and update shared log (compat)."""
+    _channel_log_file(channel).write_text(json.dumps(log, indent=2))
+    # Keep shared log updated for any tooling that reads it
+    try:
+        shared: dict = {"bsg": [], "tmf": [], "posts": []}
+        if LOG_FILE.exists():
+            shared = json.loads(LOG_FILE.read_text())
+        shared_ats = {p.get("posted_at") for p in shared.get("posts", []) if p.get("channel") == channel}
+        for p in log.get("posts", []):
+            if p.get("posted_at") not in shared_ats:
+                shared.setdefault("posts", []).append(p)
+        shared[channel] = log.get(channel, [])
+        LOG_FILE.write_text(json.dumps(shared, indent=2))
+    except Exception:
+        pass
+
+
 def load_log() -> dict:
-    """Load the topic usage log."""
+    """Load the shared topic usage log (legacy — new code uses _load_channel_log)."""
     if LOG_FILE.exists():
         try:
             return json.loads(LOG_FILE.read_text())
@@ -294,10 +388,11 @@ def save_log(log: dict) -> None:
 def pick_topic(channel: str) -> str:
     """Pick a topic not yet used in this cycle, applying channel-specific guardrails.
 
-    BSG: 60-day story dedup + Tier 1 weighted selection (proven stories 3× more likely).
-    TMF: 7-day concept-overlap dedup (prevents back-to-back thematically identical topics).
+    BSG: 60-day story slug dedup + Tier 1 weighted selection (proven stories 3× more likely).
+    TMF: 14-day concept-overlap dedup (prevents toxic/guilt cluster saturation).
+    Both now use per-channel log files for reliable GH Actions persistence.
     """
-    log = load_log()
+    log = _load_channel_log(channel)
     topics = BSG_TOPICS if channel == "bsg" else TMF_TOPICS
     used = set(log.get(channel, []))
 
@@ -310,7 +405,7 @@ def pick_topic(channel: str) -> str:
     elif channel == "tmf":
         available = [
             t for t in topics
-            if t not in used and not _tmf_topic_too_similar_to_recent(t, days=7)
+            if t not in used and not _tmf_topic_too_similar_to_recent(t, days=14)
         ]
     else:
         available = [t for t in topics if t not in used]
@@ -319,12 +414,12 @@ def pick_topic(channel: str) -> str:
     if not available:
         print(f"  🔄 All {len(topics)} topics used (or filtered by dedup) — starting new cycle!")
         log[channel] = []
-        save_log(log)
-        # Second pass: only cycle dedup (loosen 60-day / 7-day filter on reset)
+        _save_channel_log(channel, log)
+        # Second pass: loosen cycle dedup only — keep slug/concept dedup
         if channel == "bsg":
             available = [t for t in topics if not _bsg_story_posted_recently(t, days=60)]
         elif channel == "tmf":
-            available = [t for t in topics if not _tmf_topic_too_similar_to_recent(t, days=7)]
+            available = [t for t in topics if not _tmf_topic_too_similar_to_recent(t, days=14)]
         if not available:
             available = topics[:]  # Last resort: pick from full bank
 
@@ -340,8 +435,9 @@ def pick_topic(channel: str) -> str:
 
 
 def mark_posted(channel: str, topic: str, title: str, url: str) -> None:
-    """Record a successful post so the topic is not repeated."""
-    log = load_log()
+    """Record a successful post so the topic is not repeated.
+    Writes to per-channel log file (reliable GH Actions persistence)."""
+    log = _load_channel_log(channel)
     if channel not in log:
         log[channel] = []
     if topic not in log[channel]:
@@ -355,7 +451,7 @@ def mark_posted(channel: str, topic: str, title: str, url: str) -> None:
         "url":       url,
         "posted_at": time.strftime("%Y-%m-%d %H:%M:%S"),
     })
-    save_log(log)
+    _save_channel_log(channel, log)
     append_to_google_sheets(channel, title, url)
 
 

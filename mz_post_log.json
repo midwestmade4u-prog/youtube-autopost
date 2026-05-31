@@ -1,0 +1,52 @@
+{
+  "posts": [
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "WeWork \u2014 Aug 14, 2019 \u2014 the S-1 filing that killed the IPO",
+      "title": "The S-1 Filing That Killed WeWork",
+      "url": "https://youtu.be/ln9P-RtaZ_E",
+      "posted_at": "2026-04-25 10:13:41"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Wells Fargo \u2014 The 2011 sales mandate memo (\u2018eight is great\u2019)",
+      "title": "How One Memo Nearly Killed Wells Fargo",
+      "url": "https://youtu.be/SIDi5r72eaU",
+      "posted_at": "2026-05-14 04:45:01"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "AOL\u2013Time Warner \u2014 Jan 10, 2000 \u2014 merger announcement press conference",
+      "title": "How One Merger Nearly Killed AOL",
+      "url": "https://youtu.be/5XNWQtV2wBs",
+      "posted_at": "2026-05-15 05:14:24"
+    },
+    {
+      "channel": "mz",
+      "format": "near_death",
+      "topic": "IBM \u2014 1993 \u2014 Lou Gerstner's first board meeting, $8B loss",
+      "title": "How IBM Survived an $8 Billion Loss",
+      "url": "https://youtu.be/3OR_xaRDpMU",
+      "posted_at": "2026-05-16 18:11:48"
+    }
+  ],
+  "mz": [],
+  "mz_topics_used": [
+    "WeWork \u2014 Aug 14, 2019 \u2014 the S-1 filing that killed the IPO",
+    "Blockbuster \u2014 2000 \u2014 the phone call rejecting Netflix for $50M",
+    "Wells Fargo \u2014 The 2011 sales mandate memo (\u2018eight is great\u2019)",
+    "AOL\u2013Time Warner \u2014 Jan 10, 2000 \u2014 merger announcement press conference",
+    "FTX \u2014 Nov 2, 2022 \u2014 CoinDesk leaks the Alameda balance sheet",
+    "Knight Capital \u2014 12 minutes of bad code \u2192 $440M evaporated, Aug 1, 2012, 9:30 AM",
+    "Groupon \u2014 2011 \u2014 the pre-IPO \u2018accounting correction\u2019 announcement",
+    "Airbnb \u2014 Mar 2020 \u2014 COVID cancels $1B in bookings overnight; company nearly collapses; pivots to Online Experiences and survives",
+    "American Express \u2014 1963 \u2014 Salad Oil Scandal, $150M exposure",
+    "IBM \u2014 1993 \u2014 Lou Gerstner's first board meeting, $8B loss",
+    "Borders \u2014 2001 \u2014 signing the deal to hand their website to Amazon",
+    "Adelphia / Rigas family \u2014 Jul 24, 2002 \u2014 John Rigas and son Timothy arrested at their Manhattan apartment; secretly borrowed $2.3B from their own public company",
+    "General Motors \u2014 2001 \u2014 the 57\u00a2 ignition switch cost-cut decision"
+  ]
+}

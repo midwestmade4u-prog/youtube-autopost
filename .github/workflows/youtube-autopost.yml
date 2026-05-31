@@ -2,10 +2,8 @@ name: YouTube Auto-Post - Bible Story Garden
 
 on:
   schedule:
-    # 12 PM CST = 18:00 UTC
-    - cron: '0 18 * * *'
-    # 7 PM CST = 01:00 UTC
-    - cron: '0 1 * * *'
+    # 4 PM CDT = 21:00 UTC  (kids/family: after-school window, 1x daily)
+    - cron: '0 21 * * *'
   workflow_dispatch:
 
 jobs:
@@ -96,7 +94,7 @@ jobs:
           git config --local user.email "automation@youtube.local"
           git config --local user.name "YouTube AutoPost Bot"
           git pull --rebase origin main || true
-          git add auto_post_log.json auto_trigger_*.json 2>/dev/null || true
+          git add bsg_post_log.json auto_post_log.json auto_trigger_*.json 2>/dev/null || true
           git commit -m "Auto-post videos (BSG) - $(date)" || true
           git push || true
 
