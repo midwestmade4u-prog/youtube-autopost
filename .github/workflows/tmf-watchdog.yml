@@ -1,0 +1,191 @@
+name: TMF Watchdog — Auto-Retry on Failure
+
+# Runs 90 min after each TMF posting slot to check for failures.
+# Step 1-3: Detects missed post, triggers automatic retry.
+# Step 4-5: Runs 150 min after slot — if still no post, sends failure alert email.
+#
+# TMF posting slots (CDT): 8 AM (13:00 UTC) and 6 PM (23:00 UTC)
+
+on:
+  schedule:
+    # ── RETRY CHECKS (T+90 min) ──────────────────────────────────────────────
+    # 8 AM CDT (13:00 UTC) + 90 min = 14:30 UTC
+    - cron: '30 14 * * *'
+    # 6 PM CDT (23:00 UTC) + 90 min = 00:30 UTC
+    - cron: '30 0 * * *'
+    # ── ALERT CHECKS (T+150 min) ─────────────────────────────────────────────
+    # 8 AM CDT + 150 min = 15:30 UTC
+    - cron: '30 15 * * *'
+    # 6 PM CDT + 150 min = 01:30 UTC
+    - cron: '30 1 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Force mode: retry or alert (leave blank for auto-detect)'
+        required: false
+        default: ''
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Detect window and check post status
+        id: check
+        run: |
+          python3 << 'PYEOF'
+          import json, os, sys
+          from datetime import datetime, timedelta
+          from pathlib import Path
+
+          # TMF posting slots in UTC hours
+          SLOTS_UTC = [13, 23]
+          RETRY_MIN  = 90
+          ALERT_MIN  = 150
+          WINDOW_MIN = 25  # ±25 min tolerance for cron drift
+
+          now     = datetime.utcnow()
+          elapsed = None
+          slot_start = None
+
+          # Find the nearest slot that fired within the last 200 minutes
+          for slot_hour in SLOTS_UTC:
+              candidate = now.replace(hour=slot_hour, minute=0, second=0, microsecond=0)
+              if candidate > now:
+                  candidate -= timedelta(days=1)
+              diff = (now - candidate).total_seconds() / 60
+              if diff <= 200:
+                  if elapsed is None or diff < elapsed:
+                      elapsed    = diff
+                      slot_start = candidate
+
+          force_mode = os.environ.get("FORCE_MODE", "").strip()
+
+          if force_mode == "retry":
+              action = "retry"
+          elif force_mode == "alert":
+              action = "alert"
+          elif elapsed is None:
+              action = "none"
+              print("⏰ Not near a posting window — no action")
+          elif abs(elapsed - RETRY_MIN) <= WINDOW_MIN:
+              action = "retry_check"
+          elif abs(elapsed - ALERT_MIN) <= WINDOW_MIN:
+              action = "alert_check"
+          else:
+              action = "none"
+              print(f"⏰ T+{elapsed:.0f}min — outside action windows")
+
+          # For check modes, read the log to see if a post happened
+          if action in ("retry_check", "alert_check"):
+              log_file = Path("tmf_post_log.json")
+              posted   = False
+              if log_file.exists():
+                  try:
+                      data = json.loads(log_file.read_text())
+                      for p in data.get("posts", []):
+                          if p.get("channel") != "tmf":
+                              continue
+                          try:
+                              post_dt = datetime.strptime(p["posted_at"], "%Y-%m-%d %H:%M:%S")
+                              if post_dt >= slot_start:
+                                  posted = True
+                                  break
+                          except Exception:
+                              pass
+                  except Exception:
+                      pass
+
+              if posted:
+                  print(f"✅ Post detected since {slot_start.strftime('%H:%M')} UTC — no action needed")
+                  action = "none"
+              elif action == "retry_check":
+                  print(f"⚠️  No post since {slot_start.strftime('%H:%M')} UTC (T+{elapsed:.0f}min) — triggering retry")
+                  action = "retry"
+              else:
+                  print(f"🚨 Still no post since {slot_start.strftime('%H:%M')} UTC (T+{elapsed:.0f}min) — sending alert")
+                  action = "alert"
+
+          output_file = os.environ.get("GITHUB_OUTPUT", "/dev/stdout")
+          with open(output_file, "a") as f:
+              f.write(f"action={action}\n")
+          print(f"Action: {action}")
+          PYEOF
+        env:
+          FORCE_MODE: ${{ github.event.inputs.mode }}
+
+      - name: Re-trigger TMF autopost
+        if: steps.check.outputs.action == 'retry'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GH_PAT }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'tmf-autopost.yml',
+              ref: 'main'
+            });
+            core.info('✅ TMF autopost re-triggered successfully');
+
+      - name: Send failure alert email
+        if: steps.check.outputs.action == 'alert'
+        env:
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: |
+          python3 << 'PYEOF'
+          import smtplib, os
+          from email.mime.multipart import MIMEMultipart
+          from email.mime.text import MIMEText
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+
+          pwd = os.environ.get("GMAIL_APP_PASSWORD", "")
+          if not pwd:
+              print("No GMAIL_APP_PASSWORD — skipping email alert")
+              exit(0)
+
+          ts = datetime.now(ZoneInfo("America/Chicago")).strftime("%b %d, %Y at %I:%M %p CT")
+
+          subject = "🚨 [TMF] Auto-retry failed — manual check needed"
+          html = f"""
+          <html><body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+          <h2 style="color:#8b0000;">🚨 The Mind Files — Posting Failure</h2>
+          <p style="color:#666;">{ts}</p>
+          <hr>
+          <p>TMF missed a scheduled post. An <strong>automatic retry was triggered 90 minutes
+          after the original slot</strong>, but 150 minutes have now passed with no successful post.</p>
+          <p><strong>Next step:</strong> Check the
+          <a href="https://github.com/midwestmade4u-prog/youtube-autopost/actions/workflows/tmf-autopost.yml">
+          TMF Actions logs</a> to identify the failure reason, then manually re-trigger if needed.</p>
+          <p style="color:#888;font-size:12px;">TMF Watchdog — Auto-Retry System</p>
+          </body></html>
+          """
+
+          msg = MIMEMultipart("alternative")
+          msg["Subject"] = subject
+          msg["From"]    = "wisseinc@gmail.com"
+          msg["To"]      = "wisseinc@gmail.com"
+          msg.attach(MIMEText(html, "html"))
+
+          try:
+              with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+                  s.login("wisseinc@gmail.com", pwd)
+                  s.sendmail("wisseinc@gmail.com", "wisseinc@gmail.com", msg.as_string())
+              print("✅ Alert email sent to wisseinc@gmail.com")
+          except Exception as e:
+              print(f"❌ Email failed: {e}")
+          PYEOF
