@@ -1,12 +1,12 @@
 """
-fb_crosspost.py -- Upload a video as a native Facebook video/Reel to a Page.
+fb_crosspost.py -- Upload a video natively to a Facebook Page.
 
-Uses /{page-id}/videos endpoint (multipart upload) which works with
-pages_manage_posts + pages_read_engagement — no extra permissions needed.
+Uses /me/videos (with Page Access Token, me = the page).
+Works with pages_manage_posts + pages_read_engagement.
 
 Required env vars:
   FB_PAGE_ACCESS_TOKEN  -- Page Access Token
-  FB_PAGE_ID            -- Facebook Page ID
+  FB_PAGE_ID            -- Facebook Page ID (used for logging only)
   FB_TRIGGER_GLOB       -- glob pattern e.g. "auto_trigger_tmf_*.json"
 
 Optional env vars:
@@ -20,21 +20,21 @@ import sys
 import requests
 
 PAGE_TOKEN    = os.environ.get("FB_PAGE_ACCESS_TOKEN", "")
-PAGE_ID       = os.environ.get("FB_PAGE_ID", "")
+PAGE_ID       = os.environ.get("FB_PAGE_ID", "")   # for logging
 TRIGGER_GLOB  = os.environ.get("FB_TRIGGER_GLOB", "auto_trigger_*.json")
 EXPLICIT_PATH = os.environ.get("FB_VIDEO_PATH", "").strip()
 
-if not all([PAGE_TOKEN, PAGE_ID]):
-    print("Missing FB_PAGE_ACCESS_TOKEN or FB_PAGE_ID")
+if not PAGE_TOKEN:
+    print("Missing FB_PAGE_ACCESS_TOKEN")
     sys.exit(1)
 
-# ── Get title from trigger file ────────────────────────────────────────────────
+# ── Get title from NEWEST trigger file (sort by mtime, not name) ───────────────
 title = "New video"
 trigger_video = None
-trigger_files = sorted(glob.glob(TRIGGER_GLOB))
+trigger_files = sorted(glob.glob(TRIGGER_GLOB), key=os.path.getmtime, reverse=True)
 if trigger_files:
     try:
-        trigger = json.loads(open(trigger_files[-1]).read())
+        trigger = json.loads(open(trigger_files[0]).read())
         title = (
             trigger.get("title") or
             (trigger.get("script") or {}).get("title") or
@@ -46,8 +46,9 @@ if trigger_files:
             trigger.get("master_path") or
             trigger.get("yt_path")
         )
-    except Exception:
-        pass
+        print(f"  Trigger: {trigger_files[0]}, title: {title}")
+    except Exception as e:
+        print(f"  Warning: could not read trigger file: {e}")
 
 # ── Find video file ────────────────────────────────────────────────────────────
 video_path = None
@@ -56,29 +57,33 @@ if EXPLICIT_PATH and os.path.exists(EXPLICIT_PATH):
     print(f"  Using FB_VIDEO_PATH: {video_path}")
 elif trigger_video and os.path.exists(str(trigger_video)):
     video_path = trigger_video
-    print(f"  Using trigger file path: {video_path}")
+    print(f"  Using trigger path: {video_path}")
 else:
-    candidates = glob.glob("*.mp4") + glob.glob("TMF_Output/*.mp4") + glob.glob("MZ_Output/**/*.mp4", recursive=True)
+    candidates = (
+        glob.glob("TMF_Output/*.mp4") +
+        glob.glob("MZ_Output/**/*.mp4", recursive=True) +
+        glob.glob("*.mp4")
+    )
     if candidates:
         video_path = max(candidates, key=os.path.getmtime)
         print(f"  Found via glob: {video_path}")
 
 if not video_path or not os.path.exists(str(video_path)):
-    print(f"No video file found — skipping FB post")
+    print("No video file found — skipping FB post")
     sys.exit(0)
 
 file_size = os.path.getsize(video_path)
-print(f"Uploading to Facebook: {title}")
+print(f"Uploading to Facebook page {PAGE_ID}: {title}")
 print(f"  File: {video_path} ({file_size // 1024 // 1024} MB)")
 
-# ── Upload via /{page-id}/videos (multipart, works with pages_manage_posts) ───
+# ── Upload via /me/videos (Page Access Token → me = the page) ─────────────────
 with open(video_path, "rb") as f:
     resp = requests.post(
-        f"https://graph.facebook.com/v25.0/{PAGE_ID}/videos",
+        "https://graph.facebook.com/v25.0/me/videos",
         data={
-            "title":       title,
-            "description": title,
-            "published":   "true",
+            "title":        title,
+            "description":  title,
+            "published":    "true",
             "access_token": PAGE_TOKEN,
         },
         files={"source": (os.path.basename(video_path), f, "video/mp4")},
