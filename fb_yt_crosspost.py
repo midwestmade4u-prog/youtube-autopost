@@ -1,13 +1,16 @@
 """
 fb_crosspost.py -- Upload a video as a native Facebook Reel to a Page.
 
-Finds the rendered video file, then uploads it directly to the FB Reels API.
-Works for both TMF (video in working dir as *.mp4) and MZ (path in trigger JSON).
+Works for TMF (uses FB_VIDEO_PATH env var set by workflow find step) and
+MZ (path in trigger JSON tt_path field).
 
 Required env vars:
   FB_PAGE_ACCESS_TOKEN  -- Page Access Token
   FB_PAGE_ID            -- Facebook Page ID
   FB_TRIGGER_GLOB       -- glob pattern e.g. "auto_trigger_mz_*.json"
+
+Optional env vars:
+  FB_VIDEO_PATH         -- explicit video file path (set by workflow find step)
 """
 
 import glob
@@ -16,44 +19,65 @@ import os
 import sys
 import requests
 
-PAGE_TOKEN   = os.environ.get("FB_PAGE_ACCESS_TOKEN", "")
-PAGE_ID      = os.environ.get("FB_PAGE_ID", "")
-TRIGGER_GLOB = os.environ.get("FB_TRIGGER_GLOB", "auto_trigger_*.json")
+PAGE_TOKEN    = os.environ.get("FB_PAGE_ACCESS_TOKEN", "")
+PAGE_ID       = os.environ.get("FB_PAGE_ID", "")
+TRIGGER_GLOB  = os.environ.get("FB_TRIGGER_GLOB", "auto_trigger_*.json")
+EXPLICIT_PATH = os.environ.get("FB_VIDEO_PATH", "").strip()
 
 if not all([PAGE_TOKEN, PAGE_ID]):
     print("Missing FB_PAGE_ACCESS_TOKEN or FB_PAGE_ID")
     sys.exit(1)
 
-# ── Find most recent trigger file ─────────────────────────────────────────────
+# ── Get title from trigger file ────────────────────────────────────────────────
+title = "New video"
 trigger_files = sorted(glob.glob(TRIGGER_GLOB))
-if not trigger_files:
-    print(f"No trigger files found matching '{TRIGGER_GLOB}' — skipping FB Reel")
-    sys.exit(0)
-
-trigger = json.loads(open(trigger_files[-1]).read())
-title   = trigger.get("title") or (trigger.get("script") or {}).get("title") or "New video"
+if trigger_files:
+    try:
+        trigger = json.loads(open(trigger_files[-1]).read())
+        title = (
+            trigger.get("title") or
+            (trigger.get("script") or {}).get("title") or
+            "New video"
+        )
+        # Also try trigger paths (MZ writes these)
+        trigger_video = (
+            trigger.get("tt_path") or
+            trigger.get("ig_path") or
+            trigger.get("master_path") or
+            trigger.get("yt_path")
+        )
+    except Exception:
+        trigger_video = None
+else:
+    trigger_video = None
 
 # ── Find video file ────────────────────────────────────────────────────────────
-# Try trigger file paths first (MZ writes these), then fall back to newest .mp4 (TMF)
-video_path = (
-    trigger.get("tt_path") or
-    trigger.get("ig_path") or
-    trigger.get("master_path") or
-    trigger.get("yt_path")
-)
+# Priority: explicit path from workflow → trigger file path → newest mp4 anywhere
+video_path = None
+
+if EXPLICIT_PATH and os.path.exists(EXPLICIT_PATH):
+    video_path = EXPLICIT_PATH
+    print(f"  Using FB_VIDEO_PATH: {video_path}")
+elif trigger_video and os.path.exists(str(trigger_video)):
+    video_path = trigger_video
+    print(f"  Using trigger file path: {video_path}")
+else:
+    # Search common locations
+    search_patterns = [
+        "*.mp4",
+        "TMF_Output/**/*.mp4",
+        "MZ_Output/**/*.mp4",
+        "/tmp/*.mp4",
+    ]
+    candidates = []
+    for pat in search_patterns:
+        candidates += glob.glob(pat, recursive=True)
+    if candidates:
+        video_path = max(candidates, key=os.path.getmtime)
+        print(f"  Found via glob: {video_path}")
 
 if not video_path or not os.path.exists(str(video_path)):
-    # TMF: video is named after the title in the working directory
-    mp4_files = sorted(glob.glob("*.mp4"), key=os.path.getmtime, reverse=True)
-    if mp4_files:
-        video_path = mp4_files[0]
-        print(f"  Using newest .mp4 in working dir: {video_path}")
-    else:
-        print("No .mp4 file found — skipping FB Reel")
-        sys.exit(0)
-
-if not os.path.exists(video_path):
-    print(f"Video file not found: {video_path} — skipping FB Reel")
+    print(f"No video file found (FB_VIDEO_PATH={EXPLICIT_PATH!r}) — skipping FB Reel")
     sys.exit(0)
 
 file_size = os.path.getsize(video_path)
