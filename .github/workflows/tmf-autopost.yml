@@ -43,6 +43,18 @@ jobs:
         run: python3 auto_post.py --channel tmf
         continue-on-error: true
 
+      - name: Find video file and set path
+        id: findvideo
+        run: |
+          echo "=== All mp4 files in workspace ==="
+          find . -name "*.mp4" 2>/dev/null || echo "none found in root"
+          find /tmp -name "*.mp4" 2>/dev/null | head -5 || true
+          find /home/runner -name "*.mp4" 2>/dev/null | head -5 || true
+          # Set the newest mp4 as env var for next step
+          MP4=$(find . /tmp /home/runner -name "*.mp4" 2>/dev/null | xargs ls -t 2>/dev/null | head -1)
+          echo "Newest mp4: $MP4"
+          echo "FB_VIDEO_PATH=$MP4" >> $GITHUB_ENV
+
       - name: Post Facebook Reel (TMF)
         env:
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN_TMF }}
