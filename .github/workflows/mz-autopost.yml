@@ -1,13 +1,8 @@
 name: YouTube Auto-Post - Minute Zero
 
-# Phase 1 (Day 1-14): only 9 AM CT fires (one daily Format A Short).
-# Phase 2 onward: uncomment the evening slot to add Format B/C.
-# CT → UTC mapping uses CDT (UTC-5) during daylight saving — matches TMF pattern.
 on:
   schedule:
-    # 9 AM CT  = 14:00 UTC (CDT)
     - cron: '0 14 * * *'
-    # 7 PM CT = 00:00 UTC next day (CDT)  — PHASE 2 enabled May 4 2026
     - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
@@ -49,31 +44,19 @@ jobs:
             google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib
 
       - name: Create YouTube token file
-        # Per project_tmf_token_drift memory: token MUST match the one in the
-        # local youtube_token_mz.json. After any local re-OAuth, repaste secret.
         run: |
           echo '${{ secrets.YT_TOKEN_MZ }}' > youtube_token_mz.json
 
       - name: Run Minute Zero auto-post
-        # Per project_sheets_logging_fixed memory: GH secrets MUST be exposed as
-        # env here. Do not assume auto-injection.
         env:
-          # Script generation — OpenAI primary, Anthropic auto-fallback (May 6 2026).
-          # Both keys must be set in GH Secrets. openai is proven/paid primary;
-          # anthropic kicks in automatically if openai fails for any reason.
           MZ_MODEL_BACKEND: openai
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           OPENAI_API_KEY:   ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Pexels footage sourcing (v3 pipeline requirement)
           PEXELS_API_KEY:   ${{ secrets.PEXELS_API_KEY }}
-          # Google Sheets logging
           GOOGLE_SHEETS_KEY: ${{ secrets.GOOGLE_SHEETS_KEY }}
-          # TTS voice override (optional)
           MZ_VOICE:         ${{ vars.MZ_VOICE || 'en-US-ChristopherNeural' }}
         run: |
-          # Phase 2: time-based rotation active. Morning (14:00 UTC) = Format A,
-          # Evening (00:00 UTC) = Format B/C alternating. Manual override still works.
           ARGS=""
           if [ -n "${{ github.event.inputs.format }}" ]; then
             ARGS="--format ${{ github.event.inputs.format }}"
@@ -88,12 +71,37 @@ jobs:
           eval "python3 auto_post_mz.py $ARGS"
         continue-on-error: true
 
+      - name: Cross-post to Facebook Page (MZ)
+        env:
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN_MZ }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID_MZ }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, re, subprocess, sys
+          log_file = "mz_post_log.json"
+          if not os.path.exists(log_file):
+              print("No post log found, skipping FB cross-post")
+              sys.exit(0)
+          with open(log_file) as f:
+              data = json.load(f)
+          posts = data if isinstance(data, list) else data.get("posts", [])
+          last = next((p for p in reversed(posts) if p.get("url")), None)
+          if not last:
+              print("No recent post with URL, skipping")
+              sys.exit(0)
+          m = re.search(r"youtu\.be/([A-Za-z0-9_-]+)|v=([A-Za-z0-9_-]+)", last["url"])
+          if not m:
+              print("Could not parse video ID, skipping")
+              sys.exit(0)
+          env = os.environ.copy()
+          env["YT_VIDEO_ID"] = m.group(1) or m.group(2)
+          env["YT_VIDEO_TITLE"] = last.get("title", "New video")
+          env["YT_CHANNEL_HANDLE"] = "@TheMinuteZero"
+          subprocess.run(["python3", "fb_yt_crosspost.py"], env=env, check=False)
+          PYEOF
+        continue-on-error: true
+
       - name: Commit results
-        # `pexels_used_mz.json` is the per-channel dedup ledger written by
-        # video_mz.render_video() after every successful render. Committing it
-        # back is what makes dedup actually work in the cron — the GH Actions
-        # container is ephemeral, so without git persistence the ledger would
-        # reset to empty on every run and clips would silently re-pull.
         run: |
           git config --local user.email "automation@youtube.local"
           git config --local user.name "YouTube AutoPost Bot"
