@@ -1,20 +1,19 @@
 """
 fb_crosspost.py -- Upload a video as a native Facebook Reel to a Page.
 
-Reads the most recent auto_trigger_*.json to find the rendered video file,
-then uploads it directly to the FB Reels API (no YouTube link, no redirect).
+Finds the rendered video file, then uploads it directly to the FB Reels API.
+Works for both TMF (video in working dir as *.mp4) and MZ (path in trigger JSON).
 
 Required env vars:
   FB_PAGE_ACCESS_TOKEN  -- Page Access Token
   FB_PAGE_ID            -- Facebook Page ID
-  FB_TRIGGER_GLOB       -- glob pattern to find trigger file, e.g. "auto_trigger_mz_*.json"
+  FB_TRIGGER_GLOB       -- glob pattern e.g. "auto_trigger_mz_*.json"
 """
 
 import glob
 import json
 import os
 import sys
-import time
 import requests
 
 PAGE_TOKEN   = os.environ.get("FB_PAGE_ACCESS_TOKEN", "")
@@ -32,11 +31,28 @@ if not trigger_files:
     sys.exit(0)
 
 trigger = json.loads(open(trigger_files[-1]).read())
-title   = trigger.get("title", "")
-# Prefer TikTok (vertical 9:16) variant for Reels; fall back to master
-video_path = trigger.get("tt_path") or trigger.get("ig_path") or trigger.get("master_path") or trigger.get("yt_path")
+title   = trigger.get("title") or (trigger.get("script") or {}).get("title") or "New video"
 
-if not video_path or not os.path.exists(video_path):
+# ── Find video file ────────────────────────────────────────────────────────────
+# Try trigger file paths first (MZ writes these), then fall back to newest .mp4 (TMF)
+video_path = (
+    trigger.get("tt_path") or
+    trigger.get("ig_path") or
+    trigger.get("master_path") or
+    trigger.get("yt_path")
+)
+
+if not video_path or not os.path.exists(str(video_path)):
+    # TMF: video is named after the title in the working directory
+    mp4_files = sorted(glob.glob("*.mp4"), key=os.path.getmtime, reverse=True)
+    if mp4_files:
+        video_path = mp4_files[0]
+        print(f"  Using newest .mp4 in working dir: {video_path}")
+    else:
+        print("No .mp4 file found — skipping FB Reel")
+        sys.exit(0)
+
+if not os.path.exists(video_path):
     print(f"Video file not found: {video_path} — skipping FB Reel")
     sys.exit(0)
 
@@ -57,7 +73,7 @@ if not r1.ok:
     sys.exit(1)
 
 d1 = r1.json()
-video_id  = d1.get("video_id")
+video_id   = d1.get("video_id")
 upload_url = d1.get("upload_url")
 print(f"  Session video_id: {video_id}")
 
@@ -95,10 +111,9 @@ r3 = requests.post(
 )
 if r3.ok and r3.json().get("success"):
     print(f"FB Reel published: video_id={video_id}")
+elif r3.status_code in (200, 201):
+    print(f"Publish response: {r3.text}")
+    print("  (May still be processing — check page in a few minutes)")
 else:
-    # FB sometimes returns success=false initially but still publishes (async processing)
-    print(f"Publish response: {r3.status_code} {r3.text}")
-    if r3.status_code in (200, 201):
-        print("  (May still be processing — check page in a few minutes)")
-    else:
-        sys.exit(1)
+    print(f"Publish failed: {r3.status_code} {r3.text}")
+    sys.exit(1)
