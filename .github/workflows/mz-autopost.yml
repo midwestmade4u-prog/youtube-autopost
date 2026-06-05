@@ -7,15 +7,15 @@ on:
   workflow_dispatch:
     inputs:
       format:
-        description: 'Force format (A|B|C). Leave blank for auto-rotation.'
+        description: 'Force format (A|B|C).'
         required: false
         default: ''
       topic:
-        description: 'Override topic string (optional).'
+        description: 'Override topic string.'
         required: false
         default: ''
       dry_run:
-        description: 'Render only, skip YouTube upload.'
+        description: 'Render only, skip upload.'
         required: false
         default: 'false'
 
@@ -58,24 +58,23 @@ jobs:
           MZ_VOICE:         ${{ vars.MZ_VOICE || 'en-US-ChristopherNeural' }}
         run: |
           ARGS=""
-          if [ -n "${{ github.event.inputs.format }}" ]; then
-            ARGS="--format ${{ github.event.inputs.format }}"
-          fi
-          if [ -n "${{ github.event.inputs.topic }}" ]; then
-            ARGS="$ARGS --topic \"${{ github.event.inputs.topic }}\""
-          fi
-          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-            ARGS="$ARGS --dry-run"
-          fi
-          echo "Running: python3 auto_post_mz.py $ARGS"
+          [ -n "${{ github.event.inputs.format }}" ] && ARGS="--format ${{ github.event.inputs.format }}"
+          [ -n "${{ github.event.inputs.topic }}" ]  && ARGS="$ARGS --topic \"${{ github.event.inputs.topic }}\""
+          [ "${{ github.event.inputs.dry_run }}" = "true" ] && ARGS="$ARGS --dry-run"
           eval "python3 auto_post_mz.py $ARGS"
         continue-on-error: true
 
-      - name: Post Facebook Reel (MZ)
+      - name: Find video file
+        run: |
+          MP4=$(find MZ_Output -name "*.mp4" 2>/dev/null | xargs ls -t 2>/dev/null | head -1)
+          echo "Newest MZ mp4: $MP4"
+          echo "FB_VIDEO_PATH=$MP4" >> $GITHUB_ENV
+
+      - name: Post Facebook video (MZ)
         env:
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN_MZ }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID_MZ }}
-          FB_TRIGGER_GLOB: "auto_trigger_mz_*.json"
+          FB_POST_LOG: "mz_post_log.json"
         run: |
           pip install requests -q
           python3 fb_yt_crosspost.py
@@ -87,10 +86,10 @@ jobs:
           git config --local user.name "YouTube AutoPost Bot"
           git pull --rebase origin main || true
           git add mz_post_log.json auto_post_log.json auto_trigger_mz_*.json pexels_used_mz.json 2>/dev/null || true
-          git commit -m "Auto-post video (MZ) - $(date)" || true
+          git commit -m "Auto-post MZ - $(date)" || true
           git push || true
 
-      - name: Upload logs to artifacts
+      - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
