@@ -71,34 +71,14 @@ jobs:
           eval "python3 auto_post_mz.py $ARGS"
         continue-on-error: true
 
-      - name: Cross-post to Facebook Page (MZ)
+      - name: Post Facebook Reel (MZ)
         env:
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN_MZ }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID_MZ }}
+          FB_TRIGGER_GLOB: "auto_trigger_mz_*.json"
         run: |
-          python3 - <<'PYEOF'
-          import json, os, re, subprocess, sys
-          log_file = "mz_post_log.json"
-          if not os.path.exists(log_file):
-              print("No post log found, skipping FB cross-post")
-              sys.exit(0)
-          with open(log_file) as f:
-              data = json.load(f)
-          posts = data if isinstance(data, list) else data.get("posts", [])
-          last = next((p for p in reversed(posts) if p.get("url")), None)
-          if not last:
-              print("No recent post with URL, skipping")
-              sys.exit(0)
-          m = re.search(r"youtu\.be/([A-Za-z0-9_-]+)|v=([A-Za-z0-9_-]+)", last["url"])
-          if not m:
-              print("Could not parse video ID, skipping")
-              sys.exit(0)
-          env = os.environ.copy()
-          env["YT_VIDEO_ID"] = m.group(1) or m.group(2)
-          env["YT_VIDEO_TITLE"] = last.get("title", "New video")
-          env["YT_CHANNEL_HANDLE"] = "@TheMinuteZero"
-          subprocess.run(["python3", "fb_yt_crosspost.py"], env=env, check=False)
-          PYEOF
+          pip install requests -q
+          python3 fb_yt_crosspost.py
         continue-on-error: true
 
       - name: Commit results
