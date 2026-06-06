@@ -8,12 +8,12 @@ name: TMF Watchdog — Auto-Retry on Failure
 
 on:
   schedule:
-    # ── RETRY CHECKS (T+90 min) ──────────────────────────────────────────────
+    # ── RETRY CHECKS (T+90 min) ────────────────────────────────────────────
     # 8 AM CDT (13:00 UTC) + 90 min = 14:30 UTC
     - cron: '30 14 * * *'
     # 6 PM CDT (23:00 UTC) + 90 min = 00:30 UTC
     - cron: '30 0 * * *'
-    # ── ALERT CHECKS (T+150 min) ─────────────────────────────────────────────
+    # ── ALERT CHECKS (T+150 min) ───────────────────────────────────────────
     # 8 AM CDT + 150 min = 15:30 UTC
     - cron: '30 15 * * *'
     # 6 PM CDT + 150 min = 01:30 UTC
@@ -47,7 +47,7 @@ jobs:
         id: check
         run: |
           python3 << 'PYEOF'
-          import json, os, sys
+          import json, os, sys, urllib.request as _ureq
           from datetime import datetime, timedelta
           from pathlib import Path
 
@@ -116,8 +116,28 @@ jobs:
                   print(f"⚠️  No post since {slot_start.strftime('%H:%M')} UTC (T+{elapsed:.0f}min) — triggering retry")
                   action = "retry"
               else:
-                  print(f"🚨 Still no post since {slot_start.strftime('%H:%M')} UTC (T+{elapsed:.0f}min) — sending alert")
-                  action = "alert"
+                  # Before alerting, verify via GH Actions API that no successful run happened
+                  _suppressed = False
+                  _gh_token = os.environ.get("GITHUB_TOKEN", "")
+                  if _gh_token:
+                      _api_url = "https://api.github.com/repos/midwestmade4u-prog/youtube-autopost/actions/workflows/tmf-autopost.yml/runs?per_page=10"
+                      _req = _ureq.Request(_api_url, headers={"Authorization": f"Bearer {_gh_token}", "Accept": "application/vnd.github+json"})
+                      try:
+                          with _ureq.urlopen(_req, timeout=10) as _resp:
+                              _runs = json.loads(_resp.read())["workflow_runs"]
+                              for _run in _runs:
+                                  _run_dt = datetime.strptime(_run["created_at"], "%Y-%m-%dT%H:%M:%SZ")
+                                  if _run_dt >= slot_start and _run.get("conclusion") == "success":
+                                      print(f"✅ GH Actions: successful run at {_run['created_at']} — suppressing false alert")
+                                      _suppressed = True
+                                      break
+                      except Exception as _e:
+                          print(f"⚠️  GH API check failed: {_e} — proceeding with alert")
+                  if _suppressed:
+                      action = "none"
+                  else:
+                      print(f"U0001f6a8 Still no post since {slot_start.strftime('%H:%M')} UTC (T+{elapsed:.0f}min) — sending alert")
+                      action = "alert"
 
           output_file = os.environ.get("GITHUB_OUTPUT", "/dev/stdout")
           with open(output_file, "a") as f:
@@ -160,10 +180,10 @@ jobs:
 
           ts = datetime.now(ZoneInfo("America/Chicago")).strftime("%b %d, %Y at %I:%M %p CT")
 
-          subject = "🚨 [TMF] Auto-retry failed — manual check needed"
+          subject = "U0001f6a8 [TMF] Auto-retry failed — manual check needed"
           html = f"""
           <html><body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-          <h2 style="color:#8b0000;">🚨 The Mind Files — Posting Failure</h2>
+          <h2 style="color:#8b0000;">U0001f6a8 The Mind Files — Posting Failure</h2>
           <p style="color:#666;">{ts}</p>
           <hr>
           <p>TMF missed a scheduled post. An <strong>automatic retry was triggered 90 minutes
