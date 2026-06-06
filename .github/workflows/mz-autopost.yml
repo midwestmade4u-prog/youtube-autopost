@@ -66,7 +66,7 @@ jobs:
 
       - name: Find video file
         run: |
-          MP4=$(find MZ_Output -name "*.mp4" 2>/dev/null | xargs ls -t 2>/dev/null | head -1)
+          MP4=$(find MZ_Output -name "*_yt.mp4 2>/dev/null | xargs ls -t 2>/dev/null | head -1)
           echo "Newest MZ mp4: $MP4"
           echo "FB_VIDEO_PATH=$MP4" >> $GITHUB_ENV
 
