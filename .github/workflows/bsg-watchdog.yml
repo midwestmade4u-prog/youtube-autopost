@@ -8,10 +8,10 @@ name: BSG Watchdog — Auto-Retry on Failure
 
 on:
   schedule:
-    # ── RETRY CHECK (T+90 min) ───────────────────────────────────────────────
+    # ── RETRY CHECK (T+90 min) ───────────────────────────────────────────
     # 4 PM CDT (21:00 UTC) + 90 min = 22:30 UTC
     - cron: '30 22 * * *'
-    # ── ALERT CHECK (T+150 min) ──────────────────────────────────────────────
+    # ── ALERT CHECK (T+150 min) ──────────────────────────────────────────
     # 4 PM CDT + 150 min = 23:30 UTC
     - cron: '30 23 * * *'
   workflow_dispatch:
@@ -43,20 +43,21 @@ jobs:
         id: check
         run: |
           python3 << 'PYEOF'
-          import json, os, sys
+          import json, os, sys, urllib.request as _ureq
           from datetime import datetime, timedelta
           from pathlib import Path
 
-          # BSG single posting slot in UTC hours
-          SLOTS_UTC  = [21]
+          # BSG posting slot in UTC hours (single slot)
+          SLOTS_UTC = [21]
           RETRY_MIN  = 90
           ALERT_MIN  = 150
-          WINDOW_MIN = 25
+          WINDOW_MIN = 25  # ±25 min tolerance for cron drift
 
           now     = datetime.utcnow()
           elapsed = None
           slot_start = None
 
+          # Find the nearest slot that fired within the last 200 minutes
           for slot_hour in SLOTS_UTC:
               candidate = now.replace(hour=slot_hour, minute=0, second=0, microsecond=0)
               if candidate > now:
@@ -84,6 +85,7 @@ jobs:
               action = "none"
               print(f"⏰ T+{elapsed:.0f}min — outside action windows")
 
+          # For check modes, read the log to see if a post happened
           if action in ("retry_check", "alert_check"):
               log_file = Path("bsg_post_log.json")
               posted   = False
@@ -110,8 +112,28 @@ jobs:
                   print(f"⚠️  No post since {slot_start.strftime('%H:%M')} UTC (T+{elapsed:.0f}min) — triggering retry")
                   action = "retry"
               else:
-                  print(f"🚨 Still no post since {slot_start.strftime('%H:%M')} UTC (T+{elapsed:.0f}min) — sending alert")
-                  action = "alert"
+                  # Before alerting, verify via GH Actions API that no successful run happened
+                  _suppressed = False
+                  _gh_token = os.environ.get("GITHUB_TOKEN", "")
+                  if _gh_token:
+                      _api_url = "https://api.github.com/repos/midwestmade4u-prog/youtube-autopost/actions/workflows/youtube-autopost.yml/runs?per_page=10"
+                      _req = _ureq.Request(_api_url, headers={"Authorization": f"Bearer {_gh_token}", "Accept": "application/vnd.github+json"})
+                      try:
+                          with _ureq.urlopen(_req, timeout=10) as _resp:
+                              _runs = json.loads(_resp.read())["workflow_runs"]
+                              for _run in _runs:
+                                  _run_dt = datetime.strptime(_run["created_at"], "%Y-%m-%dT%H:%M:%SZ")
+                                  if _run_dt >= slot_start and _run.get("conclusion") == "success":
+                                      print(f"✅ GH Actions: successful run at {_run['created_at']} — suppressing false alert")
+                                      _suppressed = True
+                                      break
+                      except Exception as _e:
+                          print(f"⚠️  GH API check failed: {_e} — proceeding with alert")
+                  if _suppressed:
+                      action = "none"
+                  else:
+                      print(f"U0001f6a8 Still no post since {slot_start.strftime('%H:%M')} UTC (T+{elapsed:.0f}min) — sending alert")
+                      action = "alert"
 
           output_file = os.environ.get("GITHUB_OUTPUT", "/dev/stdout")
           with open(output_file, "a") as f:
@@ -154,17 +176,14 @@ jobs:
 
           ts = datetime.now(ZoneInfo("America/Chicago")).strftime("%b %d, %Y at %I:%M %p CT")
 
-          subject = "🚨 [BSG] Auto-retry failed — manual check needed"
+          subject = "U0001f6a8 [BSG] Auto-retry failed — manual check needed"
           html = f"""
           <html><body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-          <h2 style="color:#8b0000;">🚨 Bible Story Garden — Posting Failure</h2>
+          <h2 style="color:#8b0000;">U0001f6a8 Bible Story Garden — Posting Failure</h2>
           <p style="color:#666;">{ts}</p>
           <hr>
-          <p>Bible Story Garden missed its scheduled post. An <strong>automatic retry was triggered
-          90 minutes after the original slot</strong>, but 150 minutes have now passed with
-          no successful post.</p>
-          <p><strong>⚠️ BSG posts only once daily</strong> — this means <strong>zero videos today</strong>
-          unless manually resolved.</p>
+          <p>BSG missed a scheduled post. An <strong>automatic retry was triggered 90 minutes
+          after the original slot</strong>, but 150 minutes have now passed with no successful post.</p>
           <p><strong>Next step:</strong> Check the
           <a href="https://github.com/midwestmade4u-prog/youtube-autopost/actions/workflows/youtube-autopost.yml">
           BSG Actions logs</a> to identify the failure reason, then manually re-trigger if needed.</p>
