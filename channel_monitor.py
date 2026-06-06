@@ -55,7 +55,7 @@ CHANNELS = {
         "channel_id":  "UC0O6KbbHKW4_a7d9epNo93A",
         "token_env":   "YT_TOKEN_TMF",
         "token_file":  "youtube_token_tmf.json",
-        "expected_posts": 3,
+        "expected_posts": 2,
         "workflow":    "tmf-autopost.yml",
     },
     "bsg": {
