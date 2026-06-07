@@ -238,13 +238,33 @@ _BSG_STORY_SLUGS: dict[str, list[str]] = {
     "noahs-ark":           ["noah's ark"],
     "deborah-judge":       ["deborah the judge", "deborah: the brave", "deborah brave judge"],
     "joseph-coat":         ["joseph's coat", "joseph and the coat", "coat of many colors"],
-    "samson-strength":     ["samson and the lion", "samson's strength", "samson's incredible"],
+    "samson-strength":     ["samson and the lion", "samson's strength", "samson's incredible",
+                            "samson's incredible strength"],
+    "samson-chains":       ["samson breaks his chains", "samson breaks the chains",
+                            "samson breaks", "samson and delilah"],
     "elisha-oil":          ["elisha's oil", "elisha's impossible oil"],
     "zacchaeus":           ["zacchaeus"],
     "ten-commandments":    ["ten commandments", "moses & the ten", "moses and the ten"],
-    "ten-plagues":         ["ten plagues", "the plagues of egypt"],
+    "ten-plagues":         ["ten plagues", "the plagues of egypt", "plagues of egypt",
+                            "ten plagues of egypt", "god's devastating", "plague of frogs",
+                            "plague of locusts", "plague of darkness"],
     "birth-of-jesus":      ["birth of jesus", "christmas bible story", "christmas story"],
     "easter-story":        ["easter story", "resurrection of jesus"],
+    "jonah-whale":         ["jonah and the whale", "jonah swallowed", "jonah in the whale",
+                            "jonah whale", "swallowed by the whale"],
+    "shadrach-furnace":    ["shadrach in the fiery furnace", "shadrach meshach abednego",
+                            "fiery furnace", "thrown into a fiery furnace"],
+    "jesus-calms-storm":   ["jesus calms the storm", "calms the storm", "jesus calms storm",
+                            "storm on the sea", "peace be still"],
+    "elijah-ravens":       ["elijah fed by ravens", "elijah and the ravens", "fed by ravens"],
+    "jacob-wrestles":      ["jacob wrestles", "jacob and the angel", "wrestles an angel",
+                            "wrestles with god"],
+    "paul-silas-prison":   ["paul and silas in prison", "paul and silas", "chains fell off"],
+    "jesus-walks-water":   ["jesus walks on water", "walks on water", "peter walks on water"],
+    "lazarus":             ["lazarus raised", "raising of lazarus", "lazarus from the dead",
+                            "lazarus dead 4 days"],
+    "gideon":              ["gideon's 300", "gideon and his", "gideon's army"],
+    "joshua-stops-sun":    ["joshua stops the sun", "sun stood still", "god made time stand still"],
 }
 
 
@@ -259,7 +279,8 @@ def _bsg_story_slug(topic: str) -> str:
 
 def _bsg_story_posted_recently(topic: str, days: int = 60) -> bool:
     """True if the same Bible story (by canonical slug) was posted within `days` days.
-    Uses per-channel log for reliable persistence across GH Actions runs."""
+    Uses per-channel log for reliable persistence across GH Actions runs.
+    NOTE: kept for backward compatibility — new code should call _bsg_story_ever_posted()."""
     log = _load_channel_log("bsg")
     slug = _bsg_story_slug(topic)
     cutoff = datetime.now(ZoneInfo("America/Chicago")) - timedelta(days=days)
@@ -272,6 +293,20 @@ def _bsg_story_posted_recently(topic: str, days: int = 60) -> bool:
         except ValueError:
             continue
         if post_dt < cutoff:
+            continue
+        if _bsg_story_slug(post.get("topic", "")) == slug:
+            return True
+    return False
+
+
+def _bsg_story_ever_posted(topic: str) -> bool:
+    """True if this Bible story (by canonical slug) has EVER been posted on BSG.
+    Enforces the hard rule: one canonical version per story, ever.
+    Replaces the 60-day rolling window that allowed Daniel 4x / Jericho 5x / David 4x."""
+    log = _load_channel_log("bsg")
+    slug = _bsg_story_slug(topic)
+    for post in log.get("posts", []):
+        if post.get("channel") != "bsg":
             continue
         if _bsg_story_slug(post.get("topic", "")) == slug:
             return True
@@ -400,7 +435,7 @@ def pick_topic(channel: str) -> str:
     if channel == "bsg":
         available = [
             t for t in topics
-            if t not in used and not _bsg_story_posted_recently(t, days=60)
+            if t not in used and not _bsg_story_ever_posted(t)
         ]
     elif channel == "tmf":
         available = [
@@ -416,8 +451,9 @@ def pick_topic(channel: str) -> str:
         log[channel] = []
         _save_channel_log(channel, log)
         # Second pass: loosen cycle dedup only — keep slug/concept dedup
+        # BSG: permanent dedup is intentional — if all stories exhausted, add new ones to BSG_TOPICS
         if channel == "bsg":
-            available = [t for t in topics if not _bsg_story_posted_recently(t, days=60)]
+            available = [t for t in topics if not _bsg_story_ever_posted(t)]
         elif channel == "tmf":
             available = [t for t in topics if not _tmf_topic_too_similar_to_recent(t, days=14)]
         if not available:
@@ -661,44 +697,79 @@ BODY & PAYOFF:
         channel_rules = """
 TITLE RULES (strict — must match EXACTLY this format):
 - FORMAT: [Story Name] [single emoji] | Bible Story for Kids | Bible Story Garden
-- The emoji must relate to the story (water/ark = 🌊, fire = 🔥, heart = ❤️, sword = ⚔️, star = ⭐, dove = 🕊️, crown = 👑, etc.)
-- Story name portion should be punchy and curiosity-driven — under 40 chars before the pipe
+- The emoji must signal the DRAMATIC BEAT of the story — not a generic symbol:
+    🐋 whale/sea creature  🔥 fire/furnace  🎺 trumpet/walls  💪 strength/chains
+    ⚔️ battle/giant  🌊 sea/flood/storm  🐴 talking animal  🦁 lion  🐸 plague/animals
+- Story name = most action/drama-forward phrasing possible. Under 40 chars before the pipe.
 - GOOD examples (data-backed top performers):
-  • "The Creation Story 🌍 | Bible Story for Kids | Bible Story Garden"
+  • "Balaam's Donkey 🐴 | Bible Story for Kids | Bible Story Garden"
+  • "Daniel in the Lion's Den 🦁 | Bible Story for Kids | Bible Story Garden"
+  • "Elijah Calls Down Fire 🔥 | Bible Story for Kids | Bible Story Garden"
+  • "Jonah Swallowed by the Whale 🐋 | Bible Story for Kids | Bible Story Garden"
   • "Noah's Ark 🌊 | Bible Story for Kids | Bible Story Garden"
-  • "Adam and Eve 🍎 | Bible Story for Kids | Bible Story Garden"
   • "David vs Goliath ⚔️ | Bible Story for Kids | Bible Story Garden"
-- BAD examples (confirmed weak performers):
-  • "Deborah: The Brave Judge" ← missing format entirely, 0 views
-  • "Elisha's Impossible Oil Miracle" ← missing format, 0 views
-  • "Why God Confused Our Languages!" ← missing format, 0 views
-- If your title doesn't follow the exact format above, REWRITE it. No exceptions.
+- BAD examples (confirmed 0-view format breaks — never reproduce these):
+  • "Jonah and the Whale: The Prophet Who Ran from God" ← colon/subtitle format, BANNED
+  • "Paul on the Road to Damascus: The Most Dramatic Conversion" ← colon, BANNED
+  • "Elisha's Impossible Oil Miracle" ← missing tail entirely, BANNED
+  • "Deborah: The Brave Judge" ← missing format, BANNED
+- If your title doesn't follow the EXACT format, REWRITE it. No exceptions.
 
-STORY SELECTION PRIORITY — focus on ICONIC, visually rich stories with clear action/spectacle:
-- TIER 1 (proven top performers): Creation, Noah's Ark, Adam & Eve, David vs Goliath, Moses & Red Sea, Easter, Christmas, Daniel in Lion's Den, Jonah, Joseph's Coat
-- TIER 2 (strong visual/action): Jesus Feeds 5000, Jesus Walks on Water, Lazarus, Shadrach/Meshach/Abednego, Samson, Jericho, Elijah vs 450 Prophets, Jesus Calms Storm
-- TIER 3 (use sparingly): lesser-known narratives without clear visual spectacle
+STORY SELECTION — DRAMA AND VISUAL PAYOFF FIRST (Jun 2026 analytics update):
+- TIER 1 (highest-performing — action/animal/spectacle): Balaam's Donkey, Daniel in the Lion's Den,
+  Elijah Calls Down Fire, David vs Goliath, Moses Parted the Red Sea, Noah's Ark,
+  Jonah Swallowed by the Whale, Samson Breaks His Chains, The Ten Plagues of Egypt,
+  Jesus Calms the Storm, Shadrach in the Fiery Furnace, The Walls of Jericho Fall,
+  Gideon's 300 Warriors, Joshua Stops the Sun, Jesus Feeds 5000
+- TIER 2 (strong visual payoff): Lazarus Raised from the Dead, Jesus Walks on Water,
+  Jacob Wrestles the Angel, Peter Walks on Water, Paul and Silas in Prison,
+  Esther Saves Her People, Joseph Sold by His Brothers
+- TIER 3 (use sparingly — must reframe around a single dramatic moment): quiet/relational stories
+- NEVER pick: verse cards, the Beatitudes, pure-teaching parables without physical conflict,
+  out-of-season content (Christmas outside Nov–Dec, Easter outside Mar–Apr)
 
-NARRATIVE VS DOCTRINE (critical — analytics May 2026):
-- Ask before writing: "Is this a STORY with action, conflict, and a turning point — or a TEACHING LIST?"
-- GOOD (story): Character faces impossible odds → dramatic moment → God intervenes → shocking outcome. Views: 109–383.
-- BAD (doctrine): A list of moral principles, virtues, or lessons without a clear narrative arc. Views: 1–3.
-- Confirmed underperformers: The Beatitudes (1 view), Peter Walks on Water when framed as a lesson (3 views), any "Jesus teaches that..." framing.
-- Every script must have: (1) a named character in danger or need, (2) a specific impossible moment, (3) a dramatic turning point, (4) a concrete outcome with stakes.
-- If the story is primarily a teaching (Sermon on the Mount, Beatitudes, Parables without action) — reframe it around the most dramatic moment IN the story, not the lesson itself.
+ACTION GATE (hard rule — if a story fails this, output "has_action_gate": false and stop):
+Every script MUST have ALL FOUR:
+  1. A named character facing danger or an impossible situation
+  2. A specific dramatic moment (the lion attacks, the walls shake, the whale swallows)
+  3. A turning point where God intervenes in a physically visible, dramatic way
+  4. A concrete, visible outcome (character survives / enemy falls / sea parts / fire doesn't burn)
+Signal in your JSON with: "has_action_gate": true
+If any of the four are absent, output "has_action_gate": false — do not write the full script.
 
 HOOK RULES:
-- Scene 1: a dramatic moment or question that stops the scroll.
-- Scene 2: deepen the stakes, introduce the problem.
+- Scene 1: Drop into the peak dramatic moment. No setup. No "One day..." or "Long ago..."
+- Scene 2: Deepen the stakes — who is this person, what impossible thing is happening?
+- Never open with context-setting or character backstory. Start mid-action.
 
-IMAGE PROMPT RULES (critical — vague prompts produce identical AI images across different videos):
-- Every image_prompt MUST contain: (1) the specific character's name from THIS story, (2) a specific action they are doing RIGHT NOW in that scene, (3) a specific location or setting.
-- BAD: "biblical figure standing in a landscape" — could be ANY story, produces same image every time.
-- BAD: "colorful scene from the Bible" — completely generic, identical to other videos.
-- GOOD: "Deborah the Judge sitting under a palm tree, pointing at a crowd of Israelite warriors, bright midday sun"
-- GOOD: "The Prodigal Son running barefoot across a dirt field toward his elderly father who has his arms open wide"
-- GOOD: "Young David loading a stone into a leather sling, facing the giant Goliath in a rocky valley"
-- Scene 1 image_prompt especially must be visually UNIQUE to this specific story — no two BSG videos should ever share an opening image.
+HOOK VARIANTS (REQUIRED — produce all 3 every time; pipeline rotates to prevent suppression):
+  dramatic_peak    — Opens with the most visually shocking beat of the story as a flat statement.
+                     Example: "A whale swallowed him whole. He was still alive inside."
+  impossible_odds  — Opens with scale or numbers that make the situation feel hopeless.
+                     Example: "One boy. One stone. One giant the size of a house."
+  direct_question  — A second-person question that puts the viewer inside the scene.
+                     Example: "What would you do if you were thrown into a furnace alive?"
+
+IMAGE PROMPT RULES (critical — vague prompts produce identical AI images across videos):
+- Every image_prompt MUST contain: (1) specific character name, (2) exact action they are
+  doing RIGHT NOW in this scene, (3) specific location or environmental detail.
+- BAD: "biblical figure in a landscape" — generic, produces same image every time.
+- BAD: "colorful scene from the Bible" — completely generic.
+- GOOD: "Jonah tumbling headfirst into the open jaws of a massive dark whale, ocean spray everywhere, stormy sky"
+- GOOD: "Three boys — Shadrach, Meshach, Abednego — standing unharmed inside a roaring orange furnace, flames all around, calm expressions"
+- GOOD: "Young David releasing a stone from his leather sling aimed at the towering giant Goliath in a rocky canyon"
+- Scene 1 image_prompt: the single most dramatic PEAK visual — the moment that stops scrolling.
+
+THUMBNAIL SPEC (REQUIRED — every video must include this; missing = invalid output):
+Add a "thumbnail_spec" object to your JSON output:
+{
+  "thumbnail_spec": {
+    "focal_subject": "One sentence: the single focal image at center of frame — the peak action/animal/moment (e.g., 'Jonah falling headfirst into the open mouth of a massive dark whale against a stormy sky')",
+    "overlay_words": "2–4 ALL-CAPS words maximum — kid-legible at phone size with thick outline (e.g., 'SWALLOWED ALIVE' or 'GIANT FALLS' or 'WALLS COME DOWN')",
+    "character_emotion": "One word: the dominant emotion on the main character's face (e.g., 'terror', 'awe', 'defiance', 'shock', 'wonder', 'joy')"
+  }
+}
+Do not omit thumbnail_spec. A script without it is incomplete and will be rejected.
 """
 
     system_prompt = f"""You are a short-form video script writer for YouTube Shorts.
@@ -861,19 +932,55 @@ PROSE QUALITY — NO AI TELLS (applies to every narration field):
                 # BSG title validator — enforce "X emoji | Bible Story for Kids | Bible Story Garden" format
                 title = (script.get("title") or "").strip()
                 bsg_format_ok = "| Bible Story for Kids | Bible Story Garden" in title
-                if bsg_format_ok:
-                    print(f"    ✅ BSG script passed title validator: {title}")
-                    return script
-                print(f"    ⚠️  BSG title format FAIL on attempt {attempt}: \"{title}\"")
-                extra_constraints = (
-                    f"\n\nIMPORTANT — your previous draft was REJECTED. "
-                    f"Title was: \"{title}\"\n"
-                    f"The BSG title MUST follow this EXACT format: "
-                    f"[Story Name] [single emoji] | Bible Story for Kids | Bible Story Garden\n"
-                    f"Examples: \"Noah's Ark 🌊 | Bible Story for Kids | Bible Story Garden\"\n"
-                    f"          \"David vs Goliath ⚔️ | Bible Story for Kids | Bible Story Garden\"\n"
-                    f"Rewrite the title to match this format exactly. No exceptions."
+                if not bsg_format_ok:
+                    print(f"    ⚠️  BSG title format FAIL on attempt {attempt}: \"{title}\"")
+                    extra_constraints = (
+                        f"\n\nIMPORTANT — your previous draft was REJECTED. "
+                        f"Title was: \"{title}\"\n"
+                        f"The BSG title MUST follow this EXACT format: "
+                        f"[Story Name] [single emoji] | Bible Story for Kids | Bible Story Garden\n"
+                        f"Examples: \"Noah's Ark 🌊 | Bible Story for Kids | Bible Story Garden\"\n"
+                        f"          \"David vs Goliath ⚔️ | Bible Story for Kids | Bible Story Garden\"\n"
+                        f"Rewrite the title to match this format exactly. No exceptions."
+                    )
+                    continue
+
+                print(f"    ✅ BSG title validator: {title}")
+
+                # ── BSG action gate validator ──────────────────────────────────
+                if not script.get("has_action_gate", True):
+                    print(f"    ⚠️  BSG action gate FAIL on attempt {attempt}: story lacks dramatic peak")
+                    extra_constraints = (
+                        "\n\nIMPORTANT — your previous draft FAILED the action gate. "
+                        "The story needs ALL FOUR: (1) named character in danger, "
+                        "(2) specific dramatic moment, (3) physical divine intervention, "
+                        "(4) a visible concrete outcome. "
+                        "Reframe around the most dramatic moment in the story, or pick a more action-forward story."
+                    )
+                    continue
+                print(f"    ✅ BSG action gate: passed")
+
+                # ── BSG thumbnail spec validator ───────────────────────────────
+                thumb = script.get("thumbnail_spec", {})
+                thumb_ok = (
+                    isinstance(thumb, dict)
+                    and bool((thumb.get("focal_subject") or "").strip())
+                    and bool((thumb.get("overlay_words") or "").strip())
+                    and bool((thumb.get("character_emotion") or "").strip())
                 )
+                if not thumb_ok:
+                    print(f"    ⚠️  BSG thumbnail_spec missing/incomplete on attempt {attempt}")
+                    extra_constraints = (
+                        "\n\nIMPORTANT — your previous draft was REJECTED: missing thumbnail_spec. "
+                        "You MUST include a 'thumbnail_spec' object with three fields: "
+                        "focal_subject (one sentence describing the peak action/image), "
+                        "overlay_words (2–4 ALL-CAPS words only), and "
+                        "character_emotion (one word). Do not omit it."
+                    )
+                    continue
+                print(f"    ✅ BSG thumbnail_spec: '{thumb.get('overlay_words')}' / {thumb.get('character_emotion')}")
+
+                return script
 
         # All retries exhausted: intentionally skip this post rather than publish a bad title.
         # This is EXPECTED behavior, not a code error — exit 0 so GH Actions shows green.
