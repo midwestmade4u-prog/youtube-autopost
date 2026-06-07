@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-auto_post_tmf_longform.py — The Mind Files Long-Form (8–10 min) Auto-Post
-══════════════════════════════════════════════════════════════════════════
+auto_post_tmf_longform.py â The Mind Files Long-Form (8â10 min) Auto-Post
+ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 Generates, renders, and uploads a private 16:9 YouTube video for The Mind Files.
 Sends an email notification to Matt confirming what was posted.
 Runs automatically Mon/Wed/Fri at 9 AM CT via tmf-longform.yml.
@@ -27,14 +27,14 @@ from email.mime.text import MIMEText
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-# ── Paths ─────────────────────────────────────────────────────────────────────
+# ââ Paths âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 BASE_DIR        = Path(__file__).parent
 TMF_CHANNEL_DIR = BASE_DIR / "TMF_Channel"
 TMF_LONGFORM_PROMPT = TMF_CHANNEL_DIR / "TMF_Longform_Prompt_v1.md"
 LOG_FILE        = BASE_DIR / "auto_post_log.json"
 OUTPUT_DIR      = BASE_DIR / "TMF_Longform_Output"
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# ââ Config ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 TMF_CHANNEL_ID  = "UC0O6KbbHKW4_a7d9epNo93A"
 TOKEN_FILE      = BASE_DIR / "youtube_token_tmf.json"
 YT_SCOPES       = ["https://www.googleapis.com/auth/youtube.upload",
@@ -43,35 +43,35 @@ YT_SCOPES       = ["https://www.googleapis.com/auth/youtube.upload",
 TMF_LONGFORM_PLAYLIST_ID = os.getenv("TMF_LONGFORM_PLAYLIST_ID", "")
 NOTIFY_EMAIL    = "wisseinc@gmail.com"
 
-# Word targets: 1400–1700w at 2.5 wps = ~9.3–11.3 min (guarantees 8-min mid-roll threshold)
+# Word targets: 1400â1700w at 2.5 wps = ~9.3â11.3 min (guarantees 8-min mid-roll threshold)
 WORD_MIN, WORD_MAX = 1400, 1700
 
-# ── Topic bank ────────────────────────────────────────────────────────────────
-# Seed topics — expand from best-performing shorts + proven psychology hooks
+# ââ Topic bank ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+# Seed topics â expand from best-performing shorts + proven psychology hooks
 LONGFORM_TOPICS = [
-    # Tier 1 — expand from proven TMF short performers
-    "Why you stay loyal to people who treat you badly — the psychology of intermittent reinforcement",
-    "Why you can't stop thinking about the person who rejected you — the scarcity effect and attachment",
-    "Why the least competent people are always the most confident — the Dunning-Kruger effect in depth",
-    "Why one bad thing erases ten good ones — negativity bias and how it controls every relationship",
-    "Why you believe lies you've heard twice — the illusory truth effect and propaganda",
-    "Why you can't leave — the full psychology of the sunk cost fallacy",
-    "Why you keep picking the same type of person — attachment theory and trauma bonding",
-    "Why you remember your failures more than your successes — the brain's negativity default",
-    # Tier 2 — dark psychology deep dives
-    "Why people stay in cults — the psychology of identity destruction and manufactured belonging",
-    "Why good people do terrible things — Milgram's obedience experiments and what they revealed",
-    "Why you trust confident people even when they're wrong — the confidence heuristic",
-    "Why narcissists are so hard to leave — intermittent reinforcement, trauma bonds, and identity erosion",
-    "Why gaslighting works — the neuroscience of self-doubt and manufactured uncertainty",
-    "Why you can't read people as well as you think — the accuracy myth in emotion detection",
-    "Why you keep secrets from yourself — motivated reasoning and unconscious self-deception",
-    "Why loneliness is physically painful — the neuroscience of social rejection",
-    # Tier 3 — decision-making and cognition
-    "Why you make terrible decisions under pressure — cortisol, tunneling, and the stress blindspot",
-    "Why you're more easily manipulated than you think — influence mechanics from Cialdini",
-    "Why your memory of the past is mostly fiction — the reconstructive nature of human memory",
-    "Why you can't stop doomscrolling — the variable reward schedule and digital compulsion loops",
+    # Tier 1 â expand from proven TMF short performers
+    "Why you stay loyal to people who treat you badly â the psychology of intermittent reinforcement",
+    "Why you can't stop thinking about the person who rejected you â the scarcity effect and attachment",
+    "Why the least competent people are always the most confident â the Dunning-Kruger effect in depth",
+    "Why one bad thing erases ten good ones â negativity bias and how it controls every relationship",
+    "Why you believe lies you've heard twice â the illusory truth effect and propaganda",
+    "Why you can't leave â the full psychology of the sunk cost fallacy",
+    "Why you keep picking the same type of person â attachment theory and trauma bonding",
+    "Why you remember your failures more than your successes â the brain's negativity default",
+    # Tier 2 â dark psychology deep dives
+    "Why people stay in cults â the psychology of identity destruction and manufactured belonging",
+    "Why good people do terrible things â Milgram's obedience experiments and what they revealed",
+    "Why you trust confident people even when they're wrong â the confidence heuristic",
+    "Why narcissists are so hard to leave â intermittent reinforcement, trauma bonds, and identity erosion",
+    "Why gaslighting works â the neuroscience of self-doubt and manufactured uncertainty",
+    "Why you can't read people as well as you think â the accuracy myth in emotion detection",
+    "Why you keep secrets from yourself â motivated reasoning and unconscious self-deception",
+    "Why loneliness is physically painful â the neuroscience of social rejection",
+    # Tier 3 â decision-making and cognition
+    "Why you make terrible decisions under pressure â cortisol, tunneling, and the stress blindspot",
+    "Why you're more easily manipulated than you think â influence mechanics from Cialdini",
+    "Why your memory of the past is mostly fiction â the reconstructive nature of human memory",
+    "Why you can't stop doomscrolling â the variable reward schedule and digital compulsion loops",
 ]
 
 
@@ -92,7 +92,7 @@ LONGFORM_QUEUE_FILE = BASE_DIR / "tmf_longform_queue.json"
 
 
 def _load_longform_queue() -> list:
-    """Load the short→longform amplification queue (high-performing shorts queued by channel monitor)."""
+    """Load the shortâlongform amplification queue (high-performing shorts queued by channel monitor)."""
     if LONGFORM_QUEUE_FILE.exists():
         try:
             return json.loads(LONGFORM_QUEUE_FILE.read_text())
@@ -109,15 +109,15 @@ def pick_topic() -> str:
     """Pick a long-form topic.
 
     Priority order:
-    1. Short→Longform queue (high-performing TMF Shorts queued by daily monitor)
+    1. ShortâLongform queue (high-performing TMF Shorts queued by daily monitor)
     2. Random from LONGFORM_TOPICS bank (excluding already-used topics).
     """
-    # ── Priority 1: amplification queue ───────────────────────────────────────
+    # ââ Priority 1: amplification queue âââââââââââââââââââââââââââââââââââââââ
     queue = _load_longform_queue()
     pending = [item for item in queue if item.get("status") == "pending"]
     if pending:
         best = max(pending, key=lambda x: x.get("views", 0))
-        print(f"  🚀 Longform queue hit! Amplifying short-form breakout: {best.get('title', '')[:60]}")
+        print(f"  ð Longform queue hit! Amplifying short-form breakout: {best.get('title', '')[:60]}")
         print(f"     Views: {best.get('views', 0)}")
         for item in queue:
             if item.get("topic") == best.get("topic"):
@@ -125,12 +125,12 @@ def pick_topic() -> str:
         _save_longform_queue(queue)
         return best.get("topic", "")
 
-    # ── Priority 2: random from topic bank ────────────────────────────────────
+    # ââ Priority 2: random from topic bank ââââââââââââââââââââââââââââââââââââ
     log = _load_log()
     used = set(log.get("tmf_longform_topics_used", []))
     available = [t for t in LONGFORM_TOPICS if t not in used]
     if not available:
-        print("  🔄 All long-form topics used — resetting cycle")
+        print("  ð All long-form topics used â resetting cycle")
         log["tmf_longform_topics_used"] = []
         _save_log(log)
         available = LONGFORM_TOPICS[:]
@@ -184,12 +184,12 @@ def longform_title_ok(title: str) -> tuple[bool, str]:
 def generate_script(topic: str) -> dict:
     """
     Two-step generation:
-    Step 1 — Write the narration as plain prose (Claude writes long text naturally).
-    Step 2 — Wrap the validated script into the full JSON metadata package.
+    Step 1 â Write the narration as plain prose (Claude writes long text naturally).
+    Step 2 â Wrap the validated script into the full JSON metadata package.
     """
 
     PROSE_SYSTEM = (
-        "You are the scriptwriter for 'The Mind Files' — a YouTube channel about the hidden psychological "
+        "You are the scriptwriter for 'The Mind Files' â a YouTube channel about the hidden psychological "
         "forces that drive human behavior. Why people lie, manipulate, stay loyal to abusers, and make "
         "decisions that destroy them. "
         "Voice: calm, intelligent, slightly unsettling. Like a professor who knows too much. "
@@ -199,32 +199,32 @@ def generate_script(topic: str) -> dict:
     )
 
     PROSE_USER = (
-        f"Write a complete 8–10 minute psychology documentary narration about: {topic}\n\n"
-        f"Use this exact 5-act structure. Write ONLY the narration prose — no labels, no act headings, "
+        f"Write a complete 8â10 minute psychology documentary narration about: {topic}\n\n"
+        f"Use this exact 5-act structure. Write ONLY the narration prose â no labels, no act headings, "
         f"no JSON, no markdown. Just the continuous spoken narration.\n\n"
-        f"REQUIRED word counts per act (total must be 1,400–1,700 words):\n"
-        f"  Act 1 — THE HOOK (110–130 words): Open on a shocking statement or uncomfortable question "
-        f"the viewer cannot immediately answer. First sentence must create immediate personal recognition — "
+        f"REQUIRED word counts per act (total must be 1,400â1,700 words):\n"
+        f"  Act 1 â THE HOOK (110â130 words): Open on a shocking statement or uncomfortable question "
+        f"the viewer cannot immediately answer. First sentence must create immediate personal recognition â "
         f"the viewer thinks 'wait, that's me.' Do NOT open with a named psychological effect. Open with behavior. "
         f"End with a one-sentence question that locks the viewer in.\n\n"
-        f"  Act 2 — THE SETUP (260–290 words): Establish the behavior pattern with 2-3 concrete "
+        f"  Act 2 â THE SETUP (260â290 words): Establish the behavior pattern with 2-3 concrete "
         f"real-world examples across different contexts (relationships, work, self-perception). "
         f"Introduce the psychology research: name the researchers, the study, the year. "
         f'End with: "And the reason this happens is stranger than you think."\n\n'
-        f"  Act 3 — THE MECHANISM (380–420 words): Explain exactly why this behavior exists at the "
-        f"neurological or evolutionary level. Use real studies with precise details — sample size, "
+        f"  Act 3 â THE MECHANISM (380â420 words): Explain exactly why this behavior exists at the "
+        f"neurological or evolutionary level. Use real studies with precise details â sample size, "
         f"what participants did, what the numbers showed. Show the internal logic of the brain. "
         f"Make the viewer feel the mechanism happening in their own mind.\n\n"
-        f"  Act 4 — THE COST (360–400 words): What does this behavior cost people in real life? "
+        f"  Act 4 â THE COST (360â400 words): What does this behavior cost people in real life? "
         f"Follow 2-3 archetypal scenarios the viewer recognizes. Include one where the person doing "
         f"the behavior is the last to realize it. Tone: quiet recognition, slightly uncomfortable. "
-        f'End with: "Which raises the question — can any of this actually change?"\n\n'
-        f"  Act 5 — THE REFRAME (360–400 words): What does understanding this mechanism actually give you? "
-        f"Not a fix — a different lens. Show how awareness shifts what's possible. Connect to something "
-        f"universal about being human. Final sentence must be 8–12 words, punchy, slightly uncomfortable. "
+        f'End with: "Which raises the question â can any of this actually change?"\n\n'
+        f"  Act 5 â THE REFRAME (360â400 words): What does understanding this mechanism actually give you? "
+        f"Not a fix â a different lens. Show how awareness shifts what's possible. Connect to something "
+        f"universal about being human. Final sentence must be 8â12 words, punchy, slightly uncomfortable. "
         f"Not motivational. A truth that lingers.\n\n"
         f"Use 'you' at least 8 times across the full narration. "
-        f"Write all 1,400–1,700 words now. Do NOT summarize. Do NOT compress. "
+        f"Write all 1,400â1,700 words now. Do NOT summarize. Do NOT compress. "
         f"Expand every beat with specific details, research, and human moments."
     )
 
@@ -258,7 +258,7 @@ def generate_script(topic: str) -> dict:
             print("    Calling Anthropic Claude (prose)...")
             return _call_prose_anthropic(extra)
         except Exception as e:
-            print(f"    Anthropic failed ({e}) — falling back to OpenAI GPT-4o...")
+            print(f"    Anthropic failed ({e}) â falling back to OpenAI GPT-4o...")
             return _call_prose_openai(extra)
 
     # Retry loop on prose length
@@ -267,8 +267,8 @@ def generate_script(topic: str) -> dict:
         print(f"  Attempt {attempt}/3 (narration)...")
         narration = _get_prose(
             "" if attempt == 1 else (
-                f"\n\nYour previous draft was {len(narration.split())} words — "
-                f"REJECTED. Must be 1,400–1,700 words. "
+                f"\n\nYour previous draft was {len(narration.split())} words â "
+                f"REJECTED. Must be 1,400â1,700 words. "
                 f"Write more for EVERY act: Act 1: 120w, Act 2: 275w, "
                 f"Act 3: 400w, Act 4: 380w, Act 5: 380w. "
                 f"Add more specific research details, examples, and human moments."
@@ -277,18 +277,18 @@ def generate_script(topic: str) -> dict:
         wc = len(narration.split())
         print(f"    Word count: {wc}")
         if WORD_MIN <= wc <= WORD_MAX:
-            print(f"  ✅ Narration passed ({wc}w)")
+            print(f"  â Narration passed ({wc}w)")
             break
         print(
-            f"  ⚠️  LENGTH FAIL attempt {attempt}: {wc} words. "
-            f"Must be {WORD_MIN}–{WORD_MAX}."
+            f"  â ï¸  LENGTH FAIL attempt {attempt}: {wc} words. "
+            f"Must be {WORD_MIN}â{WORD_MAX}."
         )
         if attempt == 3:
             raise ValueError(
-                f"VALIDATION_SKIP: all 3 attempts failed — last narration: {wc}w"
+                f"VALIDATION_SKIP: all 3 attempts failed â last narration: {wc}w"
             )
 
-    # ── Step 2: Build full JSON metadata from the validated prose ────────────
+    # ââ Step 2: Build full JSON metadata from the validated prose ââââââââââââ
     words = narration.split()
     total_words = len(words)
     act1_end_w  = min(120, int(total_words * 0.08))
@@ -337,7 +337,7 @@ def generate_script(topic: str) -> dict:
         f"- Include: psychology, dark psychology, human behavior, mind files, why you, "
         f"plus topic-specific terms\n\n"
         f"THUMBNAIL_TEXT: 3-5 words ALL CAPS, provocative, works on a dark cinematic photo\n\n"
-        f"PEXELS_QUERIES: 12-16 landscape b-roll queries — cinematic, moody, people-focused. "
+        f"PEXELS_QUERIES: 12-16 landscape b-roll queries â cinematic, moody, people-focused. "
         f"Include queries for: lone person in dramatic lighting, close-up hands or face, "
         f"dark atmospheric environments. These should feel like film stills, not stock photos.\n\n"
         f"Return ONLY valid JSON with these fields: title, description, tags, "
@@ -380,12 +380,12 @@ def generate_script(topic: str) -> dict:
                 raw = raw[4:]
         return json.loads(raw.strip())
 
-    print("  📋 Building JSON metadata...")
+    print("  ð Building JSON metadata...")
     try:
         print("    Calling OpenAI GPT-4o (JSON)...")
         data = _call_json_openai(system_full, json_user)
     except Exception as e:
-        print(f"    OpenAI JSON failed ({e}) — falling back to Anthropic...")
+        print(f"    OpenAI JSON failed ({e}) â falling back to Anthropic...")
         data = _call_json_anthropic(system_full, json_user)
 
     data["script"] = narration
@@ -394,11 +394,11 @@ def generate_script(topic: str) -> dict:
     title_ok, title_reason = longform_title_ok(title)
     if not title_ok:
         raise ValueError(
-            f"VALIDATION_SKIP: title failed — {title_reason} (title: \"{title}\")"
+            f"VALIDATION_SKIP: title failed â {title_reason} (title: \"{title}\")"
         )
 
     word_count = len(narration.split())
-    print(f"  ✅ Script passed validators ({word_count}w, title OK: {title})")
+    print(f"  â Script passed validators ({word_count}w, title OK: {title})")
     return data
 
 
@@ -418,10 +418,10 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
     title       = script_data.get("title", "The Mind Files")
     queries     = script_data.get("pexels_queries", [])
 
-    # ── 1. Generate narration audio ───────────────────────────────────────────
-    print("  🎙️  Generating narration audio...")
+    # ââ 1. Generate narration audio âââââââââââââââââââââââââââââââââââââââââââ
+    print("  ðï¸  Generating narration audio...")
     audio_path = out_dir / f"{video_id}_narration.mp3"
-    # Guy Neural: deep, calm, authoritative — fits TMF's "professor who knows too much" tone
+    # Guy Neural: deep, calm, authoritative â fits TMF's "professor who knows too much" tone
     tts_voice  = os.getenv("TMF_LONGFORM_VOICE", "en-US-GuyNeural")
 
     async def _tts():
@@ -429,18 +429,18 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
         await communicate.save(str(audio_path))
 
     asyncio.run(_tts())
-    print(f"  ✅ Audio: {audio_path.name}")
+    print(f"  â Audio: {audio_path.name}")
 
-    # ── 2. Get audio duration ─────────────────────────────────────────────────
+    # ââ 2. Get audio duration âââââââââââââââââââââââââââââââââââââââââââââââââ
     result = subprocess.run(
         ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", str(audio_path)],
         capture_output=True, text=True
     )
     duration_sec = float(json.loads(result.stdout)["format"]["duration"])
-    print(f"  ✅ Duration: {duration_sec:.1f}s ({duration_sec/60:.1f} min)")
+    print(f"  â Duration: {duration_sec:.1f}s ({duration_sec/60:.1f} min)")
 
-    # ── 3. Fetch landscape Pexels footage ─────────────────────────────────────
-    print("  🎬 Fetching landscape Pexels footage...")
+    # ââ 3. Fetch landscape Pexels footage âââââââââââââââââââââââââââââââââââââ
+    print("  ð¬ Fetching landscape Pexels footage...")
     pexels_key = os.getenv("PEXELS_API_KEY", "").strip()
     clip_paths = []
 
@@ -489,14 +489,14 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
                 ], capture_output=True)
                 clip_paths.append(trimmed)
                 used_ids.add(vid["id"])
-                print(f"    ✅ Clip {i+1}: {query[:40]}")
+                print(f"    â Clip {i+1}: {query[:40]}")
             except Exception as e:
-                print(f"    ⚠️  Clip {i+1} failed ({query[:30]}): {e}")
+                print(f"    â ï¸  Clip {i+1} failed ({query[:30]}): {e}")
 
         dedup_file.write_text(json.dumps(list(used_ids), indent=2))
 
-    # ── 4. Build video ────────────────────────────────────────────────────────
-    print("  🎞️  Compositing final video...")
+    # ââ 4. Build video ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    print("  ðï¸  Compositing final video...")
     output_path = out_dir / f"{video_id}_longform.mp4"
 
     if clip_paths:
@@ -504,7 +504,7 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
         if len(clip_paths) < clips_needed:
             repeats = (clips_needed // len(clip_paths)) + 1
             extended = (clip_paths * repeats)[:clips_needed]
-            print(f"  🔁 Extending {len(clip_paths)} clips → {len(extended)} to cover {duration_sec:.0f}s")
+            print(f"  ð Extending {len(clip_paths)} clips â {len(extended)} to cover {duration_sec:.0f}s")
         else:
             extended = clip_paths
 
@@ -537,9 +537,9 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
         str(output_path)
     ], capture_output=True)
 
-    print(f"  ✅ Video: {output_path.name}")
+    print(f"  â Video: {output_path.name}")
 
-    # ── 5. Generate thumbnail (dark cinematic Pexels photo + text overlay) ────
+    # ââ 5. Generate thumbnail (dark cinematic Pexels photo + text overlay) ââââ
     thumb_path = out_dir / f"{video_id}_thumb.jpg"
     try:
         import requests as _req
@@ -549,7 +549,7 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
         thumb_text = script_data.get("thumbnail_text", title[:40].upper())
         queries    = script_data.get("pexels_queries", [])
 
-        # TMF thumbnail: dark, moody, cinematic — person in dramatic lighting
+        # TMF thumbnail: dark, moody, cinematic â person in dramatic lighting
         moody_queries = [f"cinematic dark {q}" for q in queries[:3]] + queries[3:]
 
         bg = None
@@ -569,16 +569,16 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
                         photo_url = photos[pick]["src"]["large"]
                         img_r = _req.get(photo_url, timeout=20)
                         bg = Image.open(BytesIO(img_r.content)).convert("RGB")
-                        print(f"  📸 Thumbnail photo: {q[:45]}")
+                        print(f"  ð¸ Thumbnail photo: {q[:45]}")
                         break
                 except Exception:
                     continue
 
         if bg is None:
             bg = Image.new("RGB", (1280, 720), (8, 8, 16))
-            print("  📸 Thumbnail: using dark fallback background")
+            print("  ð¸ Thumbnail: using dark fallback background")
 
-        # Scale to 1280×720
+        # Scale to 1280Ã720
         bg_w, bg_h = bg.size
         scale = max(1280 / bg_w, 720 / bg_h)
         new_w, new_h = int(bg_w * scale), int(bg_h * scale)
@@ -590,7 +590,7 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
         # Slight blur
         bg = bg.filter(ImageFilter.GaussianBlur(radius=1.5))
 
-        # Heavy dark overlay — TMF needs darker than MZ (more sinister aesthetic)
+        # Heavy dark overlay â TMF needs darker than MZ (more sinister aesthetic)
         dark_layer = Image.new("RGBA", (1280, 720), (0, 0, 0, 130))
         bg = Image.alpha_composite(bg.convert("RGBA"), dark_layer)
 
@@ -636,16 +636,16 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
                       anchor="mm", stroke_width=stroke_w, stroke_fill=stroke_fill)
 
         if line2:
-            # White line 1, purple-tinted line 2 — TMF palette
+            # White line 1, purple-tinted line 2 â TMF palette
             _outlined(draw, 640, 565, line1, font_large, fill=(255, 255, 255))
             _outlined(draw, 640, 660, line2, font_small,  fill=(180, 100, 255))
         else:
             _outlined(draw, 640, 620, line1, font_large, fill=(255, 255, 255))
 
         bg.save(str(thumb_path), quality=95)
-        print(f"  ✅ Thumbnail: {thumb_path.name}")
+        print(f"  â Thumbnail: {thumb_path.name}")
     except Exception as e:
-        print(f"  ⚠️  Thumbnail generation failed: {e}")
+        print(f"  â ï¸  Thumbnail generation failed: {e}")
 
     return {
         "video_path": output_path,
@@ -724,7 +724,7 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
             f"TOKEN MISMATCH: expected TMF channel {TMF_CHANNEL_ID} "
             f"but token is bound to {channel_name} ({channel_id})"
         )
-    print(f"  🔑 Uploading as: {channel_name} ({channel_id})")
+    print(f"  ð Uploading as: {channel_name} ({channel_id})")
 
     body = {
         "snippet": {
@@ -747,7 +747,7 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
     while response is None:
         status, response = request.next_chunk()
         if status:
-            print(f"  ⬆️  Upload progress: {int(status.progress() * 100)}%")
+            print(f"  â¬ï¸  Upload progress: {int(status.progress() * 100)}%")
 
     video_id_yt  = response["id"]
     video_url    = f"https://www.youtube.com/watch?v={video_id_yt}"
@@ -759,9 +759,9 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
                 videoId=video_id_yt,
                 media_body=MediaFileUpload(str(thumb_path), mimetype="image/jpeg")
             ).execute()
-            print("  ✅ Thumbnail uploaded")
+            print("  â Thumbnail uploaded")
         except Exception as e:
-            print(f"  ⚠️  Thumbnail upload failed: {e}")
+            print(f"  â ï¸  Thumbnail upload failed: {e}")
 
     # Add to TMF long-form playlist (if playlist ID is configured)
     if TMF_LONGFORM_PLAYLIST_ID:
@@ -773,13 +773,13 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
                     "resourceId": {"kind": "youtube#video", "videoId": video_id_yt},
                 }}
             ).execute()
-            print(f"  ✅ Added to TMF long-form playlist")
+            print(f"  â Added to TMF long-form playlist")
         except Exception as e:
-            print(f"  ⚠️  Playlist add failed: {e}")
+            print(f"  â ï¸  Playlist add failed: {e}")
     else:
-        print("  ℹ️  TMF_LONGFORM_PLAYLIST_ID not set — skipping playlist")
+        print("  â¹ï¸  TMF_LONGFORM_PLAYLIST_ID not set â skipping playlist")
 
-    print(f"  ✅ Uploaded (PUBLIC): {video_url}")
+    print(f"  â Uploaded (PUBLIC): {video_url}")
     return video_url, studio_url
 
 
@@ -788,16 +788,16 @@ def send_review_email(title: str, video_url: str, studio_url: str,
     """Email Matt with the Studio link for review."""
     password = os.getenv("GMAIL_APP_PASSWORD", "")
     if not password:
-        print("  ⚠️  GMAIL_APP_PASSWORD not set — skipping email notification")
+        print("  â ï¸  GMAIL_APP_PASSWORD not set â skipping email notification")
         return
 
     duration_str = f"{int(duration_sec // 60)}:{int(duration_sec % 60):02d}"
     ts = datetime.now(ZoneInfo("America/Chicago")).strftime("%b %d, %Y at %I:%M %p CT")
 
-    subject = f"[TMF Long-Form — PUBLIC] {title}"
+    subject = f"[TMF Long-Form â PUBLIC] {title}"
     html = f"""
     <html><body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <h2 style="color: #1a0a2e;">🧠 New Long-Form Posted — The Mind Files</h2>
+    <h2 style="color: #1a0a2e;">ð§  New Long-Form Posted â The Mind Files</h2>
     <p style="color: #666;">Generated {ts} | Duration: {duration_str} | Status: <strong>PUBLIC</strong></p>
     <hr>
     <h3>{title}</h3>
@@ -806,11 +806,11 @@ def send_review_email(title: str, video_url: str, studio_url: str,
     <p>
       <a href="{studio_url}" style="background:#6a0dad;color:white;padding:12px 24px;
          text-decoration:none;border-radius:4px;display:inline-block;margin-right:10px;">
-        📊 Review in Studio
+        ð Review in Studio
       </a>
       <a href="{video_url}" style="background:#333;color:white;padding:12px 24px;
          text-decoration:none;border-radius:4px;display:inline-block;">
-        ▶ Preview on YouTube
+        â¶ Preview on YouTube
       </a>
     </p>
     <hr>
@@ -828,9 +828,9 @@ def send_review_email(title: str, video_url: str, studio_url: str,
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(NOTIFY_EMAIL, password)
             server.sendmail(NOTIFY_EMAIL, NOTIFY_EMAIL, msg.as_string())
-        print(f"  📧 Review email sent to {NOTIFY_EMAIL}")
+        print(f"  ð§ Review email sent to {NOTIFY_EMAIL}")
     except Exception as e:
-        print(f"  ⚠️  Email failed: {e}")
+        print(f"  â ï¸  Email failed: {e}")
 
 
 def log_to_sheets(title: str, url: str, topic: str) -> None:
@@ -856,10 +856,30 @@ def log_to_sheets(title: str, url: str, topic: str) -> None:
             valueInputOption="USER_ENTERED",
             body={"values": [row]}
         ).execute()
-        print(f"  📊 Logged to Sheets: {title}")
+        print(f"  ð Logged to Sheets: {title}")
     except Exception as e:
-        print(f"  ⚠️  Sheets logging failed: {e}")
+        print(f"  â ï¸  Sheets logging failed: {e}")
 
+
+
+def _build_affiliate_footer(script_data: dict) -> str:
+    """Build the affiliate links block appended to every long-form description."""
+    lines = ["", "─────────────────────────────────────"]
+    lines.append("📚 BOOKS MENTIONED")
+    books = script_data.get("books", [])
+    for b in books[:5]:
+        title_slug = b.replace(" — ", "+").replace(" ", "+").replace(",", "")
+        url = f"https://www.amazon.com/s?k={title_slug}&tag={_AMZN_TAG}"
+        lines.append(f"→ {b}: {url}")
+    lines.append("")
+    lines.append(f"🎧 FREE AUDIOBOOK TRIAL (Audible): {_AUDIBLE_LINK}")
+    lines.append(f"⚡ BOOK SUMMARIES IN 15 MIN (Blinkist): {_BLINKIST_LINK}")
+    lines.append("")
+    if _LEADMAGNET and "YOUR_FORM" not in _LEADMAGNET:
+        lines.append(f"📄 FREE GUIDE — 7 Dark Psychology Tactics: {_LEADMAGNET}")
+        lines.append("")
+    lines.append(_FTC)
+    return "\n".join(lines)
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="TMF Long-Form Auto-Post")
@@ -867,20 +887,20 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="Render only, skip upload")
     args = parser.parse_args()
 
-    print(f"\n{'═' * 60}")
-    print(f"  🧠 TMF Long-Form  |  {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print(f"{'═' * 60}")
+    print(f"\n{'â' * 60}")
+    print(f"  ð§  TMF Long-Form  |  {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print(f"{'â' * 60}")
 
     topic = args.topic.strip() if args.topic else pick_topic()
-    print(f"\n📖 Topic: {topic}")
+    print(f"\nð Topic: {topic}")
 
-    print(f"\n✍️  Generating long-form script...")
+    print(f"\nâï¸  Generating long-form script...")
     try:
         script_data = generate_script(topic)
     except ValueError as e:
         err = str(e)
         if err.startswith("VALIDATION_SKIP"):
-            print(f"\n⏭️  SKIPPED (validation): {err}")
+            print(f"\nâ­ï¸  SKIPPED (validation): {err}")
             print("   No video posted. This is expected behavior.")
             log_to_sheets(f"[SKIPPED] {err[16:100]}", "", topic)
             return 0
@@ -888,22 +908,23 @@ def main() -> int:
 
     title      = script_data["title"]
     word_count = len(script_data.get("script", "").split())
-    print(f"  ✅ Title: {title}")
-    print(f"  ✅ Words: {word_count}")
+    print(f"  â Title: {title}")
+    print(f"  â Words: {word_count}")
 
-    print(f"\n🎬 Rendering 16:9 landscape video...")
+    print(f"\nð¬ Rendering 16:9 landscape video...")
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     date_dir = OUTPUT_DIR / datetime.now().strftime("%Y-%m-%d")
     render_result = render_longform_video(script_data, date_dir)
 
     if args.dry_run:
-        print(f"\n⏹️  Dry run — skipping upload.")
+        print(f"\nâ¹ï¸  Dry run â skipping upload.")
         print(f"  Video: {render_result['video_path']}")
         return 0
 
-    print(f"\n📤 Uploading to YouTube (PUBLIC)...")
+    print(f"\nð¤ Uploading to YouTube (PUBLIC)...")
     description = script_data.get("description", f"{title}\n\n#psychology #darkpsychology")
     description = _format_description(description)
+    description += _build_affiliate_footer(script_data)
     tags        = script_data.get("tags", ["psychology", "dark psychology", "human behavior"])
     video_url, studio_url = upload_to_youtube(
         render_result["video_path"], title, description, tags,
@@ -914,12 +935,12 @@ def main() -> int:
     log_to_sheets(title, video_url, topic)
     send_review_email(title, video_url, studio_url, topic, render_result["duration_sec"])
 
-    print(f"\n{'═' * 60}")
-    print(f"  ✅ DONE — Uploaded PUBLIC and live")
+    print(f"\n{'â' * 60}")
+    print(f"  â DONE â Uploaded PUBLIC and live")
     print(f"  Title   : {title}")
     print(f"  Duration: {render_result['duration_sec']/60:.1f} min")
     print(f"  Review  : {studio_url}")
-    print(f"{'═' * 60}")
+    print(f"{'â' * 60}")
 
     return 0
 
