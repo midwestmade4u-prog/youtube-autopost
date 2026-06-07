@@ -216,6 +216,21 @@ def _company_posted_recently(company_name: str, days: int = 30) -> bool:
     return False
 
 
+def _company_posted_ever(company_name: str) -> bool:
+    """True if the same company has ever been posted on MZ (any date).
+    Enforces the no-duplicate-angle rule: one definitive video per company.
+    Returns False (allow) only if the company has never appeared in the log."""
+    log = _load_log()
+    company_lc = company_name.lower()
+    for post in log.get("posts", []):
+        if post.get("channel") != "mz":
+            continue
+        post_company = _extract_company_name(post.get("topic", ""))
+        if company_lc in post_company or post_company in company_lc:
+            return True
+    return False
+
+
 def _is_household_brand(topic: str) -> bool:
     """True if the topic's company is an iconic household name."""
     company = _extract_company_name(topic)
@@ -323,6 +338,12 @@ def pick_topic(format_letter: str) -> tuple[str, str]:
         if t not in used
         and not _company_posted_recently(_extract_company_name(t), days=30)
     ]
+
+    # ── Warn on duplicate-angle topics (ever-posted, not just 30d) ──────────────
+    for t in available:
+        cname = _extract_company_name(t)
+        if _company_posted_ever(cname):
+            print(f"  ⚠️  DUPLICATE-ANGLE WARNING: {cname} has been posted before — consider replacing this topic in the bank")
 
     if not available:
         print(f"  🔄 All MZ Format {format_letter} topics used (or company-deduped) — resetting cycle")

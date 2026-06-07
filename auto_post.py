@@ -506,6 +506,23 @@ _TMF_BANNED_LEAD_NOUNS = {
     "illusion", "mere", "cocktail", "mind",
 }
 
+# Hook phrases that are burned out / cannibalizing (Jun 7 2026 analytics).
+# These may appear in a script body but NEVER as the title's core hook.
+_TMF_BANNED_HOOK_PHRASES = [
+    "toxic manipulator",
+    "toxic manipulators",
+    "toxic relationship",
+    "toxic relationships",
+    "toxic people",
+    "charming manipulator",
+    "manipulation red flags",
+]
+
+def _contains_banned_hook(title: str) -> bool:
+    """True if title contains a burned-out hook phrase (case-insensitive)."""
+    t = title.lower()
+    return any(phrase in t for phrase in _TMF_BANNED_HOOK_PHRASES)
+
 def _normalize_title(t: str) -> str:
     """Lowercase + strip punctuation/whitespace for fuzzy comparison."""
     s = (t or "").lower()
@@ -540,17 +557,27 @@ def title_passes_tmf_rules(title: str) -> tuple[bool, str]:
     if ":" in t:
         return False, 'no colon in title — "Why You [behavior]" only, no subtitle after colon'
 
+    # Jun 7 2026: ban burned-out hook phrases as title hooks (toxic manipulator cluster)
+    if _contains_banned_hook(t):
+        banned = next(p for p in _TMF_BANNED_HOOK_PHRASES if p in t.lower())
+        return False, (
+            f'banned hook phrase in title: "{banned}". '
+            'This cluster is burned out (380→291→185 view decay). '
+            'Rewrite around a specific behavior — e.g. "Why You Trust People Who Lie to You."'
+        )
+
     return True, ""
 
 def script_word_count_ok(script: dict) -> tuple[bool, int]:
-    """Total narration words must land in 300–360 (≈65–80 sec at Adam ElevenLabs voice rate).
-    NOTE: Adam voice speaks at ~4.5 words/sec (not 2.7 as previously assumed).
-    Calibrated May 6 2026 after analytics showed 38-57s videos from 180-235w scripts.
+    """Total narration words must land in 140–180 (≈42–55 sec at ~3.3 words/sec TTS rate).
+    Recalibrated Jun 7 2026: May 10–Jun 7 analytics show top-7 videos all 42–55s.
+    Longer videos (65–80s) are underperforming relative to that cohort.
+    Previous target was 300–370w (May 6 2026) — superseded by this window's data.
     """
     total = 0
     for scene in script.get("scenes", []):
         total += len((scene.get("narration") or "").split())
-    return (300 <= total <= 370), total
+    return (140 <= total <= 180), total
 
 def title_already_published(title: str, channel: str) -> bool:
     """Fuzzy-match the candidate title against past posts in auto_post_log.json."""
@@ -647,50 +674,67 @@ def generate_script_for_topic(topic: str, channel: str, num_scenes: int = 8) -> 
         channel_rules = """
 TITLE RULES (strict — titles drive 20× view differences in this channel):
 - MUST start with "Why You" or "Why Your". This is the #1 rule. No exceptions.
-- "Why You [verb] [uncomfortable behavior the viewer recognizes in themselves]"
-- Must describe an OBSERVABLE BEHAVIOR the viewer does, not a concept or named effect. Under 60 chars.
-- GOOD examples (data-backed 400–1300 views):
-  • "Why You Stay Loyal to Mean People" ← 576 views
-  • "Why One Bad Thing Erases Ten Good Ones" ← 722 views
-  • "Why the Least Skilled People Are Most Confident" ← strong
-  • "Why You Can't Leave — The Sunk Cost Fallacy" ← effect name AFTER behavior
-  • "Why You Believe Lies You've Heard Twice" ← cognitive mechanism as behavior = SWEET SPOT
-- BAD examples (data-backed <50 views each):
-  • "The Secret Fear of High Achievers" ← starts with "The [noun]" — BANNED
-  • "The Haunting Regret of Inaction" ← concept label, not behavior — BANNED
-  • "The Dark Triad: Charm or Harm?" ← colon pattern, no "Why You" — BANNED
-  • "Why You're Always Right: The Mind Trap" ← colon mid-title kills it
-  • "Anchoring Bias: The Invisible Mind Trap" ← effect name lead — BANNED
-- If your draft doesn't start with "Why You" or "Why Your", REWRITE it. No exceptions.
+- Lead with the CONTRADICTION or UNSETTLING PAYOFF — pair a trusted/positive action with a dark outcome.
+  GOOD: "Why You Trust Liars Who Feel Honest" (802 views) ← trusted action + dark outcome
+  GOOD: "Why You Defend Those Who Hurt You" (598 views) ← contradiction
+  BAD:  "Why You Attract Toxic Manipulators" ← flat category label, no contradiction
+- Under 60 characters. Front-load the surprising word.
+- No colon mid-title. If your draft doesn't start with "Why You/Your", REWRITE it.
+- On TEST VEIN titles only: you may append the named effect in brackets for authority —
+  e.g. "Why You're Nicer to Strangers [Spotlight Effect]". Use sparingly to test CTR.
 
-CONTENT SWEET SPOT (May 2026 analytics — critical):
-- The #1 and #2 all-time performers ("Illusory Truth Effect" 1,304 views, "Framing Effect" 913 views) are NAMED PSYCHOLOGICAL MECHANISMS dressed as relatable behavior.
-- Pure "toxic relationship" angles (loyalty, attraction, abuse) top out at 130–180 views.
-- The winning formula: a named cognitive bias or psychological mechanism + the everyday behavior it produces in the viewer.
-- Every script should answer: "What is the NAME of this effect, and what does it make the viewer DO without realizing it?"
-- The effect name belongs in scene 4–5, NEVER in scene 1. Lead with the behavior; reveal the mechanism as the payoff.
-- Example: topic = "Illusory Truth Effect" → title = "Why You Believe Lies You've Heard Twice" → scene 1 hook = the behavior (believing repeated lies) → scene 4 reveals the mechanism name.
+TOPIC SELECTION — PILLAR MIX (enforce this ratio every batch):
 
-HOOK RULES (78.7% of viewers currently swipe away — this is the #1 fix):
-- Scene 1 narration = your hook. 10–18 words MAX. Drop them mid-tension. NO context. NO "Did you know." NO "Imagine." NO naming the effect.
-- Scene 2 must DEEPEN or PAY OFF the hook, not pivot or define a term.
-- Never name the academic effect until scene 4 or later (if at all).
+  PILLAR 1 — TRUST / DECEPTION / BETRAYAL (~40%) ← proven #1 vein
+  Pattern: "Why You [trust/defend/forgive/believe] [person who does a bad thing]"
+  Top performers: Trust Liars Who Feel Honest (802), Trust Those Who Never Apologize (778),
+  Defend Those Who Hurt You (598), Trust Those Who Deceive (669).
+  Mine: trust + calm/silence, forgive + betrayal, believe + contradiction, defend + harm.
 
-HOOK VARIANTS (REQUIRED — produce all 3. YouTube 2026 algorithm penalizes channels that repeat the same hook pattern. Rotate keeps the channel safe from suppression):
-  shocking_claim   — A flat, specific, uncomfortable truth. No question mark. States it as fact.
-                     Example: "Most people will lie to your face and genuinely believe they're being honest."
-  uncomfortable_question — A second-person question the viewer can't say no to.
-                     Example: "Have you ever noticed you work harder to keep things you already have than to gain something new?"
+  PILLAR 2 — MEMORY & EMOTIONAL DISTORTION (~25%) ← proven #2 vein
+  Test: why insults are remembered word-for-word, why embarrassing moments replay for years,
+  false memories, hindsight bias, why one bad thing erases ten good ones, negativity bias,
+  recency bias, why your worst memory feels most true.
+
+  PILLAR 3 — TEST VEINS (~25%) ← rotate to find the next winner
+  Active rotation: cognitive biases (confirmation bias, illusory truth, framing effect),
+  social hierarchy / status games, personality pathology mechanics (narcissism, psychopathy —
+  frame as "why you [behavior around them]", NOT "how to spot").
+
+  PILLAR 4 — SELF-PERCEPTION / SOCIAL CONTRADICTION (~10%)
+  Pattern: behavior toward others that contradicts self-image.
+  Proven: "Why You're Nicer to Strangers" (704 views). Mine the contradiction angle.
+
+HARD RULES (enforced in code — violating these triggers a retry):
+  1. BANNED TITLE HOOKS: Never use toxic manipulator(s), toxic relationship(s), toxic people,
+     charming manipulator, manipulation red flags as the title's core hook. Burned out.
+     (May appear inside the script body — just not in the title.)
+  2. NO CONCEPT REPEATS within 30 days. Core idea must not duplicate a recent title.
+  3. NO standalone time/procrastination/deadline titles — only allowed if reframed as
+     memory or identity distortion (e.g. "Why You Remember Every Task You Left Unfinished").
+  4. LENGTH: 42–55 seconds = 140–180 narration words. Enforced by word-count validator.
+
+HOOK RULES (first 0–5 sec):
+- Scene 1 = hook. First 3–4 words must carry the tension. Drop the viewer mid-claim.
+- BANNED openers: "Most people…", "Have you ever…", "Did you know…", "Imagine…"
+- Open with the unsettling claim itself. Use "you" within the first two sentences.
+- Scene 2 must DEEPEN or PAY OFF the hook — never pivot or define a term.
+- Never name the academic effect until scene 4 or later.
+
+HOOK VARIANTS (REQUIRED — produce all 3. Algorithm penalizes repeated hook patterns):
+  shocking_claim   — Flat, specific, uncomfortable truth stated as fact. No question mark.
+                     Example: "You've already decided. You just don't know it yet."
+  uncomfortable_question — Second-person question the viewer can't say no to.
+                     Example: "Have you noticed you work harder to keep things you hate than to gain what you want?"
   behavioral_contradiction — Open with a paradox: two behaviors that contradict each other and both feel true.
                      Example: "The smarter someone is, the worse they are at spotting their own blind spots."
 
-The script's Scene 1 narration should be the shocking_claim variant (default). Produce all 3 in hook_variants so the pipeline can rotate them.
-- BAD hook (all types): "The false consensus effect is when people assume others share their views." ← defines, not dramatizes
+The script's Scene 1 narration = shocking_claim variant (default). Produce all 3 in hook_variants.
 
 BODY & PAYOFF:
 - Sentences average 10–14 words. Short, punchy, spoken rhythm.
-- Use the word "you" at least 3 times across the full script — create personal confrontation.
-- Final scene = an uncomfortable reframe. NOT a motivational quote. NOT a call to action.
+- Use "you" at least 3 times — create personal confrontation.
+- Final scene = an uncomfortable reframe. Not a motivational quote. Not a call to action.
 - Leave the viewer slightly disturbed, thinking, re-examining their own behavior.
 """
     else:
@@ -774,10 +818,10 @@ Do not omit thumbnail_spec. A script without it is incomplete and will be reject
 
     system_prompt = f"""You are a short-form video script writer for YouTube Shorts.
 
-TARGET LENGTH: 65–80 seconds. NEVER under 60 or over 85 seconds.
-- Total narration across ALL scenes combined: 300–360 words. Do not go below 300 or above 370.
-- Adam voice speaks at ~4.5 words/sec. 300w = ~67s, 360w = ~80s. Hit this range every time.
-- Top performing TMF videos (800–1300 views) averaged 65–85s. Short videos (~45s) get suppressed.
+TARGET LENGTH: 42–55 seconds. NEVER under 40 or over 60 seconds.
+- Total narration across ALL scenes combined: 140–180 words. Do not go below 140 or above 180.
+- TTS speaks at ~3.3 words/sec. 140w = ~42s, 180w = ~55s. Hit this range every time.
+- Jun 7 2026 data: top-7 TMF videos (462–802 views) all landed 42–55s. Keep scripts tight.
 
 Channel style: {style_guide}
 {channel_rules}
@@ -886,7 +930,7 @@ PROSE QUALITY — NO AI TELLS (applies to every narration field):
                 if not wc_ok:
                     problems.append(
                         f"LENGTH FAIL: total narration is {word_count} words "
-                        f"(must be 300–370; current = ~{int(word_count/4.5)}s at Adam voice rate, target 65–80s)"
+                        f"(must be 140–180 words = 42–55s at ~3.3 words/sec TTS rate)"
                     )
                     last_word_count = word_count
                 if dup:
@@ -925,8 +969,8 @@ PROSE QUALITY — NO AI TELLS (applies to every narration field):
                     + "\n- ".join(problems)
                     + "\nFix ALL of them in this next draft. The title MUST start with \"Why You\" or \"Why Your\" "
                       "and describe an observable behavior the viewer recognizes in themselves. No colons. "
-                      "Total narration MUST be 300–360 words across all scenes combined. "
-                      "Adam voice speaks at 4.5 words/sec — 300w = 67s, 360w = 80s. DO NOT write short scripts."
+                      "Total narration MUST be 140–180 words across all scenes combined. "
+                      "TTS speaks at ~3.3 words/sec — 140w = 42s, 180w = 55s. Keep scripts tight."
                 )
             else:
                 # BSG title validator — enforce "X emoji | Bible Story for Kids | Bible Story Garden" format
