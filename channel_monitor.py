@@ -63,7 +63,7 @@ CHANNELS = {
         "channel_id":  "UCcyBf84Mc-evMSYZlqh3zVA",
         "token_env":   "YT_TOKEN_BSG",
         "token_file":  "youtube_token_bsg.json",
-        "expected_posts": 2,
+        "expected_posts": 1,
         "workflow":    "youtube-autopost.yml",
     },
     "mz": {
