@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-╔══════════════════════════════════════════════════════════╗
-║         MidwestMade4U — Video Studio                    ║
-║         Bible Story Garden + The Mind Files             ║
-╚══════════════════════════════════════════════════════════╝
+ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+â         MidwestMade4U â Video Studio                    â
+â         Bible Story Garden + The Mind Files             â
+ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 One-time setup (run in Terminal first):
     pip3 install flask edge-tts Pillow openai
 
-Optional — YouTube auto-posting:
+Optional â YouTube auto-posting:
     pip3 install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 
-Optional — YOUR voice clone:
+Optional â YOUR voice clone:
     pip3 install TTS   (downloads ~2GB model on first use)
 
 Usage:
@@ -36,13 +36,13 @@ from pathlib import Path
 
 from flask import Flask, Response, jsonify, redirect, render_template_string, request, send_file
 
-# ── Paths ─────────────────────────────────────────────────────────────────────
+# ââ Paths âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 BASE_DIR   = Path(__file__).parent
 TEMP_DIR   = BASE_DIR / "temp_work"
 VOICE_DIR  = BASE_DIR / "bsg_voices"
 MUSIC_DIR  = BASE_DIR / "bsg_music"
 
-# Per-channel output folders — created on demand in run_video_job
+# Per-channel output folders â created on demand in run_video_job
 CHANNEL_OUTPUT = {
     "bsg": BASE_DIR / "BSG_Output",
     "tmf": BASE_DIR / "TMF_Output",
@@ -51,7 +51,7 @@ CHANNEL_OUTPUT = {
 for d in [TEMP_DIR, VOICE_DIR, MUSIC_DIR] + list(CHANNEL_OUTPUT.values()):
     d.mkdir(exist_ok=True)
 
-# ── Config (API keys) ─────────────────────────────────────────────────────────
+# ââ Config (API keys) âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 CONFIG_FILE = BASE_DIR / "config.json"
 
 def load_config():
@@ -86,7 +86,7 @@ def get_fal_key():
     # Fall back to config file (for local development)
     return load_config().get("fal_api_key", "").strip()
 
-# ── Brand Colors ──────────────────────────────────────────────────────────────
+# ââ Brand Colors ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 GREEN = (29, 158, 117)
 GOLD  = (239, 159,  39)
@@ -95,7 +95,7 @@ CREAM = (250, 238, 218)
 WIDTH, HEIGHT = 1280, 720
 VERT_WIDTH, VERT_HEIGHT = 1080, 1920
 
-# ── Channel styles ────────────────────────────────────────────────────────────
+# ââ Channel styles ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 CHANNEL_STYLES = {
     "bsg": {
         "label":      "Bible Story Garden",
@@ -116,9 +116,9 @@ CHANNEL_STYLES = {
         "style":      (
             "Dark cinematic portrait photography, heavily desaturated or black and white, film noir aesthetic. "
             "{prompt}. "
-            "Subject: a young woman, 25–35, with a striking, intense expression — pensive, guarded, or emotionally raw. "
+            "Subject: a young woman, 25â35, with a striking, intense expression â pensive, guarded, or emotionally raw. "
             "She is the emotional anchor of the scene: facing away, in silhouette, partially lit, or caught in a candid moment of reflection. "
-            "Lighting: single dramatic source — a window, candle, streetlight, or bare bulb casting deep shadows across her face. "
+            "Lighting: single dramatic source â a window, candle, streetlight, or bare bulb casting deep shadows across her face. "
             "Mood: psychological tension, introspection, quiet unease. "
             "Style: high-end editorial photography, photorealistic, cinematic depth of field, dark background. "
             "No text. No logos. No explicit content. Full frame composition."
@@ -131,7 +131,7 @@ CHANNEL_STYLES = {
     },
 }
 
-# ── Voice cloning setup ───────────────────────────────────────────────────────
+# ââ Voice cloning setup âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 VOICE_FILE = VOICE_DIR / "my_voice.m4a"
 VOICE_WAV  = VOICE_DIR / "my_voice.wav"
 _xtts_model = None
@@ -148,7 +148,7 @@ def _find_bold_font(size):
         "/System/Library/Fonts/Helvetica.ttc",
         "/System/Library/Fonts/SFNS.ttf",
         "/System/Library/Fonts/SFNSDisplay.ttf",
-        # macOS fallback — Courier is always present
+        # macOS fallback â Courier is always present
         "/System/Library/Fonts/Courier New Bold.ttf",
         "/Library/Fonts/Microsoft/Arial Bold.ttf",
         # Linux fonts
@@ -196,7 +196,7 @@ def get_xtts_model():
     return _xtts_model
 
 def prepare_voice_wav():
-    """Convert m4a → wav for XTTS (runs once)."""
+    """Convert m4a â wav for XTTS (runs once)."""
     if VOICE_WAV.exists():
         return True
     if not VOICE_FILE.exists():
@@ -207,15 +207,15 @@ def prepare_voice_wav():
     ], capture_output=True)
     return VOICE_WAV.exists()
 
-# ── Progress queue ────────────────────────────────────────────────────────────
+# ââ Progress queue ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 progress_queue = queue.Queue()
 current_job    = {"running": False, "output": None, "error": None}
 
 app = Flask(__name__)
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 #  VIDEO GENERATION  (same logic as bible_video_maker.py)
-# ══════════════════════════════════════════════════════════════════════════════
+# ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 def emit(msg):
     progress_queue.put({"msg": msg})
@@ -228,7 +228,7 @@ def emit_error(err):
 
 
 def _fal_image_inner(prompt_str, output_path, width=1280, height=720):
-    """Raw FAL call — run inside a thread so wall-clock timeout can be enforced."""
+    """Raw FAL call â run inside a thread so wall-clock timeout can be enforced."""
     import json as _json
     api_key = get_fal_key()
     if not api_key:
@@ -266,7 +266,7 @@ def _fal_image_inner(prompt_str, output_path, width=1280, height=720):
 def _fal_image(prompt_str, output_path, width=1280, height=720):
     """Generate image using fal.ai Flux Pro. Returns True on success.
     ~40% cheaper than DALL-E 3 at equivalent quality.
-    Uses a hard 90s wall-clock timeout via ThreadPoolExecutor — urlopen's
+    Uses a hard 90s wall-clock timeout via ThreadPoolExecutor â urlopen's
     socket timeout alone won't fire if FAL sends keepalive bytes."""
     if not get_fal_key():
         return False
@@ -275,10 +275,10 @@ def _fal_image(prompt_str, output_path, width=1280, height=720):
         try:
             return future.result(timeout=90)
         except concurrent.futures.TimeoutError:
-            emit("  ⚠️ fal.ai wall-clock timeout (90s) — falling back")
+            emit("  â ï¸ fal.ai wall-clock timeout (90s) â falling back")
             return False
         except Exception as e:
-            emit(f"  ⚠️ fal.ai error: {str(e)[:80]}")
+            emit(f"  â ï¸ fal.ai error: {str(e)[:80]}")
             return False
 
 
@@ -309,12 +309,12 @@ def _dalle_image(prompt_str, output_path, width=1280, height=720):
                 f.write(data)
             return True
     except Exception as e:
-        emit(f"  ⚠️ DALL-E error: {str(e)[:80]}")
+        emit(f"  â ï¸ DALL-E error: {str(e)[:80]}")
     return False
 
 
 def _pollinations_image_inner(prompt_str, seed, output_path, width=1280, height=720):
-    """Raw Pollinations call — run inside a thread for wall-clock enforcement."""
+    """Raw Pollinations call â run inside a thread for wall-clock enforcement."""
     encoded = urllib.parse.quote(prompt_str)
     url = (f"https://image.pollinations.ai/prompt/{encoded}"
            f"?width={width}&height={height}&seed={seed}&nologo=true")
@@ -330,7 +330,7 @@ def _pollinations_image_inner(prompt_str, seed, output_path, width=1280, height=
 
 def _pollinations_image(prompt_str, seed, output_path, width=1280, height=720, timeout=40):
     """Fallback: fetch image from Pollinations.ai.
-    Uses 40s wall-clock timeout via ThreadPoolExecutor — socket timeout alone
+    Uses 40s wall-clock timeout via ThreadPoolExecutor â socket timeout alone
     won't fire if Pollinations sends keepalive bytes during a slow download."""
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
         future = ex.submit(_pollinations_image_inner, prompt_str, seed, output_path, width, height)
@@ -344,7 +344,7 @@ def _pollinations_image(prompt_str, seed, output_path, width=1280, height=720, t
 
 def _normalize_portrait(path, target_w, target_h):
     """
-    Guarantee the saved image file is exactly target_w × target_h (portrait).
+    Guarantee the saved image file is exactly target_w Ã target_h (portrait).
 
     DALL-E is requested as square (1024x1024) to avoid a DALL-E 3 bug where
     portrait-size requests (1024x1792) render the scene rotated sideways inside
@@ -353,9 +353,9 @@ def _normalize_portrait(path, target_w, target_h):
 
     Steps:
       1. Apply any EXIF rotation tag so PIL sees real pixel orientation.
-      2. If wider than portrait target ratio → center-crop the sides.
+      2. If wider than portrait target ratio â center-crop the sides.
          (Covers square 1:1 and landscape 16:9 inputs.)
-      3. Resize to exact target_w × target_h with LANCZOS.
+      3. Resize to exact target_w Ã target_h with LANCZOS.
       4. Save back to the same path as JPEG.
     """
     try:
@@ -366,7 +366,7 @@ def _normalize_portrait(path, target_w, target_h):
         target_ratio = target_w / target_h     # e.g. 1080/1920 = 0.5625
 
         # Center-crop whenever the image is wider than the portrait ratio.
-        # This handles: square (1:1), landscape (>1:1) — any wider-than-portrait source.
+        # This handles: square (1:1), landscape (>1:1) â any wider-than-portrait source.
         # Pure portrait inputs (already narrow) pass through uncropped.
         if img.width / img.height > target_ratio:
             # Crop sides: keep full height, trim left and right
@@ -377,54 +377,54 @@ def _normalize_portrait(path, target_w, target_h):
         img = img.resize((target_w, target_h), Image.LANCZOS)
         img.save(path, "JPEG", quality=95)
     except Exception as e:
-        emit(f"  ⚠️ Portrait normalisation failed for {path}: {e}")
+        emit(f"  â ï¸ Portrait normalisation failed for {path}: {e}")
 
 
 def generate_image(prompt, output_path, scene_num, width=1280, height=720, channel="bsg", topic=""):
     """
     Primary: fal.ai Flux Pro. Secondary: DALL-E 3. Fallback: Pollinations with retries.
-    Never gives up — always produces a real image.
+    Never gives up â always produces a real image.
     After every successful download the image is normalised to portrait
-    (target width × height) so FFmpeg always receives portrait pixels.
+    (target width Ã height) so FFmpeg always receives portrait pixels.
 
-    topic: the video topic string — used to seed Pollinations so fallback images
+    topic: the video topic string â used to seed Pollinations so fallback images
     are unique per video, not identical across all videos of the same channel.
     """
     p     = prompt.strip()
     style = CHANNEL_STYLES.get(channel, CHANNEL_STYLES["bsg"])
     styled = style["style"].format(prompt=p)
-    # Topic-based seed offset — prevents the fallback from producing the same image
+    # Topic-based seed offset â prevents the fallback from producing the same image
     # for every video. Without this, scene_num * 42 = 0 for scene 0 on every run.
     topic_seed = abs(hash(topic or prompt)) % 100_000
 
-    # ── fal.ai Flux Pro (primary — cheapest, best quality) ────────────────────
+    # ââ fal.ai Flux Pro (primary â cheapest, best quality) ââââââââââââââââââââ
     if get_fal_key():
         for attempt in range(3):
             try:
                 if _fal_image(styled, output_path, width=width, height=height):
                     _normalize_portrait(output_path, width, height)
-                    emit(f"  🎨 Image generated via Flux Pro")
+                    emit(f"  ð¨ Image generated via Flux Pro")
                     return True
-                emit(f"  ⚠️ Flux Pro attempt {attempt+1} failed, retrying...")
+                emit(f"  â ï¸ Flux Pro attempt {attempt+1} failed, retrying...")
             except Exception as e:
-                emit(f"  ⚠️ Flux Pro attempt {attempt+1} error: {str(e)[:60]}")
+                emit(f"  â ï¸ Flux Pro attempt {attempt+1} error: {str(e)[:60]}")
             time.sleep(2)
-        emit(f"  ⚠️ Flux Pro failed 3 times — trying DALL-E...")
+        emit(f"  â ï¸ Flux Pro failed 3 times â trying DALL-E...")
 
-    # ── DALL-E 3 (secondary — if fal.ai key absent or failed) ────────────────
+    # ââ DALL-E 3 (secondary â if fal.ai key absent or failed) ââââââââââââââââ
     if get_openai_key():
         for attempt in range(3):
             try:
                 if _dalle_image(styled, output_path, width=width, height=height):
                     _normalize_portrait(output_path, width, height)
                     return True
-                emit(f"  ⚠️ DALL-E attempt {attempt+1} failed, retrying...")
+                emit(f"  â ï¸ DALL-E attempt {attempt+1} failed, retrying...")
             except Exception as e:
-                emit(f"  ⚠️ DALL-E attempt {attempt+1} error: {str(e)[:60]}")
+                emit(f"  â ï¸ DALL-E attempt {attempt+1} error: {str(e)[:60]}")
             time.sleep(2)
-        emit(f"  ⚠️ DALL-E failed 3 times — switching to backup image service...")
+        emit(f"  â ï¸ DALL-E failed 3 times â switching to backup image service...")
 
-    # ── Pollinations fallback (5 attempts × 40s wall-clock = 200s max per scene) ─
+    # ââ Pollinations fallback (5 attempts Ã 40s wall-clock = 200s max per scene) â
     generics = style["fallback_generic"]
     fallback_attempts = [
         (styled,                                                  topic_seed + scene_num * 42),
@@ -439,20 +439,20 @@ def generate_image(prompt, output_path, scene_num, width=1280, height=720, chann
             if _pollinations_image(prompt_str, seed, output_path, width=width, height=height):
                 _normalize_portrait(output_path, width, height)
                 if i > 0:
-                    emit(f"  ✅ Backup image succeeded (attempt {i+1})")
+                    emit(f"  â Backup image succeeded (attempt {i+1})")
                 return True
         except Exception:
             pass
         time.sleep(2)
 
     # Last resort placeholder
-    emit(f"  ❌ All image attempts failed for scene {scene_num+1}")
+    emit(f"  â All image attempts failed for scene {scene_num+1}")
     _make_placeholder(output_path, scene_num, width=width, height=height)
     return False
 
 
 def _make_placeholder(path, scene_num, width=1280, height=720):
-    """Last-resort placeholder — should almost never appear."""
+    """Last-resort placeholder â should almost never appear."""
     img  = Image.new("RGB", (width, height), (20, 20, 30))
     draw = ImageDraw.Draw(img)
     cx, cy = width // 2, height // 2
@@ -479,7 +479,7 @@ def add_text_overlay(image_path, text, output_path, width=1280, height=720, chan
     overlay     = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     draw        = ImageDraw.Draw(overlay)
 
-    # Channel watermark — top-right corner
+    # Channel watermark â top-right corner
     brand_size = 30 if is_vertical else 20
     font_brand = _find_regular_font(brand_size)
     watermark  = CHANNEL_STYLES.get(channel, CHANNEL_STYLES["bsg"])["watermark"]
@@ -496,7 +496,7 @@ def add_text_overlay(image_path, text, output_path, width=1280, height=720, chan
     )
     draw.text((wx, wy), watermark, fill=(255, 255, 255, 200), font=font_brand)
 
-    # Static narration card — skipped when animated captions handle the text
+    # Static narration card â skipped when animated captions handle the text
     if not animated_captions:
         # Border color: warm wood-brown for BSG, dark indigo for TMF
         border_color = (125, 82, 53) if channel == "bsg" else (50, 50, 140)
@@ -558,9 +558,9 @@ def add_text_overlay(image_path, text, output_path, width=1280, height=720, chan
 
 async def _gen_audio_async(text, path, voice):
     import edge_tts
-    # 45s timeout — edge-tts has no built-in timeout; without this a hung
+    # 45s timeout â edge-tts has no built-in timeout; without this a hung
     # Microsoft TTS connection blocks the background thread forever.
-    # NOTE: was 20s — raised to 45s because MS TTS endpoint often takes 20-35s
+    # NOTE: was 20s â raised to 45s because MS TTS endpoint often takes 20-35s
     # under load, causing silent TimeoutError failures on 2 of 3 daily TMF runs.
     await asyncio.wait_for(
         edge_tts.Communicate(text, voice).save(str(path)),
@@ -571,7 +571,7 @@ async def _gen_audio_async(text, path, voice):
 async def _gen_audio_with_timing_async(text, path, voice):
     """
     Generate audio AND capture word-level timing from edge-tts WordBoundary events.
-    This gives us animated captions for ALL voices — no ElevenLabs required.
+    This gives us animated captions for ALL voices â no ElevenLabs required.
     Returns list of {word, start, end} dicts (same format as ElevenLabs output).
     """
     import edge_tts
@@ -584,7 +584,7 @@ async def _gen_audio_with_timing_async(text, path, voice):
                 if chunk["type"] == "audio":
                     audio_file.write(chunk["data"])
                 elif chunk["type"] == "WordBoundary":
-                    # offset and duration are in 100-nanosecond units → convert to seconds
+                    # offset and duration are in 100-nanosecond units â convert to seconds
                     start = chunk["offset"] / 10_000_000
                     end   = (chunk["offset"] + chunk["duration"]) / 10_000_000
                     word_timings.append({
@@ -594,7 +594,7 @@ async def _gen_audio_with_timing_async(text, path, voice):
                     })
         return word_timings if word_timings else None
 
-    # 45s timeout — edge-tts has no built-in timeout; without this a hung
+    # 45s timeout â edge-tts has no built-in timeout; without this a hung
     # Microsoft TTS connection blocks the background thread forever.
     return await asyncio.wait_for(_stream(), timeout=45)
 
@@ -609,7 +609,7 @@ def _elevenlabs_audio(text, path, voice_id, get_timestamps=False):
     api_key = get_elevenlabs_key()
 
     if get_timestamps:
-        # Use the timestamps endpoint — returns audio + character-level timing
+        # Use the timestamps endpoint â returns audio + character-level timing
         url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/with-timestamps"
         payload = json.dumps({
             "text": text,
@@ -673,13 +673,13 @@ def _elevenlabs_audio(text, path, voice_id, get_timestamps=False):
         return None
 
 
-# ElevenLabs voice IDs — warm voices that suit narration well
+# ElevenLabs voice IDs â warm voices that suit narration well
 ELEVENLABS_VOICES = {
-    "el_sarah":   "EXAVITQu4vr4xnSDxMaL",   # Sarah — warm, clear female
-    "el_rachel":  "21m00Tcm4TlvDq8ikWAM",   # Rachel — calm female
-    "el_adam":    "auq43ws1oslv0tO4BDa7",   # Adam Stone — smooth, deep male narrator (added May 2026)
-    "el_antoni":  "ErXwobaYiN019PkySvjV",   # Antoni — warm male
-    "el_josh":    "TxGEqnHWrfWFTfGW9XjX",   # Josh — deep storytelling male
+    "el_sarah":   "EXAVITQu4vr4xnSDxMaL",   # Sarah â warm, clear female
+    "el_rachel":  "21m00Tcm4TlvDq8ikWAM",   # Rachel â calm female
+    "el_adam":    "auq43ws1oslv0tO4BDa7",   # Adam Stone â smooth, deep male narrator (added May 2026)
+    "el_antoni":  "ErXwobaYiN019PkySvjV",   # Antoni â warm male
+    "el_josh":    "TxGEqnHWrfWFTfGW9XjX",   # Josh â deep storytelling male
 }
 
 EDGE_TTS_VOICES = {
@@ -698,7 +698,7 @@ def generate_audio(text, path, voice):
         generate_audio_xtts(text, path)
         return None
 
-    # ElevenLabs voices — request timestamps for animated captions.
+    # ElevenLabs voices â request timestamps for animated captions.
     # IMPORTANT: if ElevenLabs fails for an el_* channel, do NOT fall through
     # to edge-tts. A TMF video with Michelle's voice instead of Adam is garbage
     # quality and would hurt the channel. Fail fast so the job exits in seconds
@@ -711,13 +711,13 @@ def generate_audio(text, path, voice):
                 return timings
             except Exception as e:
                 raise RuntimeError(
-                    f"ElevenLabs audio failed for el_* voice '{voice}' — "
+                    f"ElevenLabs audio failed for el_* voice '{voice}' â "
                     f"not falling back to edge-tts (voice mismatch would ruin video quality). "
                     f"Error: {str(e)[:120]}"
                 )
-        raise RuntimeError(f"Unknown ElevenLabs voice ID for '{voice}' — check ELEVENLABS_VOICES dict.")
+        raise RuntimeError(f"Unknown ElevenLabs voice ID for '{voice}' â check ELEVENLABS_VOICES dict.")
 
-    # Edge TTS — use streaming mode to capture word timing for animated captions.
+    # Edge TTS â use streaming mode to capture word timing for animated captions.
     # 2 attempts with fallback voices. If BOTH timing attempts fail, we fall back
     # to _gen_audio_async (static captions, no crash). This prevents the render
     # thread from dying and guarantees a video is always produced.
@@ -727,37 +727,37 @@ def generate_audio(text, path, voice):
         try:
             timings = asyncio.run(_gen_audio_with_timing_async(text, path, tts_voice))
             if timings:
-                emit(f"  ✨ {len(timings)} word timings — animated captions active")
+                emit(f"  â¨ {len(timings)} word timings â animated captions active")
             else:
-                emit(f"  ℹ️ No word timings from edge-tts — using static text overlay")
+                emit(f"  â¹ï¸ No word timings from edge-tts â using static text overlay")
             return timings
         except (Exception, asyncio.TimeoutError) as tts_err:
             err_msg = "timed out (45s)" if isinstance(tts_err, asyncio.TimeoutError) else str(tts_err)[:60]
             if attempt < 1:
-                emit(f"  ⚠️ Voice attempt {attempt+1}/2 failed ({err_msg}) — retrying in 2s...")
+                emit(f"  â ï¸ Voice attempt {attempt+1}/2 failed ({err_msg}) â retrying in 2s...")
                 time.sleep(2)
                 tts_voice = fallback_voices[attempt + 1]
             else:
-                # Both timing attempts failed — fall back to simple audio (no word timing)
+                # Both timing attempts failed â fall back to simple audio (no word timing)
                 # This guarantees the render completes with static captions rather than crashing.
-                emit(f"  ⚠️ Both timing attempts failed — falling back to static audio (no karaoke captions)")
+                emit(f"  â ï¸ Both timing attempts failed â falling back to static audio (no karaoke captions)")
                 try:
                     asyncio.run(_gen_audio_async(text, path, tts_voice))
-                    emit(f"  ✅ Static audio generated successfully")
+                    emit(f"  â Static audio generated successfully")
                 except Exception as fallback_err:
                     raise Exception(
                         f"Audio generation failed completely (timing + static both failed). "
                         f"Check internet connection. ({fallback_err})"
                     )
-                return None   # No timings — static caption overlay will be used
+                return None   # No timings â static caption overlay will be used
     return None
 
 def generate_audio_xtts(text, output_path):
     """Generate speech in your cloned voice using Coqui XTTS v2."""
-    emit("  🎤 Using your voice clone...")
+    emit("  ð¤ Using your voice clone...")
     prepare_voice_wav()
     if not VOICE_WAV.exists():
-        emit("  ⚠️ Voice file not found — falling back to AI voice")
+        emit("  â ï¸ Voice file not found â falling back to AI voice")
         asyncio.run(_gen_audio_async(text, output_path, "en-US-JennyNeural"))
         return
     model = get_xtts_model()
@@ -768,7 +768,7 @@ def generate_audio_xtts(text, output_path):
         language="en",
         file_path=str(wav_out)
     )
-    # Convert wav → mp3
+    # Convert wav â mp3
     subprocess.run([
         "ffmpeg", "-y", "-i", str(wav_out), str(output_path)
     ], capture_output=True)
@@ -781,19 +781,19 @@ def _make_ass_captions(word_timings, ass_path, width=1280, height=720, channel="
     """
     is_vertical = height > width
 
-    # Large bold font — sized so it's readable on a phone screen
+    # Large bold font â sized so it's readable on a phone screen
     # AutoShorts-style: very large text, 1-2 words per line, punchy and immediate
     font_size = 95 if is_vertical else 52
     margin_v  = int(height * 0.08)   # distance from bottom
 
     # Channel accent color in ASS &HAABBGGRR format (AA=00 = fully opaque)
-    # ASS uses BGR order: BSG = amber #C8923A → BGR 3A92C8, TMF = vivid yellow → BGR 00EEFF
+    # ASS uses BGR order: BSG = amber #C8923A â BGR 3A92C8, TMF = vivid yellow â BGR 00EEFF
     accent = "&H003A92C8" if channel == "bsg" else "&H0000EEFF"
     white  = "&H00FFFFFF"
     black_outline = "&H00000000"
-    bg_box = "&H00000000"   # transparent — thick outline is enough
+    bg_box = "&H00000000"   # transparent â thick outline is enough
 
-    # Group into short lines — 2 words per line for big punchy captions
+    # Group into short lines â 2 words per line for big punchy captions
     WORDS_PER_LINE = 2
     lines = []
     i = 0
@@ -813,7 +813,7 @@ def _make_ass_captions(word_timings, ass_path, width=1280, height=720, channel="
         cs = int((seconds % 1) * 100)
         return f"{h}:{m:02d}:{s:02d}.{cs:02d}"
 
-    # BorderStyle 1 = outline + shadow, no box — bold thick outline is the AutoShorts look
+    # BorderStyle 1 = outline + shadow, no box â bold thick outline is the AutoShorts look
     header = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: {width}
@@ -890,14 +890,14 @@ def create_scene_clip(img_path, audio_path, out_path, scene_num=0,
             ass_tmp = Path(ass_str)
             _make_ass_captions(word_timings, ass_tmp, width=width, height=height, channel=channel)
             if ass_tmp.exists():
-                # Resolve symlinks (macOS /tmp → /private/tmp) and escape for FFmpeg
+                # Resolve symlinks (macOS /tmp â /private/tmp) and escape for FFmpeg
                 real_path = str(ass_tmp.resolve())
                 # FFmpeg subtitles filter: escape backslashes and single quotes only
                 safe = real_path.replace("\\", "\\\\").replace("'", "\\'").replace(":", "\\:")
                 vf = f"{base_vf},subtitles='{safe}'"
-                emit(f"  📝 Captions file ready")
+                emit(f"  ð Captions file ready")
         except Exception as e:
-            emit(f"  ⚠️ Caption build failed: {str(e)[:80]}")
+            emit(f"  â ï¸ Caption build failed: {str(e)[:80]}")
 
     result = subprocess.run([
         "ffmpeg", "-y", "-loop", "1",
@@ -912,9 +912,9 @@ def create_scene_clip(img_path, audio_path, out_path, scene_num=0,
     # If FFmpeg failed (e.g. libass issue), retry without captions
     if result.returncode != 0 and ass_tmp is not None:
         err_snippet = result.stderr[-300:].decode("utf-8", errors="replace") if result.stderr else ""
-        emit(f"  ⚠️ Caption render failed — retrying without captions")
+        emit(f"  â ï¸ Caption render failed â retrying without captions")
         if "subtitles" in err_snippet or "ass" in err_snippet.lower():
-            emit(f"  ℹ️ libass issue detected — captions disabled for this clip")
+            emit(f"  â¹ï¸ libass issue detected â captions disabled for this clip")
         subprocess.run([
             "ffmpeg", "-y", "-loop", "1",
             "-i", str(img_path), "-i", str(audio_path),
@@ -933,8 +933,8 @@ def create_scene_clip(img_path, audio_path, out_path, scene_num=0,
 
 def _generate_ambient_music(path, duration=150):
     """
-    Generate a gentle ambient chord pad using pure Python — no downloads needed.
-    C major → A minor → F major → G major, cycling every 4 seconds.
+    Generate a gentle ambient chord pad using pure Python â no downloads needed.
+    C major â A minor â F major â G major, cycling every 4 seconds.
     """
     import wave, math, array as arr
     sr      = 44100
@@ -946,7 +946,7 @@ def _generate_ambient_music(path, duration=150):
         [196.00, 246.94, 293.66],   # G major
     ]
     chord_len = sr * 4   # 4 seconds per chord
-    volume    = 0.07     # 7% — quiet bed, won't overpower narration
+    volume    = 0.07     # 7% â quiet bed, won't overpower narration
 
     samples = arr.array('h', [0] * n)
     for i in range(n):
@@ -969,7 +969,7 @@ def _generate_ambient_music(path, duration=150):
 
 def get_background_music():
     """Return path to background music, generating it if needed."""
-    # User can drop their own .mp3/.wav into bsg_music/ — use that first
+    # User can drop their own .mp3/.wav into bsg_music/ â use that first
     for pattern in ["*.mp3", "*.wav", "*.m4a"]:
         tracks = [t for t in MUSIC_DIR.glob(pattern) if "ambient_bg" not in t.name]
         if tracks:
@@ -990,18 +990,18 @@ def concatenate_clips(clip_paths, out_path):
     list_file  = TEMP_DIR / "clips.txt"
     concat_tmp = TEMP_DIR / "concat_raw.mp4"
 
-    # Filter out missing/empty clips — a failed scene shouldn't kill the whole video
+    # Filter out missing/empty clips â a failed scene shouldn't kill the whole video
     valid_clips = [c for c in clip_paths if c.exists() and c.stat().st_size > 10000]
     if not valid_clips:
         raise Exception("No valid scene clips were produced. Check progress log for errors.")
     if len(valid_clips) < len(clip_paths):
-        emit(f"  ⚠️ {len(clip_paths) - len(valid_clips)} scene(s) failed — continuing with {len(valid_clips)} clips")
+        emit(f"  â ï¸ {len(clip_paths) - len(valid_clips)} scene(s) failed â continuing with {len(valid_clips)} clips")
 
     with open(list_file, "w") as f:
         for c in valid_clips:
             f.write(f"file '{c.resolve()}'\n")
 
-    # Step 1: concatenate — use re-encode (not copy) to guarantee consistent
+    # Step 1: concatenate â use re-encode (not copy) to guarantee consistent
     # dimensions across all clips. -c copy can fail silently when clips differ.
     subprocess.run([
         "ffmpeg", "-y", "-f", "concat", "-safe", "0",
@@ -1026,7 +1026,7 @@ def concatenate_clips(clip_paths, out_path):
         ], capture_output=True)
 
         if result.returncode != 0 or not Path(out_path).exists():
-            # Music mixing failed — fall back to no-music version
+            # Music mixing failed â fall back to no-music version
             if concat_tmp.exists():
                 import shutil
                 shutil.copy(str(concat_tmp), str(out_path))
@@ -1042,19 +1042,19 @@ def run_video_job(title, scenes, voice, fmt="vertical", channel="bsg"):
         current_job["output"]  = None
         current_job["error"]   = None
 
-        # Always Shorts/Reels — landscape removed
+        # Always Shorts/Reels â landscape removed
         vid_w, vid_h = VERT_WIDTH, VERT_HEIGHT   # 1080 x 1920
 
         ch_label = CHANNEL_STYLES.get(channel, CHANNEL_STYLES["bsg"])["label"]
-        emit(f"📺 Channel: {ch_label}")
-        emit(f"📖 Building: {title}")
-        emit(f"📐 Format: 📱 Shorts 9:16 (1080×1920)")
-        emit(f"🎬 Scenes: {len(scenes)}\n")
+        emit(f"ðº Channel: {ch_label}")
+        emit(f"ð Building: {title}")
+        emit(f"ð Format: ð± Shorts 9:16 (1080Ã1920)")
+        emit(f"ð¬ Scenes: {len(scenes)}\n")
 
         clip_paths = []
         for i, scene in enumerate(scenes):
-            emit(f"── Scene {i+1} of {len(scenes)} ──────────────")
-            emit(f"  🎨 Generating image {i+1}...")
+            emit(f"ââ Scene {i+1} of {len(scenes)} ââââââââââââââ")
+            emit(f"  ð¨ Generating image {i+1}...")
 
             raw_img   = TEMP_DIR / f"scene_{i:02d}_raw.jpg"
             final_img = TEMP_DIR / f"scene_{i:02d}_final.jpg"
@@ -1062,29 +1062,29 @@ def run_video_job(title, scenes, voice, fmt="vertical", channel="bsg"):
             clip      = TEMP_DIR / f"scene_{i:02d}_clip.mp4"
 
             generate_image(scene["image_prompt"], raw_img, i, width=vid_w, height=vid_h, channel=channel, topic=title)
-            emit(f"  ✅ Image {i+1} saved")
+            emit(f"  â Image {i+1} saved")
 
-            emit(f"  🎙️ Generating narration...")
+            emit(f"  ðï¸ Generating narration...")
             word_timings = generate_audio(scene["narration"], audio, voice)
             has_captions = bool(word_timings)
             if has_captions:
-                emit(f"  ✨ Word timing captured — animated captions active")
+                emit(f"  â¨ Word timing captured â animated captions active")
 
-            emit(f"  📝 Adding image overlay...")
+            emit(f"  ð Adding image overlay...")
             add_text_overlay(raw_img, scene["narration"], final_img,
                              width=vid_w, height=vid_h, channel=channel,
                              animated_captions=has_captions)
 
-            emit(f"  🎬 Assembling clip...")
+            emit(f"  ð¬ Assembling clip...")
             create_scene_clip(final_img, audio, clip, scene_num=i,
                               width=vid_w, height=vid_h,
                               word_timings=word_timings, channel=channel)
             clip_paths.append(clip)
 
-            emit(f"  ✅ Scene {i+1} complete!\n")
+            emit(f"  â Scene {i+1} complete!\n")
 
-        emit("── Assembling final video ──────────────")
-        emit("  🎵 Mixing background music...")
+        emit("ââ Assembling final video ââââââââââââââ")
+        emit("  ðµ Mixing background music...")
         safe       = title.replace(" ", "_").replace("'", "").replace(":", "").replace("-", "_")
         output_dir = CHANNEL_OUTPUT.get(channel, CHANNEL_OUTPUT["bsg"])
         out        = output_dir / f"{safe}.mp4"
@@ -1100,9 +1100,9 @@ def run_video_job(title, scenes, voice, fmt="vertical", channel="bsg"):
         current_job["running"] = False
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 #  FLASK ROUTES
-# ══════════════════════════════════════════════════════════════════════════════
+# ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 @app.route("/")
 def index():
@@ -1176,7 +1176,7 @@ def generate_script():
         style_guide = (
             "Dark psychology / human behavior educational content for adults. "
             "Tone: calm, analytical, slightly unsettling. "
-            "Image prompts MUST be atmospheric and symbolic — NO faces, NO people, NO portraits. "
+            "Image prompts MUST be atmospheric and symbolic â NO faces, NO people, NO portraits. "
             "Use objects, environments, shadows, hands (no face), silhouettes, abstract compositions. "
             "Examples of valid image prompts: burning money on a desk, broken clock on dark floor, "
             "empty interrogation chair under single light, heavy chains on concrete, "
@@ -1190,8 +1190,8 @@ def generate_script():
             "Image prompts should be colorful, cheerful storybook illustration style. "
             "\n*** CRITICAL FOR ENGAGEMENT: ***\n"
             "Scene 1 MUST be a dramatic hook that stops scrolling. Start with a question or stunning visual, not exposition. "
-            "Example: Don't open with 'Once upon a time...' — open with 'He was FACING CERTAIN DEATH. Then...' "
-            "Scene 1 image: Make it VISUALLY STRIKING — bold colors, dramatic moment, something that makes people stop scrolling."
+            "Example: Don't open with 'Once upon a time...' â open with 'He was FACING CERTAIN DEATH. Then...' "
+            "Scene 1 image: Make it VISUALLY STRIKING â bold colors, dramatic moment, something that makes people stop scrolling."
         )
 
     system_prompt = f"""You are a short-form video script writer optimized for YouTube Shorts (60 seconds).
@@ -1212,25 +1212,32 @@ Output ONLY valid JSON in this exact format:
 
 Rules:
 - Exactly {n} scenes
-- SCENE 1 (0-2 sec): HOOK FIRST. Create curiosity or show something visually stunning. Don't explain — intrigue.
+- SCENE 1 (0-2 sec): HOOK FIRST. Create curiosity or show something visually stunning. Don't explain â intrigue.
 - Each narration: 20-40 words, conversational, hook-driven
 - Pacing: Build momentum. Don't waste time. Each scene should reveal something new.
-- Each image_prompt: specific, visual, cinematic — NOT abstract. For scene 1, make it ATTENTION-GRABBING.
+- Each image_prompt: specific, visual, cinematic â NOT abstract. For scene 1, make it ATTENTION-GRABBING.
 - No markdown, no explanation, ONLY the JSON object"""
 
     try:
         import openai
-        client = openai.OpenAI(api_key=api_key)
+        # Prefer DeepSeek (95% cheaper) — fall back to GPT-4o if key missing
+        deepseek_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+        if deepseek_key:
+            client = openai.OpenAI(api_key=deepseek_key, base_url="https://api.deepseek.com")
+            model_name = "deepseek-chat"
+        else:
+            client = openai.OpenAI(api_key=api_key)
+            model_name = "gpt-4o"
         user_msg = f"Write a {n}-scene script about: {topic}"
         extra_constraints = ""
         last_script = None
 
-        # 3 attempts for both TMF and BSG — title format is critical for both channels.
+        # 3 attempts for both TMF and BSG â title format is critical for both channels.
         max_attempts = 3
 
         for attempt in range(1, max_attempts + 1):
             resp = client.chat.completions.create(
-                model="gpt-4o",
+                model=model_name,
                 messages=[
                     {"role": "system", "content": system_prompt + extra_constraints},
                     {"role": "user", "content": user_msg}
@@ -1255,11 +1262,11 @@ Rules:
                 if title_ok:
                     break
                 extra_constraints = (
-                    f"\n\nIMPORTANT — your previous draft was REJECTED. "
+                    f"\n\nIMPORTANT â your previous draft was REJECTED. "
                     f"Title was: \"{title}\"\n"
-                    f"The title MUST start with \"Why You\" or \"Why Your\" — "
+                    f"The title MUST start with \"Why You\" or \"Why Your\" â "
                     f"e.g. \"Why You Stay Loyal to Mean People\". "
-                    f"Data shows this pattern drives 400–1300 views vs <50 for \"The [concept]\" titles. "
+                    f"Data shows this pattern drives 400â1300 views vs <50 for \"The [concept]\" titles. "
                     f"Rewrite as \"Why You [verb] [observable behavior the viewer recognizes in themselves]\". "
                     f"No colons in the title."
                 )
@@ -1269,12 +1276,12 @@ Rules:
                 if title_ok:
                     break
                 extra_constraints = (
-                    f"\n\nIMPORTANT — your previous draft was REJECTED. "
+                    f"\n\nIMPORTANT â your previous draft was REJECTED. "
                     f"Title was: \"{title}\"\n"
                     f"The BSG title MUST follow this EXACT format: "
                     f"[Story Name] [single emoji] | Bible Story for Kids | Bible Story Garden\n"
-                    f"Examples: \"Noah's Ark 🌊 | Bible Story for Kids | Bible Story Garden\"\n"
-                    f"          \"David vs Goliath ⚔️ | Bible Story for Kids | Bible Story Garden\"\n"
+                    f"Examples: \"Noah's Ark ð | Bible Story for Kids | Bible Story Garden\"\n"
+                    f"          \"David vs Goliath âï¸ | Bible Story for Kids | Bible Story Garden\"\n"
                     f"Rewrite the title to match this format exactly."
                 )
             else:
@@ -1289,7 +1296,7 @@ Rules:
             else:
                 final_ok = "| Bible Story for Kids | Bible Story Garden" in final_title
             if not final_ok:
-                return jsonify({"error": f"TITLE_VALIDATION_SKIP: all {max_attempts} attempts failed — last title: \"{final_title}\""}), 422
+                return jsonify({"error": f"TITLE_VALIDATION_SKIP: all {max_attempts} attempts failed â last title: \"{final_title}\""}), 422
 
         return jsonify({"script": last_script})
     except Exception as e:
@@ -1329,11 +1336,11 @@ def serve_video(filename):
 @app.route("/voices")
 def list_voices():
     return jsonify([
-        {"id": "en-US-JennyNeural",    "label": "Jenny — warm female (default)"},
-        {"id": "en-US-AriaNeural",     "label": "Aria — soft female"},
-        {"id": "en-US-MichelleNeural", "label": "Michelle — friendly female"},
-        {"id": "en-US-GuyNeural",      "label": "Guy — calm male"},
-        {"id": "en-US-DavisNeural",    "label": "Davis — deep male"},
+        {"id": "en-US-JennyNeural",    "label": "Jenny â warm female (default)"},
+        {"id": "en-US-AriaNeural",     "label": "Aria â soft female"},
+        {"id": "en-US-MichelleNeural", "label": "Michelle â friendly female"},
+        {"id": "en-US-GuyNeural",      "label": "Guy â calm male"},
+        {"id": "en-US-DavisNeural",    "label": "Davis â deep male"},
     ])
 
 @app.route("/voice-status")
@@ -1371,26 +1378,26 @@ def save_config():
         return jsonify({"error": str(e)}), 500
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 #  YOUTUBE UPLOAD
-# ══════════════════════════════════════════════════════════════════════════════
+# ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 YT_SECRETS_FILE = BASE_DIR / "youtube_client_secrets.json"
 YT_SCOPES       = ["https://www.googleapis.com/auth/youtube.upload",
                    "https://www.googleapis.com/auth/youtube"]
 
-# Each channel has its own token file — so BSG and TMF can be different YouTube accounts
+# Each channel has its own token file â so BSG and TMF can be different YouTube accounts
 YT_TOKEN_FILES = {
     "bsg": BASE_DIR / "youtube_token_bsg.json",
     "tmf": BASE_DIR / "youtube_token_tmf.json",
-    "mz":  BASE_DIR / "youtube_token_mz.json",   # Minute Zero — OAuth pending
+    "mz":  BASE_DIR / "youtube_token_mz.json",   # Minute Zero â OAuth pending
 }
 
 # YouTube Channel IDs for each channel (required to upload to the correct channel)
 YT_CHANNEL_IDS = {
     "bsg": "UCcyBf84Mc-evMSYZlqh3zVA",
     "tmf": "UC0O6KbbHKW4_a7d9epNo93A",
-    "mz":  "UCMVhjR4HetJctXeYkuPgg6w",   # Minute Zero — @theminutezero (filled 2026-04-25 post-OAuth)
+    "mz":  "UCMVhjR4HetJctXeYkuPgg6w",   # Minute Zero â @theminutezero (filled 2026-04-25 post-OAuth)
 }
 
 # Store active OAuth flow objects between /youtube-connect and /youtube-callback
@@ -1411,23 +1418,23 @@ def _load_yt_credentials(channel="bsg"):
     """Return valid Google credentials for the given channel, or None."""
     token_file = YT_TOKEN_FILES.get(channel)
     if not token_file or not token_file.exists():
-        print(f"❌ YT credentials [{channel}]: token file not found at {token_file}")
+        print(f"â YT credentials [{channel}]: token file not found at {token_file}")
         return None
     try:
         from google.oauth2.credentials import Credentials
         from google.auth.transport.requests import Request
         creds = Credentials.from_authorized_user_file(str(token_file), YT_SCOPES)
         if creds.expired and creds.refresh_token:
-            print(f"🔄 YT credentials [{channel}]: access token expired, refreshing...")
+            print(f"ð YT credentials [{channel}]: access token expired, refreshing...")
             creds.refresh(Request())
             token_file.write_text(creds.to_json())
-            print(f"✅ YT credentials [{channel}]: token refreshed successfully")
+            print(f"â YT credentials [{channel}]: token refreshed successfully")
         if not creds.valid:
-            print(f"❌ YT credentials [{channel}]: credentials invalid after load/refresh")
+            print(f"â YT credentials [{channel}]: credentials invalid after load/refresh")
             return None
         return creds
     except Exception as e:
-        print(f"❌ YT credentials [{channel}]: failed to load — {e}")
+        print(f"â YT credentials [{channel}]: failed to load â {e}")
         return None
 
 
@@ -1446,7 +1453,7 @@ def youtube_status():
 
 @app.route("/youtube-connect")
 def youtube_connect():
-    """Start the OAuth2 flow for a specific channel — ?channel=bsg, tmf, or mz."""
+    """Start the OAuth2 flow for a specific channel â ?channel=bsg, tmf, or mz."""
     channel = request.args.get("channel", "bsg")
     if channel not in ("bsg", "tmf", "mz"):
         return jsonify({"error": "Invalid channel."}), 400
@@ -1464,7 +1471,7 @@ def youtube_connect():
         auth_url, _ = flow.authorization_url(prompt="consent", access_type="offline")
         # Store the flow so the callback can reuse it (preserves PKCE code_verifier)
         _yt_flows[channel] = flow
-        # Redirect straight to Google instead of returning JSON — UX is much
+        # Redirect straight to Google instead of returning JSON â UX is much
         # cleaner: one click instead of "parse JSON, copy auth_url, paste".
         return redirect(auth_url)
     except Exception as e:
@@ -1473,14 +1480,14 @@ def youtube_connect():
 
 @app.route("/youtube-callback")
 def youtube_callback():
-    """Handle OAuth2 callback — saves token to the correct channel token file."""
+    """Handle OAuth2 callback â saves token to the correct channel token file."""
     code    = request.args.get("code")
     channel = request.args.get("channel", "bsg")
     if not code:
-        return "<h2>❌ No code received. Try connecting again.</h2>", 400
+        return "<h2>â No code received. Try connecting again.</h2>", 400
     token_file = YT_TOKEN_FILES.get(channel)
     if not token_file:
-        return "<h2>❌ Unknown channel.</h2>", 400
+        return "<h2>â Unknown channel.</h2>", 400
     try:
         # Reuse the stored flow (contains the PKCE code_verifier from the connect step)
         flow = _yt_flows.get(channel)
@@ -1502,12 +1509,12 @@ def youtube_callback():
             "mz":  "Minute Zero",
         }.get(channel, channel.upper())
         return f"""<html><body style="font-family:sans-serif;padding:40px;background:#FAF4EC;">
-            <h2 style="color:#2D6A4F;">✅ {label} Connected!</h2>
+            <h2 style="color:#2D6A4F;">â {label} Connected!</h2>
             <p style="margin-top:12px;color:#444;">Your YouTube channel is now linked. You can close this tab and return to the Video Studio.</p>
             <script>setTimeout(()=>window.close(),3000);</script>
             </body></html>"""
     except Exception as e:
-        return f"<h2>❌ Error: {e}</h2>", 500
+        return f"<h2>â Error: {e}</h2>", 500
 
 
 @app.route("/youtube-upload", methods=["POST"])
@@ -1520,7 +1527,7 @@ def youtube_upload():
     channel = data.get("channel", "bsg")
 
     # DEBUG: Log the channel being requested
-    print(f"\n🔍 UPLOAD DEBUG: channel requested = '{channel}'")
+    print(f"\nð UPLOAD DEBUG: channel requested = '{channel}'")
 
     creds = _load_yt_credentials(channel)
     if not creds:
@@ -1529,10 +1536,10 @@ def youtube_upload():
             "tmf": "The Mind Files",
             "mz":  "Minute Zero",
         }.get(channel, channel.upper())
-        return jsonify({"error": f"{label} YouTube channel is not connected. Go to Settings → YouTube Auto-Post and connect it first."}), 401
+        return jsonify({"error": f"{label} YouTube channel is not connected. Go to Settings â YouTube Auto-Post and connect it first."}), 401
 
     # DEBUG: Log that credentials were loaded
-    print(f"✅ UPLOAD DEBUG: credentials loaded for channel '{channel}'")
+    print(f"â UPLOAD DEBUG: credentials loaded for channel '{channel}'")
 
     video_path  = data.get("video_path", "")
     title       = data.get("title", "My Video")
@@ -1557,7 +1564,7 @@ def youtube_upload():
         youtube = build("youtube", "v3", credentials=creds)
 
         # PRE-UPLOAD SAFEGUARD: verify the token is bound to the expected channel
-        # BEFORE we call videos().insert(). Post-upload verification doesn't work —
+        # BEFORE we call videos().insert(). Post-upload verification doesn't work â
         # by the time we'd detect a mismatch, the video is already live on YouTube.
         # If the token is bound to the wrong channel, refuse to upload at all.
         expected_channel_id = YT_CHANNEL_IDS.get(channel)
@@ -1575,10 +1582,10 @@ def youtube_upload():
                 f"{expected_channel_id}. Regenerate youtube_token_{channel}.json "
                 f"while signed in as the correct brand channel."
             )
-            print(f"❌ PRE-UPLOAD BLOCK: {msg}")
+            print(f"â PRE-UPLOAD BLOCK: {msg}")
             return jsonify({"error": msg, "actual_channel": actual_channel_id}), 400
 
-        print(f"✅ PRE-UPLOAD CHECK: token for '{channel}' correctly bound to '{actual_channel_title}' ({actual_channel_id})")
+        print(f"â PRE-UPLOAD CHECK: token for '{channel}' correctly bound to '{actual_channel_title}' ({actual_channel_id})")
 
         body = {
             "snippet": {
@@ -1597,17 +1604,17 @@ def youtube_upload():
                                 mimetype="video/mp4")
 
         # DEBUG
-        print(f"🔍 UPLOAD DEBUG: Expected channel ID for '{channel}' = {expected_channel_id}")
-        print(f"🔍 UPLOAD DEBUG: Video title = {title}")
-        print(f"🔍 UPLOAD DEBUG: Privacy status = {privacy}")
+        print(f"ð UPLOAD DEBUG: Expected channel ID for '{channel}' = {expected_channel_id}")
+        print(f"ð UPLOAD DEBUG: Video title = {title}")
+        print(f"ð UPLOAD DEBUG: Privacy status = {privacy}")
 
         # NOTE: We intentionally do NOT pass onBehalfOfContentOwnerChannel here.
         # That parameter is only honored for YouTube Partner / CMS accounts and is
         # silently IGNORED for regular creator accounts. With it, non-CMS uploads
-        # just go to whatever channel the OAuth token is bound to — which made
+        # just go to whatever channel the OAuth token is bound to â which made
         # mis-routed BSG uploads (going to TMF) look like they "succeeded."
         # Routing is now entirely determined by the per-channel token file.
-        print(f"🔍 UPLOAD DEBUG: Calling youtube.videos().insert() — routing by token identity only")
+        print(f"ð UPLOAD DEBUG: Calling youtube.videos().insert() â routing by token identity only")
 
         request_obj = youtube.videos().insert(
             part="snippet,status",
@@ -1622,7 +1629,7 @@ def youtube_upload():
         video_id  = response["id"]
         video_url = f"https://www.youtube.com/shorts/{video_id}"
 
-        print(f"✅ UPLOAD DEBUG: Video uploaded successfully")
+        print(f"â UPLOAD DEBUG: Video uploaded successfully")
         print(f"   Video ID: {video_id}")
         print(f"   URL: {video_url}\n")
 
@@ -1630,7 +1637,7 @@ def youtube_upload():
 
     except Exception as e:
         error_msg = str(e)
-        print(f"❌ UPLOAD DEBUG: Exception occurred!")
+        print(f"â UPLOAD DEBUG: Exception occurred!")
         print(f"   Error type: {type(e).__name__}")
         print(f"   Error message: {error_msg}\n")
         import traceback
@@ -1640,7 +1647,7 @@ def youtube_upload():
 
 @app.route("/youtube-disconnect", methods=["POST"])
 def youtube_disconnect():
-    """Remove saved YouTube token for a specific channel — ?channel=bsg or ?channel=tmf."""
+    """Remove saved YouTube token for a specific channel â ?channel=bsg or ?channel=tmf."""
     channel    = (request.get_json() or {}).get("channel", "bsg")
     token_file = YT_TOKEN_FILES.get(channel)
     if token_file and token_file.exists():
@@ -1648,9 +1655,9 @@ def youtube_disconnect():
     return jsonify({"status": "disconnected", "channel": channel})
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 #  HTML TEMPLATE
-# ══════════════════════════════════════════════════════════════════════════════
+# ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -1658,7 +1665,7 @@ HTML_TEMPLATE = """
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Video Studio — MidwestMade4U</title>
+<title>Video Studio â MidwestMade4U</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1686,7 +1693,7 @@ body {
   min-height: 100vh;
 }
 
-/* ── Sidebar ──────────────────────────────────────────────────────────── */
+/* ââ Sidebar ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 #sidebar {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
@@ -1726,7 +1733,7 @@ body {
 .nav-icon { font-size: 15px; width: 20px; text-align: center; }
 .sidebar-footer { padding: 14px 18px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); }
 
-/* ── Main ──────────────────────────────────────────────────────────────── */
+/* ââ Main ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 #main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
 #main-header {
   height: var(--header-h); background: var(--sidebar-dark);
@@ -1746,15 +1753,15 @@ body {
 }
 .yt-badge.connected { background: #FF0000; color: white; }
 
-/* ── Panels ─────────────────────────────────────────────────────────────── */
+/* ââ Panels âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 .panel { display: none; padding: 28px; }
 .panel.active { display: block; }
 
-/* ── Cards ──────────────────────────────────────────────────────────────── */
+/* ââ Cards ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 1px 8px rgba(42,31,20,0.05); }
 .card-title { font-size: 12px; font-weight: 700; color: var(--wood); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
 
-/* ── Form ───────────────────────────────────────────────────────────────── */
+/* ââ Form âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 5px; font-weight: 500; }
 input[type=text], input[type=password], textarea, select {
   width: 100%; background: var(--cream); border: 1px solid var(--border);
@@ -1767,7 +1774,7 @@ input[type=text]:focus, input[type=password]:focus, textarea:focus, select:focus
 textarea { resize: vertical; min-height: 70px; }
 select { cursor: pointer; }
 
-/* ── Buttons ─────────────────────────────────────────────────────────────── */
+/* ââ Buttons âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.18s; white-space: nowrap; }
 .btn-primary  { background: var(--amber); color: white; }
 .btn-primary:hover  { background: var(--amber-dark); }
@@ -1781,7 +1788,7 @@ select { cursor: pointer; }
 .btn-full { width: 100%; justify-content: center; padding: 14px; font-size: 15px; border-radius: 10px; }
 .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
 
-/* ── Channel selector ────────────────────────────────────────────────────── */
+/* ââ Channel selector ââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 .channel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .ch-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 10px; border-radius: 10px; border: 2px solid var(--border); background: var(--cream); color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.18s; text-align: center; }
 .ch-btn .ch-icon { font-size: 26px; }
@@ -1790,12 +1797,12 @@ select { cursor: pointer; }
 .ch-btn.active { border-color: var(--amber); background: var(--amber-light); color: var(--sidebar-dark); }
 .ch-btn.active .ch-sub { color: var(--wood); }
 
-/* ── Create layout ───────────────────────────────────────────────────────── */
+/* ââ Create layout âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 .create-layout { display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: start; max-width: 1000px; }
 .create-main { min-width: 0; }
 .create-side { position: sticky; top: calc(var(--header-h) + 28px); }
 
-/* ── Script collapse ─────────────────────────────────────────────────────── */
+/* ââ Script collapse âââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 .script-toggle { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; margin-bottom: 6px; }
 .script-toggle .toggle-label { font-size: 12px; font-weight: 600; color: var(--wood); }
 .script-toggle .toggle-arrow { font-size: 11px; color: var(--muted); transition: transform 0.2s; }
@@ -1803,7 +1810,7 @@ select { cursor: pointer; }
 #script-collapse { display: none; }
 #script-collapse.open { display: block; }
 
-/* ── Phone frame ─────────────────────────────────────────────────────────── */
+/* ââ Phone frame âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 .phone-device { position: relative; width: 100%; max-width: 240px; margin: 0 auto; background: #1c1c1e; border-radius: 44px; padding: 12px 9px; box-shadow: 0 0 0 1px #3a3a3c, 0 0 0 3px #111, 0 20px 60px rgba(0,0,0,0.7); }
 .phone-device::before { content: ""; position: absolute; left: -3px; top: 68px; width: 3px; height: 24px; background: #2c2c2e; border-radius: 2px 0 0 2px; box-shadow: 0 32px 0 #2c2c2e, 0 56px 0 #2c2c2e; }
 .phone-device::after  { content: ""; position: absolute; right: -3px; top: 86px; width: 3px; height: 38px; background: #2c2c2e; border-radius: 0 2px 2px 0; }
@@ -1817,7 +1824,7 @@ select { cursor: pointer; }
 .phone-placeholder .ph-icon { font-size: 28px; opacity: 0.5; }
 .phone-label { text-align: center; font-size: 11px; color: var(--muted); margin-top: 10px; }
 
-/* ── Progress ─────────────────────────────────────────────────────────────── */
+/* ââ Progress âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 #progress-section { display: none; }
 .progress-bar-wrap { background: #EDE3D8; border-radius: 100px; height: 6px; margin: 12px 0; overflow: hidden; }
 .progress-bar { height: 100%; background: linear-gradient(90deg, var(--wood), var(--amber)); border-radius: 100px; width: 0%; transition: width 0.5s ease; }
@@ -1826,7 +1833,7 @@ select { cursor: pointer; }
 .log-warn { color: var(--amber); }
 .log-err  { color: #E07878; }
 
-/* ── Output & YouTube post ───────────────────────────────────────────────── */
+/* ââ Output & YouTube post âââââââââââââââââââââââââââââââââââââââââââââââââ */
 #output-section { display: none; }
 .output-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 .yt-post-row { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
@@ -1835,7 +1842,7 @@ select { cursor: pointer; }
 .yt-privacy-row select { width: auto; flex: 1; }
 #yt-post-status { font-size: 12px; margin-top: 6px; }
 
-/* ── Past videos ─────────────────────────────────────────────────────────── */
+/* ââ Past videos âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-top: 4px; }
 .vid-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: box-shadow 0.18s; }
 .vid-card:hover { box-shadow: 0 4px 20px rgba(42,31,20,0.12); }
@@ -1848,7 +1855,7 @@ select { cursor: pointer; }
 .badge-tmf { background: rgba(200,146,58,0.18); color: var(--amber-dark); }
 .vid-actions { display: flex; gap: 6px; }
 
-/* ── Settings accordion ──────────────────────────────────────────────────── */
+/* ââ Settings accordion ââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 .accordion-item { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
 .accordion-header { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; cursor: pointer; background: var(--card); font-size: 14px; font-weight: 600; color: var(--text); user-select: none; transition: background 0.15s; }
 .accordion-header:hover { background: var(--cream); }
@@ -1861,7 +1868,7 @@ select { cursor: pointer; }
 .info-pill { font-size: 12px; padding: 8px 14px; border-radius: 8px; background: var(--amber-light); color: var(--wood); border-left: 3px solid var(--amber); margin-top: 8px; line-height: 1.6; }
 .el-notice { display: none; margin-top: 8px; font-size: 12px; padding: 8px 12px; border-radius: 6px; border-left: 3px solid var(--amber); background: #FFF8EE; color: var(--amber-dark); }
 
-/* ── Guide ───────────────────────────────────────────────────────────────── */
+/* ââ Guide âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 .guide-step { display: flex; gap: 16px; margin-bottom: 18px; }
 .step-num { width: 32px; height: 32px; min-width: 32px; background: var(--amber); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
 .step-text h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
@@ -1878,10 +1885,10 @@ select { cursor: pointer; }
 </head>
 <body>
 
-<!-- ═══ SIDEBAR ═══════════════════════════════════════════════════════════ -->
+<!-- âââ SIDEBAR âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ -->
 <div id="sidebar">
   <div class="sidebar-logo-bar">
-    <div class="logo-icon">🎬</div>
+    <div class="logo-icon">ð¬</div>
     <div>
       <div class="logo-text">MidwestMade4U</div>
       <div class="logo-sub">VIDEO STUDIO</div>
@@ -1889,17 +1896,17 @@ select { cursor: pointer; }
   </div>
   <nav class="sidebar-nav">
     <div class="nav-group-label">Create</div>
-    <button class="nav-item active" id="nav-create"   onclick="showPanel('create')"><span class="nav-icon">✏️</span> Create Video</button>
-    <button class="nav-item"        id="nav-past"     onclick="showPanel('past')"><span class="nav-icon">📁</span> View Videos</button>
+    <button class="nav-item active" id="nav-create"   onclick="showPanel('create')"><span class="nav-icon">âï¸</span> Create Video</button>
+    <button class="nav-item"        id="nav-past"     onclick="showPanel('past')"><span class="nav-icon">ð</span> View Videos</button>
     <div class="nav-group-label">Manage</div>
-    <button class="nav-item"        id="nav-settings" onclick="showPanel('settings')"><span class="nav-icon">⚙️</span> Settings</button>
+    <button class="nav-item"        id="nav-settings" onclick="showPanel('settings')"><span class="nav-icon">âï¸</span> Settings</button>
     <div class="nav-group-label">Info</div>
-    <button class="nav-item"        id="nav-guide"    onclick="showPanel('guide')"><span class="nav-icon">📖</span> How It Works</button>
+    <button class="nav-item"        id="nav-guide"    onclick="showPanel('guide')"><span class="nav-icon">ð</span> How It Works</button>
   </nav>
-  <div class="sidebar-footer">📱 All videos: 9:16 Reels format</div>
+  <div class="sidebar-footer">ð± All videos: 9:16 Reels format</div>
 </div>
 
-<!-- ═══ MAIN ══════════════════════════════════════════════════════════════ -->
+<!-- âââ MAIN ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ -->
 <div id="main">
   <div id="main-header">
     <div id="panel-title">Create Video</div>
@@ -1907,7 +1914,7 @@ select { cursor: pointer; }
     <div class="yt-badge" id="yt-header-badge" onclick="showPanel('settings')">YouTube: checking...</div>
   </div>
 
-  <!-- ─── CREATE PANEL ─────────────────────────────────────────────────── -->
+  <!-- âââ CREATE PANEL âââââââââââââââââââââââââââââââââââââââââââââââââââ -->
   <div class="panel active" id="panel-create">
     <div class="create-layout">
 
@@ -1916,27 +1923,27 @@ select { cursor: pointer; }
 
         <!-- Channel -->
         <div class="card">
-          <div class="card-title">📺 Channel</div>
+          <div class="card-title">ðº Channel</div>
           <div class="channel-grid">
             <button class="ch-btn" id="ch-bsg" onclick="setChannel('bsg')">
-              <span class="ch-icon">✝️</span>
+              <span class="ch-icon">âï¸</span>
               <span>Bible Story Garden</span>
-              <span class="ch-sub">Kids · Colorful Storybook</span>
+              <span class="ch-sub">Kids Â· Colorful Storybook</span>
             </button>
             <button class="ch-btn active" id="ch-tmf" onclick="setChannel('tmf')">
-              <span class="ch-icon">🧠</span>
+              <span class="ch-icon">ð§ </span>
               <span>The Mind Files</span>
-              <span class="ch-sub">Psychology · Dark Cinema</span>
+              <span class="ch-sub">Psychology Â· Dark Cinema</span>
             </button>
           </div>
         </div>
 
         <!-- Topic + one-click generate -->
         <div class="card">
-          <div class="card-title">✨ Describe Your Video</div>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Type what the video is about — or paste the topic from your Excel file. AI handles the rest.</p>
+          <div class="card-title">â¨ Describe Your Video</div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Type what the video is about â or paste the topic from your Excel file. AI handles the rest.</p>
           <label>Topic / description</label>
-          <textarea id="topic-input" rows="3" placeholder="e.g. Jonah and the Whale — Jonah runs from God, gets swallowed by a whale, and learns obedience
+          <textarea id="topic-input" rows="3" placeholder="e.g. Jonah and the Whale â Jonah runs from God, gets swallowed by a whale, and learns obedience
 
 Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
           <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">
@@ -1953,33 +1960,33 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
             <div style="flex:1;">
               <label style="margin-bottom:3px;">Voice</label>
               <select id="voice-select" style="height:36px;">
-                <optgroup label="⭐ ElevenLabs Premium (add key in Settings to unlock)">
-                  <option value="el_sarah">Sarah — warm female ✨</option>
-                  <option value="el_rachel">Rachel — calm female ✨</option>
-                  <option value="el_adam">Adam — deep male ✨</option>
-                  <option value="el_josh">Josh — deep male ✨</option>
+                <optgroup label="â­ ElevenLabs Premium (add key in Settings to unlock)">
+                  <option value="el_sarah">Sarah â warm female â¨</option>
+                  <option value="el_rachel">Rachel â calm female â¨</option>
+                  <option value="el_adam">Adam â deep male â¨</option>
+                  <option value="el_josh">Josh â deep male â¨</option>
                 </optgroup>
                 <optgroup label="Free Voices (Microsoft)">
-                  <option value="en-US-MichelleNeural" selected>Michelle — friendly female</option>
-                  <option value="en-US-JennyNeural">Jenny — warm female</option>
-                  <option value="en-US-AriaNeural">Aria — soft female</option>
-                  <option value="en-US-GuyNeural">Guy — calm male</option>
-                  <option value="en-US-DavisNeural">Davis — deep male</option>
+                  <option value="en-US-MichelleNeural" selected>Michelle â friendly female</option>
+                  <option value="en-US-JennyNeural">Jenny â warm female</option>
+                  <option value="en-US-AriaNeural">Aria â soft female</option>
+                  <option value="en-US-GuyNeural">Guy â calm male</option>
+                  <option value="en-US-DavisNeural">Davis â deep male</option>
                 </optgroup>
                 <optgroup label="Voice Clone">
-                  <option value="my_voice" id="my-voice-option">🎤 My Voice Clone (needs setup)</option>
+                  <option value="my_voice" id="my-voice-option">ð¤ My Voice Clone (needs setup)</option>
                 </optgroup>
               </select>
             </div>
           </div>
-          <div class="el-notice" id="el-notice">✨ ElevenLabs voices require an API key — add yours in Settings.</div>
+          <div class="el-notice" id="el-notice">â¨ ElevenLabs voices require an API key â add yours in Settings.</div>
         </div>
 
         <!-- Collapsible: review/edit script -->
         <div class="card" id="script-card" style="display:none;">
           <div class="script-toggle open" id="script-toggle" onclick="toggleScript()">
-            <span class="toggle-label">📋 Review / Edit Script (optional)</span>
-            <span class="toggle-arrow">▼</span>
+            <span class="toggle-label">ð Review / Edit Script (optional)</span>
+            <span class="toggle-arrow">â¼</span>
           </div>
           <div id="script-collapse" class="open">
             <p style="font-size:11px;color:var(--muted);margin-bottom:8px;">The AI-generated script is shown below. You can edit narration or image prompts before generating.</p>
@@ -1990,59 +1997,59 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
         <!-- Generate buttons -->
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
           <button class="btn btn-secondary" id="gen-script-btn" onclick="generateScript(false)" style="flex:1;">
-            ✨ Preview Script First
+            â¨ Preview Script First
           </button>
           <button class="btn btn-primary btn-full" id="generate-btn" onclick="generateScript(true)" style="flex:2;">
-            🎬 Generate Video
+            ð¬ Generate Video
           </button>
         </div>
         <div id="gen-status" style="font-size:12px;color:var(--muted);margin-bottom:8px;"></div>
 
         <!-- Progress -->
         <div class="card" id="progress-section" style="margin-top:4px;">
-          <div class="card-title">⏳ Generating...</div>
+          <div class="card-title">â³ Generating...</div>
           <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
           <div class="log-box" id="log-box"></div>
         </div>
 
         <!-- Output -->
         <div class="card" id="output-section" style="margin-top:4px;">
-          <div class="card-title">✅ Video Ready!</div>
+          <div class="card-title">â Video Ready!</div>
           <div id="video-wrap"></div>
           <div class="output-actions">
-            <a id="download-link" class="btn btn-secondary" download>⬇️ Download MP4</a>
-            <button class="btn btn-ghost" onclick="makeAnother()">🔄 New Video</button>
+            <a id="download-link" class="btn btn-secondary" download>â¬ï¸ Download MP4</a>
+            <button class="btn btn-ghost" onclick="makeAnother()">ð New Video</button>
           </div>
           <!-- YouTube post section -->
           <div class="yt-post-row" id="yt-post-row" style="display:none;">
             <div class="yt-post-fields">
-              <div class="card-title" style="margin-bottom:10px;">🔴 Post to YouTube</div>
+              <div class="card-title" style="margin-bottom:10px;">ð´ Post to YouTube</div>
               <div class="settings-row">
                 <label>Video Title (for YouTube)</label>
                 <input type="text" id="yt-title-input" placeholder="Auto-filled from your script..." maxlength="100" />
               </div>
               <div class="settings-row">
-                <label>Description (optional — paste from Excel Col D)</label>
+                <label>Description (optional â paste from Excel Col D)</label>
                 <textarea id="yt-desc-input" rows="3" placeholder="Optional description..."></textarea>
               </div>
               <div class="settings-row">
-                <label>Tags (optional — paste from Excel Col E, comma-separated)</label>
+                <label>Tags (optional â paste from Excel Col E, comma-separated)</label>
                 <input type="text" id="yt-tags-input" placeholder="tag1, tag2, tag3..." />
               </div>
               <div class="yt-privacy-row">
                 <label style="margin:0;white-space:nowrap;">Privacy:</label>
                 <select id="yt-privacy">
-                  <option value="private">🔒 Private (review before posting)</option>
-                  <option value="unlisted">🔗 Unlisted</option>
-                  <option value="public">🌍 Public</option>
+                  <option value="private">ð Private (review before posting)</option>
+                  <option value="unlisted">ð Unlisted</option>
+                  <option value="public">ð Public</option>
                 </select>
-                <button class="btn btn-red" id="yt-post-btn" onclick="postToYouTube()">🚀 Post Now</button>
+                <button class="btn btn-red" id="yt-post-btn" onclick="postToYouTube()">ð Post Now</button>
               </div>
               <div id="yt-post-status"></div>
             </div>
           </div>
           <div id="yt-connect-prompt" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);">
-            <a onclick="showPanel('settings')" style="color:var(--amber);cursor:pointer;font-weight:600;">⚙️ Connect YouTube in Settings</a> to enable one-click posting.
+            <a onclick="showPanel('settings')" style="color:var(--amber);cursor:pointer;font-weight:600;">âï¸ Connect YouTube in Settings</a> to enable one-click posting.
           </div>
         </div>
 
@@ -2051,7 +2058,7 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
       <!-- Right: phone preview -->
       <div class="create-side">
         <div class="card">
-          <div class="card-title">📱 Preview</div>
+          <div class="card-title">ð± Preview</div>
           <div class="phone-device">
             <div class="phone-notch">
               <div class="phone-speaker"></div>
@@ -2059,32 +2066,32 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
             </div>
             <div class="phone-screen" id="side-phone-screen">
               <div class="phone-placeholder">
-                <div class="ph-icon">🎬</div>
+                <div class="ph-icon">ð¬</div>
                 <div>Your video<br>appears here</div>
               </div>
             </div>
             <div class="phone-bar"></div>
           </div>
-          <div class="phone-label">9:16 · Shorts / Reels</div>
+          <div class="phone-label">9:16 Â· Shorts / Reels</div>
         </div>
       </div>
 
     </div><!-- /create-layout -->
   </div><!-- /panel-create -->
 
-  <!-- ─── PAST VIDEOS ──────────────────────────────────────────────────── -->
+  <!-- âââ PAST VIDEOS ââââââââââââââââââââââââââââââââââââââââââââââââââââ -->
   <div class="panel" id="panel-past">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <div>
         <h2 style="font-size:18px;font-weight:700;">Past Videos</h2>
-        <p style="font-size:13px;color:var(--muted);margin-top:4px;">All generated videos — play, download, or post to YouTube.</p>
+        <p style="font-size:13px;color:var(--muted);margin-top:4px;">All generated videos â play, download, or post to YouTube.</p>
       </div>
-      <button class="btn btn-ghost" onclick="loadHistory()">🔄 Refresh</button>
+      <button class="btn btn-ghost" onclick="loadHistory()">ð Refresh</button>
     </div>
     <div id="history-list"><p style="color:var(--muted);font-size:13px;">Loading videos...</p></div>
   </div>
 
-  <!-- ─── SETTINGS ─────────────────────────────────────────────────────── -->
+  <!-- âââ SETTINGS âââââââââââââââââââââââââââââââââââââââââââââââââââââââ -->
   <div class="panel" id="panel-settings">
     <div style="margin-bottom:20px;">
       <h2 style="font-size:18px;font-weight:700;">Settings</h2>
@@ -2094,13 +2101,13 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
     <!-- API Keys -->
     <div class="accordion-item">
       <div class="accordion-header open" onclick="toggleAccordion(this)">
-        <span>🔑 API Keys</span><span class="accordion-arrow">▼</span>
+        <span>ð API Keys</span><span class="accordion-arrow">â¼</span>
       </div>
       <div class="accordion-body open">
-        <!-- fal.ai — primary image engine -->
+        <!-- fal.ai â primary image engine -->
         <div class="settings-row" style="border:2px solid var(--amber);border-radius:10px;padding:14px;background:var(--amber-light);">
-          <label style="color:var(--sidebar-dark);font-size:13px;font-weight:700;">🎨 fal.ai API Key <span style="background:var(--amber);color:white;font-size:10px;padding:2px 8px;border-radius:20px;margin-left:6px;font-weight:700;">PRIMARY IMAGE ENGINE</span></label>
-          <div style="font-size:11px;color:var(--wood);margin-bottom:8px;margin-top:4px;">Flux Pro — best quality images at ~40% less cost than DALL-E. <strong>Recommended.</strong></div>
+          <label style="color:var(--sidebar-dark);font-size:13px;font-weight:700;">ð¨ fal.ai API Key <span style="background:var(--amber);color:white;font-size:10px;padding:2px 8px;border-radius:20px;margin-left:6px;font-weight:700;">PRIMARY IMAGE ENGINE</span></label>
+          <div style="font-size:11px;color:var(--wood);margin-bottom:8px;margin-top:4px;">Flux Pro â best quality images at ~40% less cost than DALL-E. <strong>Recommended.</strong></div>
           <div style="display:flex;gap:8px;">
             <input type="password" id="fal-key-input" placeholder="Your fal.ai key..." />
             <button class="btn btn-primary" onclick="saveKeys()">Save</button>
@@ -2117,12 +2124,12 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
           <div style="margin-top:5px;font-size:11px;color:var(--muted);">Get key: <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--amber);">platform.openai.com/api-keys</a></div>
         </div>
         <div class="settings-row">
-          <label>ElevenLabs API Key <span style="color:var(--muted);font-weight:400;">(premium voices — optional)</span></label>
+          <label>ElevenLabs API Key <span style="color:var(--muted);font-weight:400;">(premium voices â optional)</span></label>
           <div style="display:flex;gap:8px;">
             <input type="password" id="elevenlabs-key-input" placeholder="Your ElevenLabs key..." />
             <button class="btn btn-secondary" onclick="saveKeys()">Save</button>
           </div>
-          <div style="margin-top:5px;font-size:11px;color:var(--muted);">Get key: <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" style="color:var(--amber);">elevenlabs.io → Profile (bottom-left) → API Keys</a></div>
+          <div style="margin-top:5px;font-size:11px;color:var(--muted);">Get key: <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" style="color:var(--amber);">elevenlabs.io â Profile (bottom-left) â API Keys</a></div>
         </div>
         <div id="save-status" style="font-size:12px;color:var(--wood);display:none;"></div>
       </div>
@@ -2131,22 +2138,22 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
     <!-- YouTube -->
     <div class="accordion-item">
       <div class="accordion-header open" onclick="toggleAccordion(this)">
-        <span>🔴 YouTube Auto-Post</span><span class="accordion-arrow">▼</span>
+        <span>ð´ YouTube Auto-Post</span><span class="accordion-arrow">â¼</span>
       </div>
       <div class="accordion-body open">
         <div class="info-pill" style="margin-bottom:16px;">
           <strong>One-time setup (5 min):</strong><br>
           1. In Terminal: <code style="background:rgba(0,0,0,0.08);padding:2px 6px;border-radius:4px;">pip3 install google-api-python-client google-auth-httplib2 google-auth-oauthlib</code><br>
-          2. Go to <a href="https://console.cloud.google.com" target="_blank" style="color:var(--amber);">console.cloud.google.com</a> → create a project → enable YouTube Data API v3<br>
-          3. Create OAuth 2.0 credentials (type: Desktop app) → download as <strong>youtube_client_secrets.json</strong><br>
+          2. Go to <a href="https://console.cloud.google.com" target="_blank" style="color:var(--amber);">console.cloud.google.com</a> â create a project â enable YouTube Data API v3<br>
+          3. Create OAuth 2.0 credentials (type: Desktop app) â download as <strong>youtube_client_secrets.json</strong><br>
           4. Drop that file into your <strong>Youtube Channels Project</strong> folder<br>
-          5. Connect each channel below — you sign in separately for each so BSG and TMF post to the correct account
+          5. Connect each channel below â you sign in separately for each so BSG and TMF post to the correct account
         </div>
 
         <!-- BSG row -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(125,82,53,0.06);border-radius:8px;margin-bottom:10px;border:1px solid var(--border);">
           <div>
-            <div style="font-weight:700;font-size:13px;">✝️ Bible Story Garden</div>
+            <div style="font-weight:700;font-size:13px;">âï¸ Bible Story Garden</div>
             <div id="yt-bsg-status-text" style="font-size:11px;color:var(--muted);margin-top:2px;">Checking...</div>
           </div>
           <div style="display:flex;gap:8px;">
@@ -2158,7 +2165,7 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
         <!-- TMF row -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(200,146,58,0.06);border-radius:8px;margin-bottom:10px;border:1px solid var(--border);">
           <div>
-            <div style="font-weight:700;font-size:13px;">🧠 The Mind Files</div>
+            <div style="font-weight:700;font-size:13px;">ð§  The Mind Files</div>
             <div id="yt-tmf-status-text" style="font-size:11px;color:var(--muted);margin-top:2px;">Checking...</div>
           </div>
           <div style="display:flex;gap:8px;">
@@ -2174,12 +2181,12 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
     <!-- Visual Style -->
     <div class="accordion-item">
       <div class="accordion-header" onclick="toggleAccordion(this)">
-        <span>🎨 Visual Style</span><span class="accordion-arrow">▼</span>
+        <span>ð¨ Visual Style</span><span class="accordion-arrow">â¼</span>
       </div>
       <div class="accordion-body">
         <div class="info-pill">
-          <strong>BSG:</strong> Colorful storybook illustration · warm &amp; cheerful · child-safe · amber caption accent<br>
-          <strong>TMF:</strong> Black &amp; white film noir · atmospheric objects, NO faces · yellow caption accent
+          <strong>BSG:</strong> Colorful storybook illustration Â· warm &amp; cheerful Â· child-safe Â· amber caption accent<br>
+          <strong>TMF:</strong> Black &amp; white film noir Â· atmospheric objects, NO faces Â· yellow caption accent
         </div>
       </div>
     </div>
@@ -2187,7 +2194,7 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
     <!-- Audio -->
     <div class="accordion-item">
       <div class="accordion-header" onclick="toggleAccordion(this)">
-        <span>🎵 Background Music</span><span class="accordion-arrow">▼</span>
+        <span>ðµ Background Music</span><span class="accordion-arrow">â¼</span>
       </div>
       <div class="accordion-body">
         <div class="info-pill">
@@ -2198,7 +2205,7 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
 
   </div><!-- /panel-settings -->
 
-  <!-- ─── HOW IT WORKS ──────────────────────────────────────────────────── -->
+  <!-- âââ HOW IT WORKS ââââââââââââââââââââââââââââââââââââââââââââââââââââ -->
   <div class="panel" id="panel-guide">
     <h2 style="font-size:18px;font-weight:700;margin-bottom:20px;">How It Works</h2>
     <div class="card" style="max-width:680px;">
@@ -2211,10 +2218,10 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
     <div class="card" style="max-width:680px;">
       <div class="card-title">Where to Find Things</div>
       <p style="font-size:13px;line-height:2;color:var(--text);">
-        📹 <strong>Finished videos:</strong> BSG_Output/ and TMF_Output/<br>
-        📊 <strong>YouTube metadata:</strong> BSG_Channel/YouTube_Metadata/YouTube_Metadata.xlsx<br>
-        🔑 <strong>API keys:</strong> Settings → API Keys<br>
-        🔴 <strong>YouTube connection:</strong> Settings → YouTube Auto-Post
+        ð¹ <strong>Finished videos:</strong> BSG_Output/ and TMF_Output/<br>
+        ð <strong>YouTube metadata:</strong> BSG_Channel/YouTube_Metadata/YouTube_Metadata.xlsx<br>
+        ð <strong>API keys:</strong> Settings â API Keys<br>
+        ð´ <strong>YouTube connection:</strong> Settings â YouTube Auto-Post
       </p>
     </div>
   </div>
@@ -2222,9 +2229,9 @@ Or shorter: Why You Can't Leave a Toxic Relationship"></textarea>
 </div><!-- /main -->
 
 <script>
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // Panel nav
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const PANEL_TITLES = { create:"Create Video", past:"Past Videos", settings:"Settings", guide:"How It Works" };
 
 function showPanel(name) {
@@ -2237,9 +2244,9 @@ function showPanel(name) {
   if (name === "past") loadHistory();
 }
 
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // Channel
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 let selectedChannel = "tmf";
 let lastVideoFilename = "";
 let lastVideoTitle    = "";
@@ -2251,9 +2258,9 @@ function setChannel(ch) {
   document.getElementById("channel-badge").textContent = ch === "bsg" ? "BIBLE STORY GARDEN" : "THE MIND FILES";
 }
 
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // Script toggle
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function toggleScript() {
   const toggle = document.getElementById("script-toggle");
   const body   = document.getElementById("script-collapse");
@@ -2261,9 +2268,9 @@ function toggleScript() {
   body.classList.toggle("open");
 }
 
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // Generate Script (and optionally go straight to video)
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 let totalScenes = 0, completedScenes = 0;
 
 async function generateScript(andCreateVideo) {
@@ -2278,8 +2285,8 @@ async function generateScript(andCreateVideo) {
 
   genBtn.disabled    = true;
   scriptBtn.disabled = true;
-  genBtn.textContent = andCreateVideo ? "⏳ Writing script..." : "⏳ Generating...";
-  status.textContent = "✍️ AI is writing your script...";
+  genBtn.textContent = andCreateVideo ? "â³ Writing script..." : "â³ Generating...";
+  status.textContent = "âï¸ AI is writing your script...";
   status.style.color = "var(--muted)";
 
   try {
@@ -2291,10 +2298,10 @@ async function generateScript(andCreateVideo) {
     const data = await res.json();
 
     if (data.error) {
-      status.textContent = "❌ " + data.error;
+      status.textContent = "â " + data.error;
       status.style.color = "#E07878";
       genBtn.disabled = false; scriptBtn.disabled = false;
-      genBtn.textContent = "🎬 Generate Video";
+      genBtn.textContent = "ð¬ Generate Video";
       return;
     }
 
@@ -2304,16 +2311,16 @@ async function generateScript(andCreateVideo) {
     document.getElementById("script-card").style.display = "block";
     lastVideoTitle = script.title || topic.slice(0, 80);
     document.getElementById("yt-title-input").value = lastVideoTitle.slice(0, 100);
-    status.textContent = "✅ Script ready (" + script.scenes.length + " scenes)";
+    status.textContent = "â Script ready (" + script.scenes.length + " scenes)";
     status.style.color = "var(--wood)";
 
     if (andCreateVideo) {
-      status.textContent = "✅ Script ready — starting video...";
+      status.textContent = "â Script ready â starting video...";
       await startGeneration(script);
     } else {
       genBtn.disabled    = false;
       scriptBtn.disabled = false;
-      genBtn.textContent = "🎬 Generate Video";
+      genBtn.textContent = "ð¬ Generate Video";
       // Show script for review
       const toggle = document.getElementById("script-toggle");
       const body   = document.getElementById("script-collapse");
@@ -2321,16 +2328,16 @@ async function generateScript(andCreateVideo) {
       body.classList.add("open");
     }
   } catch(e) {
-    status.textContent = "❌ " + e;
+    status.textContent = "â " + e;
     status.style.color = "#E07878";
     genBtn.disabled = false; scriptBtn.disabled = false;
-    genBtn.textContent = "🎬 Generate Video";
+    genBtn.textContent = "ð¬ Generate Video";
   }
 }
 
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // Start video generation (from script object or from textarea)
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function startGeneration(scriptObj) {
   let data = scriptObj;
 
@@ -2338,7 +2345,7 @@ async function startGeneration(scriptObj) {
   if (!data) {
     const raw = document.getElementById("script-input").value.trim();
     if (!raw) {
-      // No existing script — generate first then video
+      // No existing script â generate first then video
       generateScript(true);
       return;
     }
@@ -2359,7 +2366,7 @@ async function startGeneration(scriptObj) {
 
   const genBtn = document.getElementById("generate-btn");
   genBtn.disabled    = true;
-  genBtn.textContent = "⏳ Generating...";
+  genBtn.textContent = "â³ Generating...";
 
   document.getElementById("progress-section").style.display = "block";
   document.getElementById("output-section").style.display   = "none";
@@ -2393,8 +2400,8 @@ function listenToProgress() {
     if (data.msg) {
       const line = document.createElement("div");
       const m    = data.msg;
-      if      (m.includes("✅") || m.includes("complete")) line.className = "log-done";
-      else if (m.includes("⚠️") || m.includes("failed"))   line.className = "log-warn";
+      if      (m.includes("â") || m.includes("complete")) line.className = "log-done";
+      else if (m.includes("â ï¸") || m.includes("failed"))   line.className = "log-warn";
       else if (m.includes("error"))                          line.className = "log-err";
       line.textContent = m;
       log.appendChild(line);
@@ -2405,7 +2412,7 @@ function listenToProgress() {
       }
     }
     if (data.done)  { es.close(); bar.style.width = "100%"; showOutput(data.path); resetBtn(); }
-    if (data.error) { es.close(); log.innerHTML += '<div class="log-err">❌ ' + data.error + '</div>'; resetBtn(); }
+    if (data.error) { es.close(); log.innerHTML += '<div class="log-err">â ' + data.error + '</div>'; resetBtn(); }
   };
   es.onerror = () => { es.close(); log.innerHTML += '<div class="log-warn">Connection lost.</div>'; resetBtn(); };
 }
@@ -2425,7 +2432,7 @@ function showOutput(videoPath) {
         <div class="phone-screen"><video src="${videoUrl}" controls playsinline></video></div>
         <div class="phone-bar"></div>
       </div>
-      <div class="phone-label">📱 Ready for upload</div>
+      <div class="phone-label">ð± Ready for upload</div>
     </div>`;
 
   document.getElementById("output-section").style.display = "block";
@@ -2438,7 +2445,7 @@ function showOutput(videoPath) {
 function resetBtn() {
   const btn = document.getElementById("generate-btn");
   btn.disabled    = false;
-  btn.textContent = "🎬 Generate Video";
+  btn.textContent = "ð¬ Generate Video";
   document.getElementById("gen-script-btn").disabled = false;
 }
 
@@ -2451,15 +2458,15 @@ function makeAnother() {
   window.scrollTo({ top:0, behavior:"smooth" });
 }
 
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // Past videos
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function loadHistory() {
   try {
     const res  = await fetch("/videos");
     const vids = await res.json();
     const list = document.getElementById("history-list");
-    if (!vids.length) { list.innerHTML = '<p style="color:var(--muted);font-size:13px;">No videos yet — create your first one!</p>'; return; }
+    if (!vids.length) { list.innerHTML = '<p style="color:var(--muted);font-size:13px;">No videos yet â create your first one!</p>'; return; }
     list.innerHTML = '<div class="video-grid">' +
       vids.slice(0, 24).map(v => {
         const name  = v.name.replace(/\.mp4$/, "").replace(/_/g, " ");
@@ -2470,16 +2477,16 @@ async function loadHistory() {
           <div class="vid-thumb"><video src="${url}" muted preload="metadata"></video></div>
           <div class="vid-info">${badge}<div class="vid-name">${name}</div>
           <div class="vid-actions">
-            <a href="${url}" target="_blank" class="btn btn-ghost" style="flex:1;justify-content:center;font-size:11px;">▶ Play</a>
-            <a href="${url}" download="${v.name}" class="btn btn-ghost" style="padding:8px 9px;font-size:11px;">⬇</a>
+            <a href="${url}" target="_blank" class="btn btn-ghost" style="flex:1;justify-content:center;font-size:11px;">â¶ Play</a>
+            <a href="${url}" download="${v.name}" class="btn btn-ghost" style="padding:8px 9px;font-size:11px;">â¬</a>
           </div></div></div>`;
       }).join("") + '</div>';
   } catch(e) { document.getElementById("history-list").innerHTML = '<p style="color:#E07878;font-size:13px;">Error loading videos.</p>'; }
 }
 
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // Settings accordion
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function toggleAccordion(header) {
   const body = header.nextElementSibling;
   const open = body.classList.contains("open");
@@ -2487,9 +2494,9 @@ function toggleAccordion(header) {
   body.classList.toggle("open", !open);
 }
 
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // API key save
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function saveKeys() {
   const fal        = document.getElementById("fal-key-input").value.trim();
   const openai     = document.getElementById("openai-key-input").value.trim();
@@ -2500,21 +2507,21 @@ async function saveKeys() {
     const res  = await fetch("/save-config", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ fal_key:fal, openai_key:openai, elevenlabs_key:elevenlabs }) });
     const data = await res.json();
     if (!data.error) {
-      status.textContent = "✅ Saved! Restart the app to apply.";
+      status.textContent = "â Saved! Restart the app to apply.";
       status.style.color = "var(--wood)";
-      if (fal) { const fs = document.getElementById("fal-key-status"); if(fs){ fs.textContent="✅ fal.ai key saved — Flux Pro is now your image engine"; fs.style.color="var(--wood)"; } }
+      if (fal) { const fs = document.getElementById("fal-key-status"); if(fs){ fs.textContent="â fal.ai key saved â Flux Pro is now your image engine"; fs.style.color="var(--wood)"; } }
       checkVoiceStatus();
     } else {
-      status.textContent = "❌ " + data.error;
+      status.textContent = "â " + data.error;
       status.style.color = "#E07878";
     }
     status.style.display = "block";
-  } catch(e) { status.textContent = "❌ " + e; status.style.color = "#E07878"; status.style.display="block"; }
+  } catch(e) { status.textContent = "â " + e; status.style.color = "#E07878"; status.style.display="block"; }
 }
 
-// ════════════════════════════════════════════════════════════
-// YouTube — per-channel connection
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// YouTube â per-channel connection
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 let ytStatus = { bsg_connected: false, tmf_connected: false };
 
 async function checkYouTubeStatus(showPostSection) {
@@ -2526,7 +2533,7 @@ async function checkYouTubeStatus(showPostSection) {
     const badge = document.getElementById("yt-header-badge");
     const cs    = document.getElementById("yt-connect-status");
 
-    // Header badge — reflects whichever channels are connected
+    // Header badge â reflects whichever channels are connected
     if (!data.libs_installed) {
       badge.textContent = "YouTube: install libs";
       badge.classList.remove("connected");
@@ -2534,10 +2541,10 @@ async function checkYouTubeStatus(showPostSection) {
       badge.textContent = "YouTube: needs setup";
       badge.classList.remove("connected");
     } else if (data.bsg_connected && data.tmf_connected) {
-      badge.textContent = "✅ Both channels live";
+      badge.textContent = "â Both channels live";
       badge.classList.add("connected");
     } else if (data.bsg_connected || data.tmf_connected) {
-      badge.textContent = "✅ 1 channel connected";
+      badge.textContent = "â 1 channel connected";
       badge.classList.add("connected");
     } else {
       badge.textContent = "YouTube: not connected";
@@ -2550,16 +2557,16 @@ async function checkYouTubeStatus(showPostSection) {
     const bsgDBtn  = document.getElementById("yt-bsg-disconnect-btn");
     if (bsgTxt) {
       if (!data.libs_installed) {
-        bsgTxt.textContent = "⚠️ Libraries not installed — see setup steps above";
+        bsgTxt.textContent = "â ï¸ Libraries not installed â see setup steps above";
       } else if (!data.secrets_file) {
-        bsgTxt.textContent = "⚠️ youtube_client_secrets.json not found";
+        bsgTxt.textContent = "â ï¸ youtube_client_secrets.json not found";
       } else if (data.bsg_connected) {
-        bsgTxt.textContent = "✅ Connected — ready to post";
+        bsgTxt.textContent = "â Connected â ready to post";
         bsgTxt.style.color = "#2D6A4F";
         if (bsgCBtn) bsgCBtn.textContent = "Reconnect";
         if (bsgDBtn) bsgDBtn.style.display = "inline-flex";
       } else {
-        bsgTxt.textContent = "Not connected — click Connect to sign in";
+        bsgTxt.textContent = "Not connected â click Connect to sign in";
         bsgTxt.style.color = "var(--muted)";
         if (bsgCBtn) bsgCBtn.textContent = "Connect";
         if (bsgDBtn) bsgDBtn.style.display = "none";
@@ -2572,16 +2579,16 @@ async function checkYouTubeStatus(showPostSection) {
     const tmfDBtn  = document.getElementById("yt-tmf-disconnect-btn");
     if (tmfTxt) {
       if (!data.libs_installed) {
-        tmfTxt.textContent = "⚠️ Libraries not installed — see setup steps above";
+        tmfTxt.textContent = "â ï¸ Libraries not installed â see setup steps above";
       } else if (!data.secrets_file) {
-        tmfTxt.textContent = "⚠️ youtube_client_secrets.json not found";
+        tmfTxt.textContent = "â ï¸ youtube_client_secrets.json not found";
       } else if (data.tmf_connected) {
-        tmfTxt.textContent = "✅ Connected — ready to post";
+        tmfTxt.textContent = "â Connected â ready to post";
         tmfTxt.style.color = "#8B6914";
         if (tmfCBtn) tmfCBtn.textContent = "Reconnect";
         if (tmfDBtn) tmfDBtn.style.display = "inline-flex";
       } else {
-        tmfTxt.textContent = "Not connected — click Connect to sign in";
+        tmfTxt.textContent = "Not connected â click Connect to sign in";
         tmfTxt.style.color = "var(--muted)";
         if (tmfCBtn) tmfCBtn.textContent = "Connect";
         if (tmfDBtn) tmfDBtn.style.display = "none";
@@ -2608,20 +2615,20 @@ async function checkYouTubeStatus(showPostSection) {
 async function connectYouTube(channel) {
   const cs   = document.getElementById("yt-connect-status");
   const cBtn = document.getElementById("yt-" + channel + "-connect-btn");
-  if (cBtn) { cBtn.disabled = true; cBtn.textContent = "⏳ Opening..."; }
+  if (cBtn) { cBtn.disabled = true; cBtn.textContent = "â³ Opening..."; }
   if (cs)   cs.textContent = "";
 
   try {
     const res  = await fetch("/youtube-connect?channel=" + channel);
     const data = await res.json();
     if (data.error) {
-      if (cs) { cs.textContent = "❌ " + data.error; cs.style.color = "#E07878"; }
+      if (cs) { cs.textContent = "â " + data.error; cs.style.color = "#E07878"; }
       if (cBtn) { cBtn.disabled = false; cBtn.textContent = "Connect"; }
       return;
     }
-    if (cs) { cs.textContent = "Google sign-in opened — sign in with the correct account, then return here."; cs.style.color = "var(--muted)"; }
+    if (cs) { cs.textContent = "Google sign-in opened â sign in with the correct account, then return here."; cs.style.color = "var(--muted)"; }
     window.open(data.auth_url, "_blank", "width=600,height=700");
-    if (cBtn) cBtn.textContent = "⏳ Waiting for sign-in...";
+    if (cBtn) cBtn.textContent = "â³ Waiting for sign-in...";
 
     // Poll until the token file is saved
     let attempts = 0;
@@ -2634,15 +2641,15 @@ async function connectYouTube(channel) {
         clearInterval(poll);
         if (cBtn) cBtn.disabled = false;
         checkYouTubeStatus(false);
-        if (cs) { cs.textContent = "✅ Connected!"; cs.style.color = "var(--wood)"; }
+        if (cs) { cs.textContent = "â Connected!"; cs.style.color = "var(--wood)"; }
       } else if (attempts > 60) {
         clearInterval(poll);
         if (cBtn) { cBtn.disabled = false; cBtn.textContent = "Connect"; }
-        if (cs) cs.textContent = "Timed out — try again.";
+        if (cs) cs.textContent = "Timed out â try again.";
       }
     }, 3000);
   } catch(e) {
-    if (cs) { cs.textContent = "❌ " + e; cs.style.color = "#E07878"; }
+    if (cs) { cs.textContent = "â " + e; cs.style.color = "#E07878"; }
     if (cBtn) { cBtn.disabled = false; cBtn.textContent = "Connect"; }
   }
 }
@@ -2654,9 +2661,9 @@ async function disconnectYouTube(channel) {
   checkYouTubeStatus(false);
 }
 
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // YouTube post
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function postToYouTube() {
   if (!lastVideoFilename) { alert("No video to post."); return; }
   const title   = document.getElementById("yt-title-input").value.trim() || lastVideoTitle;
@@ -2669,8 +2676,8 @@ async function postToYouTube() {
   if (!title) { alert("Add a title for the YouTube video."); return; }
 
   btn.disabled = true;
-  btn.textContent = "⏳ Uploading...";
-  status.textContent = "Uploading to YouTube — this may take 1–3 minutes...";
+  btn.textContent = "â³ Uploading...";
+  status.textContent = "Uploading to YouTube â this may take 1â3 minutes...";
   status.style.color = "var(--muted)";
 
   try {
@@ -2685,35 +2692,35 @@ async function postToYouTube() {
     });
     const data = await res.json();
     if (data.error) {
-      status.textContent = "❌ " + data.error;
+      status.textContent = "â " + data.error;
       status.style.color = "#E07878";
     } else {
-      status.innerHTML = '✅ Posted! <a href="' + data.url + '" target="_blank" style="color:var(--amber);font-weight:700;">View on YouTube →</a>';
+      status.innerHTML = 'â Posted! <a href="' + data.url + '" target="_blank" style="color:var(--amber);font-weight:700;">View on YouTube â</a>';
       status.style.color = "var(--wood)";
     }
   } catch(e) {
-    status.textContent = "❌ " + e;
+    status.textContent = "â " + e;
     status.style.color = "#E07878";
   } finally {
-    btn.disabled = false; btn.textContent = "🚀 Post Now";
+    btn.disabled = false; btn.textContent = "ð Post Now";
   }
 }
 
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // Voice status
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function checkVoiceStatus() {
   try {
     const res  = await fetch("/voice-status");
     const data = await res.json();
     const opt  = document.getElementById("my-voice-option");
-    if (data.ready)                              opt.textContent = "🎤 My Voice Clone ✅";
-    else if (data.has_voice_file && !data.has_xtts) opt.textContent = "🎤 My Voice Clone (needs pip3 install TTS)";
-    else                                          opt.textContent = "🎤 My Voice Clone (needs setup)";
-    if (data.has_elevenlabs) document.querySelectorAll("#voice-select optgroup")[0].label = "⭐ ElevenLabs Premium — Active ✅";
-    if (data.has_fal)        { const el = document.getElementById("fal-key-input");        if (el && !el.value) { el.placeholder = "••••••••••• (key saved — Flux Pro active ✅)"; } const fs = document.getElementById("fal-key-status"); if(fs){ fs.textContent="✅ Flux Pro active — images cost ~$0.05 each"; fs.style.color="var(--wood)"; } }
-    if (data.has_openai)     { const el = document.getElementById("openai-key-input");     if (el && !el.value) el.placeholder = "••••••••••• (key saved)"; }
-    if (data.has_elevenlabs) { const el = document.getElementById("elevenlabs-key-input"); if (el && !el.value) el.placeholder = "••••••••••• (key saved)"; }
+    if (data.ready)                              opt.textContent = "ð¤ My Voice Clone â";
+    else if (data.has_voice_file && !data.has_xtts) opt.textContent = "ð¤ My Voice Clone (needs pip3 install TTS)";
+    else                                          opt.textContent = "ð¤ My Voice Clone (needs setup)";
+    if (data.has_elevenlabs) document.querySelectorAll("#voice-select optgroup")[0].label = "â­ ElevenLabs Premium â Active â";
+    if (data.has_fal)        { const el = document.getElementById("fal-key-input");        if (el && !el.value) { el.placeholder = "â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢ (key saved â Flux Pro active â)"; } const fs = document.getElementById("fal-key-status"); if(fs){ fs.textContent="â Flux Pro active â images cost ~$0.05 each"; fs.style.color="var(--wood)"; } }
+    if (data.has_openai)     { const el = document.getElementById("openai-key-input");     if (el && !el.value) el.placeholder = "â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢ (key saved)"; }
+    if (data.has_elevenlabs) { const el = document.getElementById("elevenlabs-key-input"); if (el && !el.value) el.placeholder = "â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢ (key saved)"; }
   } catch(e) {}
 }
 
@@ -2724,9 +2731,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // Init
-// ════════════════════════════════════════════════════════════
+// ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 checkVoiceStatus();
 checkYouTubeStatus(false);
 loadHistory();
@@ -2735,59 +2742,59 @@ loadHistory();
 </html>
 """
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 #  STARTUP
-# ══════════════════════════════════════════════════════════════════════════════
+# ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 def check_deps():
     try:
         import edge_tts
     except ImportError:
-        print("❌  Missing: edge-tts — run:  pip3 install edge-tts")
+        print("â  Missing: edge-tts â run:  pip3 install edge-tts")
         sys.exit(1)
     try:
         subprocess.run(["ffmpeg", "-version"], capture_output=True, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
-        print("❌  Missing: ffmpeg — run:  brew install ffmpeg")
+        print("â  Missing: ffmpeg â run:  brew install ffmpeg")
         sys.exit(1)
     try:
         import openai
     except ImportError:
-        print("📦  Installing openai library...")
+        print("ð¦  Installing openai library...")
         subprocess.run([sys.executable, "-m", "pip", "install", "openai"], check=True)
-        print("✅  openai installed")
+        print("â  openai installed")
 
     if get_openai_key():
-        print("✅  OpenAI API key loaded — DALL-E 3 image generation active")
+        print("â  OpenAI API key loaded â DALL-E 3 image generation active")
     else:
-        print("⚠️  No OpenAI key found — using free backup image service")
+        print("â ï¸  No OpenAI key found â using free backup image service")
 
     if get_elevenlabs_key():
-        print("✅  ElevenLabs API key loaded — premium voices active")
+        print("â  ElevenLabs API key loaded â premium voices active")
     else:
-        print("ℹ️  No ElevenLabs key — using free Microsoft voices (add key to unlock premium)")
+        print("â¹ï¸  No ElevenLabs key â using free Microsoft voices (add key to unlock premium)")
 
 
 if __name__ == "__main__":
     check_deps()
-    print("\n╔══════════════════════════════════════════╗")
-    print("║     MidwestMade4U Video Studio           ║")
-    print("╚══════════════════════════════════════════╝")
+    print("\nââââââââââââââââââââââââââââââââââââââââââââ")
+    print("â     MidwestMade4U Video Studio           â")
+    print("ââââââââââââââââââââââââââââââââââââââââââââ")
 
     # Detect if running in CI (GitHub Actions)
     in_ci = bool(os.getenv("GITHUB_ACTIONS"))
 
     if in_ci:
-        print("\n🤖  Running in CI mode (GitHub Actions)")
+        print("\nð¤  Running in CI mode (GitHub Actions)")
         print("   Flask server starting (no browser)\n")
     else:
-        print("\n✅  Starting... opening Chrome now.")
+        print("\nâ  Starting... opening Chrome now.")
         print("   Keep this window open while you work.\n")
 
         # Prevent Mac from sleeping while the app is running
         try:
             subprocess.Popen(["caffeinate", "-i", "-w", str(os.getpid())])
-            print("☕  Sleep prevention active (Mac won't sleep while app is running)\n")
+            print("â  Sleep prevention active (Mac won't sleep while app is running)\n")
         except Exception:
             pass  # Non-Mac system, just skip it
 
