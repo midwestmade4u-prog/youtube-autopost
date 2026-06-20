@@ -9,7 +9,7 @@ on:
 jobs:
   autopost-tmf:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 90
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
