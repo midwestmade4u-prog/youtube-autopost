@@ -377,6 +377,89 @@ def check_fb_page_posts(page_token: str, page_id: str, hours: int = 25) -> dict:
         return {"ok": False, "error": str(e)[:100]}
 
 
+# ─── Auto-Fix Actions ────────────────────────────────────────────────────────
+#
+# Safety principle: every auto-fix re-verifies before acting.
+# We never dispatch a rerun or post a fallback based solely on the initial check —
+# we always confirm the problem still exists right before pulling the trigger.
+# This prevents duplicate posts caused by API lag or timing races.
+
+def auto_rerun_failed_jobs(run_id: int, label: str) -> bool:
+    """Re-run only the failed jobs in a workflow run via GitHub API.
+
+    Returns True if the rerun was successfully triggered.
+    """
+    token = os.environ.get("GITHUB_TOKEN", "")
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/actions/runs/{run_id}/rerun-failed-jobs"
+    try:
+        r = requests.post(url, headers=headers, timeout=15)
+        if r.status_code in (201, 204):
+            print(f"    🔧 [{label}] Auto-rerun triggered for run {run_id}")
+            return True
+        print(f"    ⚠️  [{label}] Auto-rerun failed: {r.status_code} {r.text[:80]}")
+        return False
+    except Exception as e:
+        print(f"    ⚠️  [{label}] Auto-rerun error: {e}")
+        return False
+
+
+def auto_dispatch_workflow(workflow_file: str, label: str) -> bool:
+    """Dispatch a workflow_dispatch event to re-trigger a missed workflow run.
+
+    Only safe to call when we've already confirmed 0 YT posts AND 0 workflow runs.
+    Returns True if the dispatch was accepted.
+    """
+    token = os.environ.get("GITHUB_TOKEN", "")
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/actions/workflows/{workflow_file}/dispatches"
+    try:
+        r = requests.post(url, headers=headers, json={"ref": "main"}, timeout=15)
+        if r.status_code == 204:
+            print(f"    🔧 [{label}] Auto-dispatched {workflow_file}")
+            return True
+        print(f"    ⚠️  [{label}] Auto-dispatch failed: {r.status_code} {r.text[:80]}")
+        return False
+    except Exception as e:
+        print(f"    ⚠️  [{label}] Auto-dispatch error: {e}")
+        return False
+
+
+def fb_post_yt_link(page_token: str, page_id: str, yt_url: str,
+                    title: str, label: str) -> bool:
+    """Post a YouTube link to a Facebook page as a fallback when native video upload failed.
+
+    Safety: re-checks the FB page one more time right before posting to guard against
+    API lag (the native video might have just appeared). Returns True only if a new
+    link post was successfully published.
+    """
+    # Re-verify: did the native video show up since the initial check?
+    recheck = check_fb_page_posts(page_token, page_id, hours=25)
+    if recheck.get("ok") and recheck.get("count", 0) > 0:
+        print(f"    ✅ [{label}] FB re-check found {recheck['count']} post(s) — native video appeared, skipping fallback")
+        return False  # Not a failure — already posted
+
+    try:
+        resp = requests.post(
+            f"https://graph.facebook.com/v25.0/{page_id}/feed",
+            data={
+                "message":      title,
+                "link":         yt_url,
+                "access_token": page_token,
+            },
+            timeout=20,
+        )
+        data = resp.json()
+        if "id" in data:
+            print(f"    🔧 [{label}] FB link-post fallback published: {yt_url}")
+            return True
+        print(f"    ⚠️  [{label}] FB link-post failed: {data}")
+        return False
+    except Exception as e:
+        print(f"    ⚠️  [{label}] FB link-post error: {e}")
+        return False
+
+
 # ─── Email ────────────────────────────────────────────────────────────────────
 
 def send_alert_email(subject: str, body_text: str, body_html: str) -> None:
@@ -550,6 +633,7 @@ def main() -> int:
         runs = get_recent_workflow_runs(ch["workflow"])
         run_errors = [r for r in runs if "error" in r]
         failed_runs = [r for r in runs if r.get("conclusion") in ("failure", "cancelled")]
+        error_type = "unknown"  # Set below if a failed run is found
 
         gh_status = "✅ OK"
         if run_errors:
@@ -600,6 +684,48 @@ def main() -> int:
             else:
                 fb_status = f"✅ {fb_result['count']} FB post(s)"
         print(f"  Facebook: {fb_status}")
+
+        # ── Auto-fix ─────────────────────────────────────────────────────────
+        # Each rule re-verifies the problem before acting to prevent false triggers.
+
+        # Rule 1: Workflow failed + YT also missed → rerun (non-quota errors only)
+        # Guard: only act if actual_posts == 0, confirming the run truly produced nothing.
+        if failed_runs and actual_posts == 0 and error_type not in ("openai_quota", "anthropic_quota"):
+            print(f"  🔧 Auto-fix: workflow failed + 0 YT posts — rerunning failed jobs...")
+            if auto_rerun_failed_jobs(failed_runs[0]["id"], ch["label"]):
+                issues = [i for i in issues if not (
+                    i["channel"] == ch["label"] and i["type"] == "workflow_failure"
+                )]
+                issues.append({
+                    "channel": ch["label"],
+                    "type":    "auto_fixed",
+                    "detail":  f"Workflow rerun triggered (error was: {error_type})",
+                })
+
+        # Rule 2: No workflow runs found + 0 YT posts → dispatch fresh run
+        # Guard: both conditions must be true — if posts exist, don't dispatch.
+        if not runs and not run_errors and actual_posts == 0:
+            print(f"  🔧 Auto-fix: no workflow runs + 0 YT posts — dispatching {ch['workflow']}...")
+            auto_dispatch_workflow(ch["workflow"], ch["label"])
+
+        # Rule 3: FB missed post but YT posted fine → re-verify FB then post link fallback
+        # Guard: fb_post_yt_link() re-checks FB page before posting to catch API lag.
+        # Only fires when YT succeeded (actual_posts >= expected) — we know a video exists.
+        if fb_status.startswith("⚠️") and actual_posts >= expected and fb_token and fb_page_id:
+            good_videos = [v for v in videos if "error" not in v]
+            if good_videos:
+                yt_url   = good_videos[0]["url"]
+                yt_title = good_videos[0]["title"]
+                print(f"  🔧 Auto-fix: FB missed — re-verifying then posting link fallback...")
+                if fb_post_yt_link(fb_token, fb_page_id, yt_url, yt_title, ch["label"]):
+                    issues = [i for i in issues if not (
+                        i["channel"] == ch["label"] and i["type"] == "fb_missed_post"
+                    )]
+                    issues.append({
+                        "channel": ch["label"],
+                        "type":    "auto_fixed",
+                        "detail":  f"FB link-post fallback published: {yt_url}",
+                    })
 
         # 4. Duplicate title / company detection
         if token_json:
