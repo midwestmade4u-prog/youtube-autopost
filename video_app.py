@@ -1176,12 +1176,32 @@ def generate_script():
         style_guide = (
             "Dark psychology / human behavior educational content for adults. "
             "Tone: calm, analytical, slightly unsettling. "
-            "Image prompts MUST be atmospheric and symbolic â NO faces, NO people, NO portraits. "
+            "Image prompts MUST be atmospheric and symbolic — NO faces, NO people, NO portraits. "
             "Use objects, environments, shadows, hands (no face), silhouettes, abstract compositions. "
             "Examples of valid image prompts: burning money on a desk, broken clock on dark floor, "
             "empty interrogation chair under single light, heavy chains on concrete, "
             "cracked mirror reflection, locked door in dark corridor, pair of hands gripping a phone. "
             "Style: black and white / heavily desaturated film noir, high contrast, photorealistic."
+        )
+        cta_instruction = ""
+    elif channel == "mz":
+        style_guide = (
+            "Business history / corporate scandal / company failure content for adults. "
+            "Tone: calm, authoritative, slightly dramatic — like a documentary narrator. "
+            "Image prompts should be cinematic photography style: "
+            "empty boardrooms, newspaper headlines, stock ticker screens, closing storefronts, "
+            "filing cabinets, court steps, handcuffs on desk, shredded documents. "
+            "NO faces, NO people, NO portraits. Environments and objects only. "
+            "Style: moody, high-contrast color photography. "
+            "\n*** CRITICAL: ***\n"
+            "Scene 1 MUST lead with the payoff — a number, a dollar amount, a date, or a punchy superlative. "
+            "NEVER open with '[Company] was...' or '[Company] used to be...'. "
+            "Example hook: '$11 billion. Gone. In 24 hours.' or '23,000 employees. No warning. No severance.'"
+        )
+        cta_instruction = (
+            "\n- FINAL SCENE (last narration block only): append this exact sentence after the payoff: "
+            "'If you want more stories like this, follow Minute Zero.' "
+            "Do not add a separate CTA scene; weave it as the last sentence of the last scene."
         )
     else:
         style_guide = (
@@ -1190,10 +1210,10 @@ def generate_script():
             "Image prompts should be colorful, cheerful storybook illustration style. "
             "\n*** CRITICAL FOR ENGAGEMENT: ***\n"
             "Scene 1 MUST be a dramatic hook that stops scrolling. Start with a question or stunning visual, not exposition. "
-            "Example: Don't open with 'Once upon a time...' â open with 'He was FACING CERTAIN DEATH. Then...' "
-            "Scene 1 image: Make it VISUALLY STRIKING â bold colors, dramatic moment, something that makes people stop scrolling."
+            "Example: Don't open with 'Once upon a time...' — open with 'He was FACING CERTAIN DEATH. Then...' "
+            "Scene 1 image: Make it VISUALLY STRIKING — bold colors, dramatic moment, something that makes people stop scrolling."
         )
-
+        cta_instruction = ""
     system_prompt = f"""You are a short-form video script writer optimized for YouTube Shorts (60 seconds).
 CRITICAL: First 3 seconds determine if viewers keep watching. Hook them IMMEDIATELY.
 
@@ -1216,11 +1236,11 @@ Rules:
 - Each narration: 20-40 words, conversational, hook-driven
 - Pacing: Build momentum. Don't waste time. Each scene should reveal something new.
 - Each image_prompt: specific, visual, cinematic â NOT abstract. For scene 1, make it ATTENTION-GRABBING.
-- No markdown, no explanation, ONLY the JSON object"""
+- No markdown, no explanation, ONLY the JSON object{cta_instruction}"""
 
     try:
         import openai
-        # Prefer DeepSeek (95% cheaper) — fall back to GPT-4o if key missing
+        # Prefer DeepSeek (95% cheaper, same quality) — fall back to GPT-4o if key missing
         deepseek_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
         if deepseek_key:
             client = openai.OpenAI(api_key=deepseek_key, base_url="https://api.deepseek.com")

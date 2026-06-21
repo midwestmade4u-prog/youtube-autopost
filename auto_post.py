@@ -330,6 +330,45 @@ def _topic_keywords(topic: str) -> set:
     return {w for w in words if len(w) >= 5 and w not in _TMF_STOP_WORDS}
 
 
+def _mz_company_posted_recently(topic: str, days: int = 30) -> bool:
+    """True if a video about the same company was posted on MZ within `days` days.
+    Extracts the company name from the topic string (format: 'Company — angle' or
+    'Company bankruptcy/scandal/etc') and blocks repeats within the window.
+    Prevents duplicate titles like 'The FBI Raid That Exposed HealthSouth' (posted twice).
+    """
+    import re as _re2
+    log = _load_channel_log("mz")
+    # Extract company slug: take first 2 significant words from topic
+    words = _re2.findall(r"[A-Za-z]{3,}", topic)
+    # Skip generic business words
+    skip = {"the", "how", "one", "that", "this", "from", "into", "with", "its",
+            "was", "and", "for", "billion", "million", "nearly", "almost",
+            "saved", "killed", "exposed", "destroyed", "crashed", "collapsed",
+            "survived", "failed", "went", "built", "lost", "bet", "deal",
+            "company", "corp", "inc", "ltd"}
+    sig = [w.lower() for w in words if w.lower() not in skip]
+    if not sig:
+        return False
+    # Use first meaningful word as company anchor (e.g. "HealthSouth", "Blockbuster")
+    company_anchor = sig[0]
+    cutoff = datetime.now(ZoneInfo("America/Chicago")) - timedelta(days=days)
+    for post in log.get("posts", []):
+        if post.get("channel") != "mz":
+            continue
+        try:
+            post_dt = datetime.strptime(post.get("posted_at", ""), "%Y-%m-%d %H:%M:%S")
+            post_dt = post_dt.replace(tzinfo=ZoneInfo("America/Chicago"))
+        except ValueError:
+            continue
+        if post_dt < cutoff:
+            continue
+        past_topic = post.get("topic", "").lower()
+        past_title = post.get("title", "").lower()
+        if company_anchor in past_topic or company_anchor in past_title:
+            return True
+    return False
+
+
 def _tmf_topic_too_similar_to_recent(topic: str, days: int = 14) -> bool:
     """True if this topic shares ÃÂ¢ÃÂÃÂ¥2 concept keywords with any TMF post in the last 14 days.
     Prevents toxic/guilt/manipulation cluster saturation. Uses per-channel log."""
@@ -442,6 +481,12 @@ def pick_topic(channel: str) -> str:
             t for t in topics
             if t not in used and not _tmf_topic_too_similar_to_recent(t, days=14)
         ]
+    elif channel == "mz":
+        # MZ: 30-day company-level dedup — prevents same company appearing twice
+        available = [
+            t for t in topics
+            if t not in used and not _mz_company_posted_recently(t, days=30)
+        ]
     else:
         available = [t for t in topics if t not in used]
 
@@ -456,6 +501,8 @@ def pick_topic(channel: str) -> str:
             available = [t for t in topics if not _bsg_story_ever_posted(t)]
         elif channel == "tmf":
             available = [t for t in topics if not _tmf_topic_too_similar_to_recent(t, days=14)]
+        elif channel == "mz":
+            available = [t for t in topics if not _mz_company_posted_recently(t, days=30)]
         if not available:
             available = topics[:]  # Last resort: pick from full bank
 
@@ -580,8 +627,14 @@ def script_word_count_ok(script: dict) -> tuple[bool, int]:
     return (140 <= total <= 180), total
 
 def title_already_published(title: str, channel: str) -> bool:
-    """Fuzzy-match the candidate title against past posts in auto_post_log.json."""
-    log = load_log()
+    """Fuzzy-match the candidate title against past posts.
+
+    Reads from the per-channel log (primary source of truth) so it stays
+    accurate even when the shared auto_post_log.json lags behind due to
+    concurrent GH Actions runs or merge conflicts.
+    """
+    # Use per-channel log as primary — it is committed by every workflow run
+    log = _load_channel_log(channel)
     norm = _normalize_title(title)
     if not norm:
         return False
@@ -1213,16 +1266,17 @@ def build_yt_metadata(channel: str, title: str, topic: str = "") -> dict:
     search filter update means descriptions now drive meaningful traffic). Topic string
     is embedded so each video gets unique, searchable copy rather than boilerplate.
     """
-    # Extract the core subject from topic (everything before the " ÃÂ¢ÃÂÃÂ " dash if present)
-    topic_subject = topic.split(" ÃÂ¢ÃÂÃÂ ")[0].strip() if " ÃÂ¢ÃÂÃÂ " in topic else topic.strip()
-    # Extract the hook/angle (everything after the " ÃÂ¢ÃÂÃÂ " dash)
-    topic_angle   = topic.split(" ÃÂ¢ÃÂÃÂ ", 1)[1].strip() if " ÃÂ¢ÃÂÃÂ " in topic else ""
+    # Extract the core subject and angle from topic.
+    # Topics are formatted as "Subject - Angle" or just "Subject"
+    sep = " - "
+    topic_subject = topic.split(sep)[0].strip() if sep in topic else topic.strip()
+    topic_angle   = topic.split(sep, 1)[1].strip() if sep in topic else ""
 
     if channel == "bsg":
         if topic_subject:
             description = (
-                f"ÃÂ¢ÃÂÃÂÃÂ¯ÃÂ¸ÃÂ {title}\n\n"
-                f"{topic_subject} ÃÂ¢ÃÂÃÂ {topic_angle + ' ' if topic_angle else ''}"
+                f"📖 {title}\n\n"
+                f"{topic_subject} - {topic_angle + ' ' if topic_angle else ''}"
                 f"Bible Stories for Kids, brought to you by Bible Story Garden. "
                 f"Faith-filled, family-friendly shorts that bring Scripture to life. "
                 f"Perfect for Christian families, Sunday school, and kids who love God's Word.\n\n"
@@ -1230,32 +1284,53 @@ def build_yt_metadata(channel: str, title: str, topic: str = "") -> dict:
             )
         else:
             description = (
-                f"ÃÂ¢ÃÂÃÂÃÂ¯ÃÂ¸ÃÂ {title}\n\n"
-                "Bible Stories for Kids ÃÂ¢ÃÂÃÂ brought to you by Bible Story Garden! "
+                f"📖 {title}\n\n"
+                "Bible Stories for Kids - brought to you by Bible Story Garden! "
                 "Faith-filled, family-friendly shorts that bring Scripture to life.\n\n"
                 "#BibleStories #KidsFaith #BibleForKids #ChristianKids #YouTubeShorts"
             )
         tags = "Bible,Bible Stories,Kids,Faith,Jesus,God,Christian,Children,YouTube Shorts,Bible for Kids"
         if topic_subject:
-            # Add topic keywords as extra tags (YouTube uses tags for search ranking too)
+            topic_words = [w for w in topic_subject.replace("'", "").split() if len(w) > 3]
+            tags += "," + ",".join(topic_words[:5])
+    elif channel == "mz":
+        if topic_subject:
+            description = (
+                f"⚡ {title}\n\n"
+                f"{topic_subject}"
+                f"{' - ' + topic_angle if topic_angle else ''}. "
+                f"Business collapses, corporate scandals, and the moments that changed history - "
+                f"brought to you by Minute Zero. "
+                f"Every video is one decision, one moment, one company that changed forever.\n\n"
+                "#BusinessHistory #CorporateScandal #MinuteZero #BusinessFails #YouTubeShorts"
+            )
+        else:
+            description = (
+                f"⚡ {title}\n\n"
+                "Business collapses and corporate scandals - brought to you by Minute Zero. "
+                "One moment. One company. Everything changes.\n\n"
+                "#BusinessHistory #CorporateScandal #MinuteZero #BusinessFails #YouTubeShorts"
+            )
+        tags = "business history,corporate scandal,business failure,company collapse,Minute Zero,YouTube Shorts,finance,Wall Street"
+        if topic_subject:
             topic_words = [w for w in topic_subject.replace("'", "").split() if len(w) > 3]
             tags += "," + ",".join(topic_words[:5])
     else:
         # TMF
         if topic_subject:
             description = (
-                f"ÃÂ°ÃÂÃÂ§ÃÂ  {title}\n\n"
+                f"🧠 {title}\n\n"
                 f"{topic_subject}"
-                f"{' ÃÂ¢ÃÂÃÂ ' + topic_angle if topic_angle else ''}. "
-                f"Dark psychology and human behavior explained ÃÂ¢ÃÂÃÂ brought to you by The Mind Files. "
+                f"{' - ' + topic_angle if topic_angle else ''}. "
+                f"Dark psychology and human behavior explained - brought to you by The Mind Files. "
                 f"Why do people do what they do? Explore the science behind manipulation, "
                 f"personality, and the hidden forces shaping every decision.\n\n"
                 "#Psychology #DarkPsychology #HumanBehavior #MindFiles #YouTubeShorts"
             )
         else:
             description = (
-                f"ÃÂ°ÃÂÃÂ§ÃÂ  {title}\n\n"
-                "Dark psychology and human behavior explained ÃÂ¢ÃÂÃÂ brought to you by The Mind Files. "
+                f"🧠 {title}\n\n"
+                "Dark psychology and human behavior explained - brought to you by The Mind Files. "
                 "Why humans do what they do.\n\n"
                 "#Psychology #DarkPsychology #HumanBehavior #MindFiles #YouTubeShorts"
             )
@@ -1374,7 +1449,7 @@ def run_via_server(channel: str, topic: str, script: dict) -> str:
         sys.exit(1)
 
     # Poll until video is done (can take 3-10 minutes)
-    print("  ÃÂ¢ÃÂÃÂ³ Processing video (this takes a few minutes)...")
+    print("  ⏳ Processing video (this takes a few minutes)...")
     deadline = time.time() + 1200  # 20 min max — leaves room for YT upload within 90-min GH Actions timeout
     while time.time() < deadline:
         time.sleep(5)

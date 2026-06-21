@@ -94,31 +94,38 @@ def get_yt_service(token_file: str):
     return build("youtube", "v3", credentials=creds)
 
 
-def videos_posted_last_24h(channel_id: str, token_file: str) -> list[dict]:
-    """Return list of videos published to channel_id in the last 24 hours."""
-    try:
-        svc = get_yt_service(token_file)
-        since = (datetime.now(timezone.utc) - timedelta(hours=26)).strftime("%Y-%m-%dT%H:%M:%SZ")
-        resp = svc.search().list(
-            part="snippet",
-            channelId=channel_id,
-            publishedAfter=since,
-            type="video",
-            maxResults=10,
-            order="date",
-        ).execute()
-        items = resp.get("items", [])
-        return [
-            {
-                "title":      i["snippet"]["title"],
-                "video_id":   i["id"]["videoId"],
-                "published":  i["snippet"]["publishedAt"],
-                "url":        f"https://youtu.be/{i['id']['videoId']}",
-            }
-            for i in items
-        ]
-    except Exception as e:
-        return [{"error": str(e)[:120]}]
+def videos_posted_last_24h(channel_id: str, token_file: str, retries: int = 3) -> list[dict]:
+    """Return list of videos published to channel_id in the last 24 hours.
+    Retries up to `retries` times with exponential backoff on transient errors."""
+    last_err = None
+    for attempt in range(retries):
+        try:
+            svc = get_yt_service(token_file)
+            since = (datetime.now(timezone.utc) - timedelta(hours=26)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            resp = svc.search().list(
+                part="snippet",
+                channelId=channel_id,
+                publishedAfter=since,
+                type="video",
+                maxResults=10,
+                order="date",
+            ).execute()
+            items = resp.get("items", [])
+            return [
+                {
+                    "title":      i["snippet"]["title"],
+                    "video_id":   i["id"]["videoId"],
+                    "published":  i["snippet"]["publishedAt"],
+                    "url":        f"https://youtu.be/{i['id']['videoId']}",
+                }
+                for i in items
+            ]
+        except Exception as e:
+            last_err = e
+            wait = 30 * (2 ** attempt)  # 30s, 60s, 120s
+            print(f"  ⚠️  YT API attempt {attempt + 1}/{retries} failed: {e} — retrying in {wait}s")
+            time.sleep(wait)
+    return [{"error": str(last_err)[:120]}]
 
 
 # ─── GitHub Actions API ───────────────────────────────────────────────────────
@@ -239,6 +246,99 @@ def append_to_sheets(rows: list[list]) -> None:
         print(f"  📊 Logged {len(rows)} row(s) to Sheets")
     except Exception as e:
         print(f"  ⚠️  Sheets logging failed: {e}")
+
+
+# ─── Duplicate Detection ──────────────────────────────────────────────────────
+
+def detect_duplicate_videos(channel_id: str, token_file: str, label: str,
+                             lookback_days: int = 30) -> list[dict]:
+    """Scan a channel's recent videos for duplicate titles or company repeats.
+
+    Flags:
+      - Exact or near-exact title duplicates (normalised lowercase)
+      - MZ-specific: same company name appearing in >1 video title within window
+
+    Returns a list of dicts:
+      {"type": "duplicate_title"|"duplicate_company", "videos": [...titles], "label": channel_label}
+    """
+    import re
+    flags: list[dict] = []
+
+    try:
+        svc = get_yt_service(token_file)
+        since = (datetime.now(timezone.utc) - timedelta(days=lookback_days)).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        resp = svc.search().list(
+            part="snippet",
+            channelId=channel_id,
+            publishedAfter=since,
+            type="video",
+            order="date",
+            maxResults=50,
+        ).execute()
+    except Exception as e:
+        print(f"  ⚠️  [{label}] duplicate check API error: {e}")
+        return []
+
+    titles = [
+        item["snippet"]["title"]
+        for item in resp.get("items", [])
+        if "snippet" in item
+    ]
+
+    if not titles:
+        return []
+
+    # 1. Exact / near-exact title duplicates (lowercased, stripped)
+    def _norm(t: str) -> str:
+        return re.sub(r"[^a-z0-9 ]", "", t.lower()).strip()
+
+    seen: dict[str, list[str]] = {}
+    for t in titles:
+        key = _norm(t)
+        seen.setdefault(key, []).append(t)
+
+    for key, dupes in seen.items():
+        if len(dupes) > 1:
+            flags.append({
+                "type": "duplicate_title",
+                "label": label,
+                "videos": dupes,
+                "detail": f"Exact title posted {len(dupes)}×: "{dupes[0]}"",
+            })
+
+    # 2. MZ company-level duplicates (first significant word in title)
+    if "Minute Zero" in label or label.lower() == "mz":
+        _skip = {"the", "how", "one", "that", "this", "from", "into", "with", "its",
+                 "was", "and", "for", "why", "what", "when", "who",
+                 "billion", "million", "nearly", "almost",
+                 "saved", "killed", "exposed", "destroyed", "crashed", "collapsed",
+                 "survived", "failed", "went", "built", "lost", "bet", "deal"}
+
+        company_map: dict[str, list[str]] = {}
+        for t in titles:
+            words = re.findall(r"[A-Za-z]{3,}", t)
+            sig = [w.lower() for w in words if w.lower() not in _skip]
+            if sig:
+                anchor = sig[0]
+                company_map.setdefault(anchor, []).append(t)
+
+        for company, vids in company_map.items():
+            if len(vids) > 1:
+                flags.append({
+                    "type": "duplicate_company",
+                    "label": label,
+                    "videos": vids,
+                    "detail": f"Company '{company}' appears in {len(vids)} videos: {vids}",
+                })
+
+    if flags:
+        print(f"  🔴 [{label}] {len(flags)} duplicate flag(s) found")
+    else:
+        print(f"  ✅ [{label}] no duplicates detected")
+
+    return flags
 
 
 # ─── Email ────────────────────────────────────────────────────────────────────
@@ -441,7 +541,21 @@ def main() -> int:
 
         print(f"  GitHub:  {gh_status}")
 
-        # 3. Feed longform queue from top-performing shorts
+        # 3. Duplicate title / company detection
+        if token_json:
+            print(f"  Checking for duplicate videos...")
+            dup_flags = detect_duplicate_videos(
+                ch["channel_id"], ch["token_file"], ch["label"], lookback_days=30
+            )
+            for flag in dup_flags:
+                issues.append({
+                    "channel":  ch["label"],
+                    "type":     flag["type"],
+                    "detail":   flag["detail"],
+                    "videos":   flag.get("videos", []),
+                })
+
+        # 4. Feed longform queue from top-performing shorts
         if token_json:
             print(f"  Checking longform queue...")
             update_longform_queue(key, ch["channel_id"], ch["token_file"])
@@ -461,6 +575,7 @@ def main() -> int:
         sheets_url = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit#gid=0"
         issue_lines = "\n".join(
             f"• {i['channel']}: {i['type']} — {i.get('detail', i.get('run_url', ''))}"
+            + (f"\n  Videos: {i['videos']}" if i.get('videos') else "")
             for i in issues
         )
 

@@ -7,9 +7,9 @@ name: TMF Long-Form Auto-Post
 
 on:
   schedule:
-    - cron: '0 15 * * 0'→ Runs at 15:00, only on Sunday   # Sunday    10 AM CT
-    - cron: '0 14 * * 2'→ Runs at 14:00, only on Tuesday   # Tuesday    9 AM CT
-    - cron: '0 17 * * 5'→ Runs at 17:00, only on Friday   # Friday    12 PM CT
+    - cron: '0 15 * * 0'   # Sunday    10 AM CT
+    - cron: '0 14 * * 2'   # Tuesday    9 AM CT
+    - cron: '0 17 * * 5'   # Friday    12 PM CT
   workflow_dispatch:
     inputs:
       topic:

@@ -1,0 +1,86 @@
+name: YouTube Auto-Post - Bible Story Garden
+
+on:
+  schedule:
+    # 12 PM CDT = 17:00 UTC  (family audience: afternoon scroll window)
+    - cron: '0 17 * * *'
+    # 7 PM CDT = 00:00 UTC  (family audience: evening scroll window)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  autopost-bsg:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flask edge-tts Pillow openai google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib requests
+
+      - name: Create YouTube token files
+        run: |
+          echo '${{ secrets.YT_TOKEN_BSG }}' > youtube_token_bsg.json
+
+      - name: Run Bible Story Garden auto-post
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
+          GOOGLE_SHEETS_KEY: ${{ secrets.GOOGLE_SHEETS_KEY }}
+        run: python3 auto_post.py --channel bsg
+        continue-on-error: true
+
+      - name: Find video file
+        id: findvideo
+        run: |
+          MP4=$(find . -name "*.mp4" -newer youtube_token_bsg.json 2>/dev/null | grep -i BSG_Output | head -1)
+          if [ -z "$MP4" ]; then
+            MP4=$(find BSG_Output -name "*.mp4" 2>/dev/null | head -1)
+          fi
+          echo "Newest BSG mp4: $MP4"
+          echo "FB_VIDEO_PATH=$MP4" >> $GITHUB_ENV
+
+      - name: Post Facebook video (BSG)
+        env:
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN_BSG }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID_BSG }}
+          FB_POST_LOG: "bsg_post_log.json"
+        run: |
+          pip install requests -q
+          python3 fb_yt_crosspost.py
+        continue-on-error: true
+
+      - name: Commit results
+        run: |
+          git config --local user.email "automation@youtube.local"
+          git config --local user.name "YouTube AutoPost Bot"
+          git pull --rebase origin main || true
+          git add bsg_post_log.json auto_post_log.json auto_trigger_bsg_*.json 2>/dev/null || true
+          git commit -m "Auto-post videos (BSG) - $(date)" || true
+          git push || true
+
+      - name: Upload logs to artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bsg-autopost-logs
+          path: |
+            watcher.log
+            auto_post_log.json
+            video_server.log
+          retention-days: 7
