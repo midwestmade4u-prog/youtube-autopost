@@ -51,28 +51,34 @@ CT              = ZoneInfo("America/Chicago")
 
 CHANNELS = {
     "tmf": {
-        "label":       "The Mind Files",
-        "channel_id":  "UC0O6KbbHKW4_a7d9epNo93A",
-        "token_env":   "YT_TOKEN_TMF",
-        "token_file":  "youtube_token_tmf.json",
+        "label":          "The Mind Files",
+        "channel_id":     "UC0O6KbbHKW4_a7d9epNo93A",
+        "token_env":      "YT_TOKEN_TMF",
+        "token_file":     "youtube_token_tmf.json",
         "expected_posts": 2,
-        "workflow":    "tmf-autopost.yml",
+        "workflow":       "tmf-autopost.yml",
+        "fb_token_env":   "FB_PAGE_ACCESS_TOKEN_TMF",
+        "fb_page_id_env": "FB_PAGE_ID_TMF",
     },
     "bsg": {
-        "label":       "Bible Story Garden",
-        "channel_id":  "UCcyBf84Mc-evMSYZlqh3zVA",
-        "token_env":   "YT_TOKEN_BSG",
-        "token_file":  "youtube_token_bsg.json",
+        "label":          "Bible Story Garden",
+        "channel_id":     "UCcyBf84Mc-evMSYZlqh3zVA",
+        "token_env":      "YT_TOKEN_BSG",
+        "token_file":     "youtube_token_bsg.json",
         "expected_posts": 1,
-        "workflow":    "youtube-autopost.yml",
+        "workflow":       "youtube-autopost.yml",
+        "fb_token_env":   "FB_PAGE_ACCESS_TOKEN_BSG",
+        "fb_page_id_env": "FB_PAGE_ID_BSG",
     },
     "mz": {
-        "label":       "Minute Zero",
-        "channel_id":  "UCMVhjR4HetJctXeYkuPgg6w",
-        "token_env":   "YT_TOKEN_MZ",
-        "token_file":  "youtube_token_mz.json",
+        "label":          "Minute Zero",
+        "channel_id":     "UCMVhjR4HetJctXeYkuPgg6w",
+        "token_env":      "YT_TOKEN_MZ",
+        "token_file":     "youtube_token_mz.json",
         "expected_posts": 2,
-        "workflow":    "mz-autopost.yml",
+        "workflow":       "mz-autopost.yml",
+        "fb_token_env":   "FB_PAGE_ACCESS_TOKEN_MZ",
+        "fb_page_id_env": "FB_PAGE_ID_MZ",
     },
 }
 
@@ -341,6 +347,36 @@ def detect_duplicate_videos(channel_id: str, token_file: str, label: str,
     return flags
 
 
+# ─── Facebook Page Check ─────────────────────────────────────────────────────
+
+def check_fb_page_posts(page_token: str, page_id: str, hours: int = 25) -> dict:
+    """Check if at least one video was posted to the FB page in the last `hours` hours.
+
+    Returns:
+      {"ok": True,  "count": N, "posts": [...]}  — N posts found
+      {"ok": False, "error": "..."}               — API error or token issue
+    """
+    try:
+        since = int((datetime.now(timezone.utc) - timedelta(hours=hours)).timestamp())
+        resp = requests.get(
+            f"https://graph.facebook.com/v25.0/{page_id}/videos",
+            params={
+                "fields": "title,created_time",
+                "since":  since,
+                "limit":  10,
+                "access_token": page_token,
+            },
+            timeout=15,
+        )
+        data = resp.json()
+        if "error" in data:
+            return {"ok": False, "error": data["error"].get("message", "unknown FB error")[:100]}
+        posts = data.get("data", [])
+        return {"ok": True, "count": len(posts), "posts": posts}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:100]}
+
+
 # ─── Email ────────────────────────────────────────────────────────────────────
 
 def send_alert_email(subject: str, body_text: str, body_html: str) -> None:
@@ -541,7 +577,31 @@ def main() -> int:
 
         print(f"  GitHub:  {gh_status}")
 
-        # 3. Duplicate title / company detection
+        # 3. Check Facebook posting
+        fb_token   = os.environ.get(ch.get("fb_token_env", ""), "").strip()
+        fb_page_id = os.environ.get(ch.get("fb_page_id_env", ""), "").strip()
+        fb_status  = "⏭️ skipped (no token)"
+        if fb_token and fb_page_id:
+            fb_result = check_fb_page_posts(fb_token, fb_page_id)
+            if not fb_result["ok"]:
+                fb_status = f"❌ {fb_result['error']}"
+                issues.append({
+                    "channel": ch["label"],
+                    "type":    "fb_api_error",
+                    "detail":  fb_result["error"],
+                })
+            elif fb_result["count"] == 0:
+                fb_status = "⚠️  0 FB posts in last 25h"
+                issues.append({
+                    "channel": ch["label"],
+                    "type":    "fb_missed_post",
+                    "detail":  "No FB video found on page in last 25h — cross-post may have failed",
+                })
+            else:
+                fb_status = f"✅ {fb_result['count']} FB post(s)"
+        print(f"  Facebook: {fb_status}")
+
+        # 4. Duplicate title / company detection
         if token_json:
             print(f"  Checking for duplicate videos...")
             dup_flags = detect_duplicate_videos(
@@ -555,13 +615,13 @@ def main() -> int:
                     "videos":   flag.get("videos", []),
                 })
 
-        # 4. Feed longform queue from top-performing shorts
+        # 5. Feed longform queue from top-performing shorts
         if token_json:
             print(f"  Checking longform queue...")
             update_longform_queue(key, ch["channel_id"], ch["token_file"])
 
-        # Sheet row: date | channel | yt_status | gh_status
-        sheet_rows.append([date_str, ch["label"], yt_status, gh_status])
+        # Sheet row: date | channel | yt_status | gh_status | fb_status
+        sheet_rows.append([date_str, ch["label"], yt_status, gh_status, fb_status])
 
     # Log to Sheets
     append_to_sheets(sheet_rows)

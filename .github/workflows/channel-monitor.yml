@@ -38,10 +38,16 @@ jobs:
 
       - name: Run channel monitor
         env:
-          GOOGLE_SHEETS_KEY:  ${{ secrets.GOOGLE_SHEETS_KEY }}
-          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          GITHUB_TOKEN:       ${{ secrets.GH_PAT }}
+          GOOGLE_SHEETS_KEY:          ${{ secrets.GOOGLE_SHEETS_KEY }}
+          ANTHROPIC_API_KEY:          ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_APP_PASSWORD:         ${{ secrets.GMAIL_APP_PASSWORD }}
+          GITHUB_TOKEN:               ${{ secrets.GH_PAT }}
+          FB_PAGE_ACCESS_TOKEN_TMF:   ${{ secrets.FB_PAGE_ACCESS_TOKEN_TMF }}
+          FB_PAGE_ID_TMF:             ${{ secrets.FB_PAGE_ID_TMF }}
+          FB_PAGE_ACCESS_TOKEN_MZ:    ${{ secrets.FB_PAGE_ACCESS_TOKEN_MZ }}
+          FB_PAGE_ID_MZ:              ${{ secrets.FB_PAGE_ID_MZ }}
+          FB_PAGE_ACCESS_TOKEN_BSG:   ${{ secrets.FB_PAGE_ACCESS_TOKEN_BSG }}
+          FB_PAGE_ID_BSG:             ${{ secrets.FB_PAGE_ID_BSG }}
         run: python3 channel_monitor.py
         continue-on-error: true
 
