@@ -727,6 +727,26 @@ def main() -> int:
                         "detail":  f"FB link-post fallback published: {yt_url}",
                     })
 
+
+        # Rule 4: Workflow "succeeded" (continue-on-error) but 0 YT posts → silent failure alert
+        # This catches the case where the auto-post step exits 1 but continue-on-error:true
+        # makes the workflow report "success". The monitor sees 0 posts but no failed_runs,
+        # so Rules 1 and 2 never fire. Rule 4 fills that gap by alerting immediately.
+        # Guard: must have at least one run (not zero runs — that's Rule 2's job), no failed
+        # runs (that's Rule 1), and zero actual posts despite expecting some.
+        if runs and not failed_runs and not run_errors and actual_posts == 0 and expected > 0:
+            print(f"  🚨 Rule 4: workflow reported success but 0 YT posts — silent upload failure!")
+            issues.append({
+                "channel": ch["label"],
+                "type":    "silent_upload_failure",
+                "detail":  (
+                    f"Workflow ran and reported ✅ success (continue-on-error) but "
+                    f"0/{expected} videos found on YouTube. "
+                    f"Likely cause: YouTube token expired/invalid (re-OAuth needed). "
+                    f"Last run: {runs[0].get('url', 'unknown')}"
+                ),
+            })
+
         # 4. Duplicate title / company detection
         if token_json:
             print(f"  Checking for duplicate videos...")
