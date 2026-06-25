@@ -1,0 +1,147 @@
+name: Longform Watchdog — YouTube API Verification + Auto-Retry (All Channels)
+
+# Checks via YouTube API whether longform videos posted on schedule.
+# Covers TMF + MZ + BSG on Sun/Tue/Fri schedule.
+# T+60min: no video found → auto-retry
+# T+120min: still no video → diagnose + alert with exact next step
+#
+# Longform schedule (all channels):
+#   Sun 10 AM CT = 15:00 UTC
+#   Tue  9 AM CT = 14:00 UTC
+#   Fri 12 PM CT = 17:00 UTC
+
+on:
+  schedule:
+    # ── SUNDAY 10 AM CT (15:00 UTC) ───────────────────────────────────────
+    - cron: '0 16 * * 0'    # T+60min  → retry   (Sunday)
+    - cron: '0 17 * * 0'    # T+120min → alert   (Sunday)
+    # ── TUESDAY 9 AM CT (14:00 UTC) ───────────────────────────────────────
+    - cron: '0 15 * * 2'    # T+60min  → retry   (Tuesday)
+    - cron: '0 16 * * 2'    # T+120min → alert   (Tuesday)
+    # ── FRIDAY 12 PM CT (17:00 UTC) ───────────────────────────────────────
+    - cron: '0 18 * * 5'    # T+60min  → retry   (Friday)
+    - cron: '0 19 * * 5'    # T+120min → alert   (Friday)
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Channel to check: tmf, mz, or bsg (leave blank = all)'
+        required: false
+        default: ''
+      check_type:
+        description: 'Force check type: retry or alert'
+        required: false
+        default: ''
+      slot_utc:
+        description: 'Force slot UTC hour (15, 14, or 17)'
+        required: false
+        default: ''
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install google-auth google-auth-oauthlib google-api-python-client --quiet
+
+      - name: Write channel tokens
+        run: |
+          echo '${{ secrets.YT_TOKEN_TMF }}' > youtube_token_tmf.json
+          echo '${{ secrets.YT_TOKEN_MZ }}'  > youtube_token_mz.json
+          echo '${{ secrets.YT_TOKEN_BSG }}' > youtube_token_bsg.json
+
+      - name: Detect window
+        id: window
+        run: |
+          python3 << 'PYEOF'
+          import os
+          from datetime import datetime
+
+          now      = datetime.utcnow()
+          hour     = now.hour
+          weekday  = now.weekday()  # Mon=0 … Sun=6
+
+          force_type = os.environ.get("FORCE_TYPE", "").strip()
+          force_slot = os.environ.get("FORCE_SLOT", "").strip()
+
+          if force_type and force_slot:
+              check_type = force_type
+              slot_utc   = int(force_slot)
+          else:
+              # Longform crons fire on specific weekdays
+              # Sun(6): 16→retry/15, 17→alert/15
+              # Tue(1): 15→retry/14, 16→alert/14
+              # Fri(4): 18→retry/17, 19→alert/17
+              mapping = {
+                  (6, 16): ("retry", 15),
+                  (6, 17): ("alert", 15),
+                  (1, 15): ("retry", 14),
+                  (1, 16): ("alert", 14),
+                  (4, 18): ("retry", 17),
+                  (4, 19): ("alert", 17),
+              }
+              key = (weekday, hour)
+              if key in mapping:
+                  check_type, slot_utc = mapping[key]
+              else:
+                  print(f"⏰ {now.strftime('%A')} {hour}:00 UTC — not a longform watchdog window, skipping")
+                  check_type, slot_utc = "skip", 0
+
+          out = os.environ.get("GITHUB_OUTPUT", "/dev/stdout")
+          with open(out, "a") as f:
+              f.write(f"check_type={check_type}\n")
+              f.write(f"slot_utc={slot_utc}\n")
+          print(f"check_type={check_type} slot_utc={slot_utc}")
+          PYEOF
+        env:
+          FORCE_TYPE: ${{ github.event.inputs.check_type }}
+          FORCE_SLOT: ${{ github.event.inputs.slot_utc }}
+
+      - name: Check TMF longform
+        if: steps.window.outputs.check_type != 'skip' && (github.event.inputs.channel == '' || github.event.inputs.channel == 'tmf')
+        run: |
+          python3 unified_watchdog.py \
+            --channel tmf \
+            --slot-utc ${{ steps.window.outputs.slot_utc }} \
+            --post-type longform \
+            --check-type ${{ steps.window.outputs.check_type }}
+        env:
+          GH_PAT:             ${{ secrets.GH_PAT }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+
+      - name: Check MZ longform
+        if: steps.window.outputs.check_type != 'skip' && (github.event.inputs.channel == '' || github.event.inputs.channel == 'mz')
+        run: |
+          python3 unified_watchdog.py \
+            --channel mz \
+            --slot-utc ${{ steps.window.outputs.slot_utc }} \
+            --post-type longform \
+            --check-type ${{ steps.window.outputs.check_type }}
+        env:
+          GH_PAT:             ${{ secrets.GH_PAT }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+
+      - name: Check BSG longform
+        if: steps.window.outputs.check_type != 'skip' && (github.event.inputs.channel == '' || github.event.inputs.channel == 'bsg')
+        run: |
+          python3 unified_watchdog.py \
+            --channel bsg \
+            --slot-utc ${{ steps.window.outputs.slot_utc }} \
+            --post-type longform \
+            --check-type ${{ steps.window.outputs.check_type }}
+        env:
+          GH_PAT:             ${{ secrets.GH_PAT }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
