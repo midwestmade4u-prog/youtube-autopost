@@ -169,10 +169,14 @@ The topic you receive will be tagged [ONE_BAD_DAY], [UNKNOWN_FAILURE], or [NEAR_
 - Emotional beat: "If this one thing hadn't happened, they'd still be here."
 - **Tighter runtime (55–65s)** — the compression IS the emotion.
 - **HARD WORD COUNT: 140–165 words of narration. Non-negotiable — scripts under 140 or over 165 words will be rejected.** At edge-tts rate of ~2.5 words/sec, 140w = 56s and 165w = 66s. Stay in the band — do not pad, do not summarise.
+- **Beat-level word targets to hit the count:** past_greatness 25–35w, setup 30–40w, minute_zero 55–70w (this is the failure moment — expand with specific detail: exact quote, exact number, exact time), the_fall 25–30w. The minute_zero beat is where the word count lives — do not compress it.
+- **Before submitting, count every word in your script field.** If the count is under 140, expand minute_zero with one more specific detail (an exact number, a name, a time). Do not submit until the count is 140–165.
 
 **[UNKNOWN_FAILURE]** — US corporate fraud and scandal. The crime, cover-up, or betrayal IS the story.
 - All topics are US companies/people.
 - **HARD WORD COUNT: 180–215 words of narration. Non-negotiable — scripts under 180 or over 215 words will be rejected.** At edge-tts rate of ~2.5 words/sec, 180w = 72s and 215w = 86s. Write to the full band.
+- **Beat-level word targets to hit the count:** past_greatness 30–40w, setup 40–50w, minute_zero 70–90w (this is the crime/cover-up — expand with specific names, exact dollar figures, exact dates, and the mechanism of concealment), the_fall 40–45w. The minute_zero beat is where the word count lives — write it scene by scene, not as a summary.
+- **Before submitting, count every word in your script field.** If the count is under 180, expand minute_zero with one more specific detail. Do not submit until the count is 180–215.
 - **Hook rule (critical):** For lesser-known companies, the hook MUST lead with the most unbelievable fact — NOT the company name. The name is irrelevant until the viewer is already hooked. Example: "A 16-year-old built a $300M empire. It was entirely fake." — THEN name the company.
 - For well-known names (Madoff, Martha Stewart), the name can lead but must be followed immediately by the most shocking number or fact.
 - **Recovery/outcome angle (May 2026 — analytics-backed):** Analytics show "how they survived / what the surprising outcome was" outperforms pure destruction framing. Lead with the survival mechanism or the surprising result, not just the collapse. Example: instead of "How FTX Lost $32 Billion," frame toward the outcome — "The Collapse That Created an Opportunity" or "How One Leak Ended a $32B Empire in 72 Hours." The destruction is the hook; the surprising aftermath or human consequence is the payoff.
