@@ -10,6 +10,8 @@ jobs:
   autopost-tmf:
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -64,13 +66,17 @@ jobs:
         continue-on-error: true
 
       - name: Commit results
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config --local user.email "automation@youtube.local"
           git config --local user.name "YouTube AutoPost Bot"
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/midwestmade4u-prog/youtube-autopost.git
           git pull --rebase origin main || true
           git add tmf_post_log.json auto_post_log.json auto_trigger_tmf_*.json 2>/dev/null || true
-          git commit -m "Auto-post TMF - $(date)" || true
-          git push || true
+          git diff --cached --quiet && echo "Nothing to commit, skipping" && exit 0
+          git commit -m "Auto-post log (TMF) - $(date)"
+          git push
 
       - name: Upload logs
         if: always()
