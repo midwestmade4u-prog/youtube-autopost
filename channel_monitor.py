@@ -311,7 +311,7 @@ def detect_duplicate_videos(channel_id: str, token_file: str, label: str,
                 "type": "duplicate_title",
                 "label": label,
                 "videos": dupes,
-                "detail": f"Exact title posted {len(dupes)}×: "{dupes[0]}"",
+                "detail": f"Exact title posted {len(dupes)}×: \"{dupes[0]}\"",
             })
 
     # 2. MZ company-level duplicates (first significant word in title)
