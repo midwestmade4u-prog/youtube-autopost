@@ -67,11 +67,17 @@ jobs:
 
       - name: Find video file
         run: |
-          MP4=$(find MZ_Output -name "*_yt.mp4" 2>/dev/null | xargs ls -t 2>/dev/null | head -1)
-          echo "Newest MZ mp4: $MP4"
-          echo "FB_VIDEO_PATH=$MP4" >> $GITHUB_ENV
+          MP4=$(find MZ_Output -name "*_yt.mp4" 2>/dev/null | head -1)
+          if [ -z "$MP4" ] || [ ! -f "$MP4" ]; then
+            echo "No MP4 found — skipping FB upload"
+            echo "FB_VIDEO_PATH=" >> $GITHUB_ENV
+          else
+            echo "Newest MZ mp4: $MP4"
+            echo "FB_VIDEO_PATH=$MP4" >> $GITHUB_ENV
+          fi
 
       - name: Post Facebook video (MZ)
+        if: env.FB_VIDEO_PATH != ''
         env:
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN_MZ }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID_MZ }}
