@@ -486,8 +486,8 @@ def send_alert_email(subject: str, body_text: str, body_html: str) -> None:
 # ─── Longform Queue Feeding ───────────────────────────────────────────────────
 
 LONGFORM_QUEUES = {
-    "tmf": {"file": "tmf_longform_queue.json", "threshold": 500},
-    "mz":  {"file": "mz_longform_queue.json",  "threshold": 700},
+    "tmf": {"file": "tmf_longform_queue.json", "threshold": 150},
+    "mz":  {"file": "mz_longform_queue.json",  "threshold": 300},
     "bsg": {"file": "bsg_longform_queue.json",  "threshold": 50},
 }
 

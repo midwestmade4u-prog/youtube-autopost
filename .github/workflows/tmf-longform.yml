@@ -1,9 +1,7 @@
 name: TMF Long-Form Auto-Post
 
-# Runs Mon/Wed/Fri at 9 AM CT (14:00 UTC CDT)
-# Generates, renders, and uploads a PRIVATE 8–10 min YouTube video for The Mind Files.
-# Matt receives an email with the YouTube Studio review link.
-# He manually reviews and publishes / schedules.
+# Runs Sun 10AM / Tue 9AM / Fri 12PM CT — optimized schedule per Buffer 1.8M video study
+# Generates, renders, and uploads public 8–10 min YouTube video automatically.
 
 on:
   schedule:
@@ -34,3 +32,64 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-liberation
+          sudo mkdir -p /usr/local/share/fonts
+          curl -fsSL "https://fonts.gstatic.com/s/oswald/v53/TK3_WkUHHAIjg75cFRf3bXL8LICs13NvgUFoZAaRliE.ttf" \
+            -o /usr/local/share/fonts/Oswald-Bold.ttf || \
+          curl -fsSL "https://github.com/google/fonts/raw/main/ofl/oswald/Oswald%5Bwght%5D.ttf" \
+            -o /usr/local/share/fonts/Oswald-Bold.ttf || true
+          fc-cache -f || true
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install edge-tts Pillow openai anthropic requests \
+            google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib
+
+      - name: Create YouTube token file
+        run: |
+          echo '${{ secrets.YT_TOKEN_TMF }}' > youtube_token_tmf.json
+
+      - name: Run TMF Long-Form auto-post
+        env:
+          DEEPSEEK_API_KEY:   ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
+          PEXELS_API_KEY:     ${{ secrets.PEXELS_API_KEY }}
+          GOOGLE_SHEETS_KEY:  ${{ secrets.GOOGLE_SHEETS_KEY }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          TMF_VOICE:          ${{ vars.TMF_VOICE || 'en-US-GuyNeural' }}
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.topic }}" ]; then
+            ARGS="--topic \"${{ github.event.inputs.topic }}\""
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          echo "Running: python3 auto_post_tmf_longform.py $ARGS"
+          eval "python3 auto_post_tmf_longform.py $ARGS"
+
+      - name: Commit dedup log + post log
+        if: always()
+        run: |
+          git config --local user.email "automation@youtube.local"
+          git config --local user.name "YouTube AutoPost Bot"
+          git pull --rebase "https://x-access-token:${{ secrets.GH_PAT }}@github.com/midwestmade4u-prog/youtube-autopost.git" main || true
+          git add auto_post_log.json tmf_longform_queue.json tmf_longform_posted.json \
+            pexels_used_tmf_longform.json 2>/dev/null || true
+          git commit -m "TMF long-form post - $(date)" || true
+          git push "https://x-access-token:${{ secrets.GH_PAT }}@github.com/midwestmade4u-prog/youtube-autopost.git" HEAD:main || true
+
+      - name: Upload logs to artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tmf-longform-logs
+          path: |
+            auto_post_log.json
+          retention-days: 14
