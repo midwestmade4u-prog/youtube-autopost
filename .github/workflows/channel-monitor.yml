@@ -51,6 +51,25 @@ jobs:
         run: python3 channel_monitor.py
         continue-on-error: true
 
+      - name: Commit longform queues + post logs
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f \
+            tmf_longform_queue.json \
+            mz_longform_queue.json \
+            bsg_longform_queue.json \
+            tmf_post_log.json \
+            mz_post_log.json \
+            bsg_post_log.json \
+            tmf_longform_posted.json \
+            mz_longform_posted.json \
+            bsg_longform_posted.json 2>/dev/null || true
+          git diff --cached --quiet || \
+            git commit -m "chore: channel monitor — update longform queues + logs [skip ci]"
+          git push "https://x-access-token:${{ secrets.GH_PAT }}@github.com/midwestmade4u-prog/youtube-autopost.git" HEAD:main || true
+
       - name: Upload monitor log
         if: always()
         uses: actions/upload-artifact@v4
