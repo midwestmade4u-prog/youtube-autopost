@@ -52,10 +52,16 @@ jobs:
           if [ -z "$MP4" ]; then
             MP4=$(find TMF_Output -name "*.mp4" 2>/dev/null | head -1)
           fi
-          echo "Newest TMF mp4: $MP4"
-          echo "FB_VIDEO_PATH=$MP4" >> $GITHUB_ENV
+          if [ -z "$MP4" ] || [ ! -f "$MP4" ]; then
+            echo "No MP4 found — skipping FB upload"
+            echo "FB_VIDEO_PATH=" >> $GITHUB_ENV
+          else
+            echo "Newest TMF mp4: $MP4"
+            echo "FB_VIDEO_PATH=$MP4" >> $GITHUB_ENV
+          fi
 
       - name: Post Facebook video (TMF)
+        if: env.FB_VIDEO_PATH != ''
         env:
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN_TMF }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID_TMF }}
