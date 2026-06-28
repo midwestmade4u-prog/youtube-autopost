@@ -61,8 +61,11 @@ ACT 5 — THE LESSON (7:30–10:00, ~375 words)
 TITLE RULES (data-backed — enforce strictly)
 ═══════════════════════════════════════════
 - MUST start with "How" OR lead with a dollar figure / number
-- GOOD: "How Harley-Davidson Survived Its Own Near-Death" | "How $440M Vanished in 45 Minutes"
+- GOOD: "How Harley-Davidson Survived Its Own Near-Death" | "How $440M Vanished in 45 Minutes" | "How Marvel Went From $700M Bankrupt to a $4B Disney Deal"
 - BANNED openers: "The Night...", "The Day...", "The Moment...", "The Story of..."
+- BANNED filler verbs: "shook," "disrupted," "changed," "rocked," "stunned," "transformed" — replace with the SPECIFIC MECHANISM (what decision was made, what number changed, who did what)
+- WEAK: "How Enron's $63B Collapse Shook Wall Street" — "shook Wall Street" is filler
+- STRONG: "How Enron Hid $63B in Debt Until It Couldn't" — specific mechanism
 - Max 70 characters
 - Frame as survival/rescue when possible — outperforms collapse framing 5–10×
 

@@ -88,8 +88,10 @@ TITLE RULES (strict)
 - MUST start with "Why You" or "Why Your"
 - Describes an OBSERVABLE BEHAVIOR the viewer recognizes in themselves — not a named concept
 - Under 60 characters
-- GOOD: "Why You Stay Loyal to Mean People" / "Why You Can't Leave — The Sunk Cost Trap" / "Why You Believe Lies You've Heard Twice"
-- BAD: "The Dark Triad Explained" / "Cognitive Dissonance" / "The Secret Fear of High Achievers"
+- The behavior MUST include EITHER (a) a specific trigger — a person or situation that caused it ("someone who rejected you," "people who hurt you," "someone you trusted") OR (b) a consequence — what it costs them ("until it destroys you," "even when you know better," "every single time")
+- WEAK titles have only a vague behavior with no trigger and no consequence — DO NOT generate these
+- GOOD: "Why You Stay Loyal to Mean People" / "Why You Can't Leave — The Sunk Cost Trap" / "Why You Obsess Over Someone Who Rejected You" / "Why You Trust People Who Will Hurt You"
+- BAD: "Why You Misread People's Emotions" (no trigger, no consequence) / "The Dark Triad Explained" / "Cognitive Dissonance"
 
 ═══════════════════════════════════════════
 OUTPUT FORMAT
