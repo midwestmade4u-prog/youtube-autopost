@@ -46,6 +46,7 @@ NOTIFY_EMAIL    = "wisseinc@gmail.com"
 # ── Affiliate constants ──────────────────────────────────────────────
 _AMZN_TAG     = "themindf20-20"
 _AMZN_URL     = f"https://www.amazon.com/audible/mt/audiblemember?tag={_AMZN_TAG}"
+_AUDIBLE_LINK  = _AMZN_URL
 _BLINKIST_LINK = "PASTE_BLINKIST_IMPACT_LINK_HERE"
 _LEADMAGNET   = "https://midwestmade4u-prog.github.io/themindf-hub/"
 _FTC          = "\U0001f517 Affiliate links above \u2014 I earn a small commission at no cost to you."
