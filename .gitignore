@@ -113,3 +113,57 @@ pending_actions.json
 post_log.json
 content_config.json
 topic_bank.json
+
+# Local-only markdown docs / planning files
+Affiliate_Marketing_Plan.md
+BSG_content_brief_*.md
+ChannelStack_IG_*.md
+Cost_Cuts_Action_Checklist.md
+IG_REELS_AUTOPOSTER_PLAYBOOK.md
+MZ_content_brief_*.md
+MidwestMade4U_Etsy_MVP_Build_Plan.md
+STRATEGIC_REVIEW_*.md
+Sonnet_Prompt_Subs_Funnel_*.md
+TMF_Affiliate_Handoff_Sonnet.md
+TMF_Welcome_Sequence_6Email.md
+TMF_content_brief_*.md
+TikTok_Approval_Plan_FreshStart.md
+TikTok_Shop_Channel_Build_Plan.md
+TikTok_Shop_Sonnet_Handoff_Prompts.md
+Weekly_Analysis_*.md
+Pinterest_4Day_Posting_Guide.html
+channelstack-dashboard.html
+channelstack_twitter_log.md
+
+# Local-only IG workflow files (managed separately in channelstack-ig repo)
+ig-*.yml
+ig_*.py
+ig_*.json
+
+# Local-only FB scripts
+fb_cross_poster.py
+fb_yt_crosspost.py.bak
+netlify.toml
+
+# One-off patch scripts
+tmf_affiliate_patch_*.py
+
+# BSG local-only scripts and assets
+BSG_Channel/BSG_Episodes_*.csv
+BSG_Channel/bible_verse_psalm23.py
+BSG_Channel/bible_video_maker.py
+BSG_Channel/bridge_sheet_rows_*.tsv
+BSG_Channel/bsg_music/
+BSG_Channel/check_bsg_token.py
+BSG_Channel/diagnose_bsg_token.py
+BSG_Channel/refresh_token_bsg.py
+
+# MZ local thumbnails
+MZ_Channel/*.jpg
+MZ_Channel/make_enron_thumbnail.py
+
+# TikTok schedule folder
+TikTok-Finds-Schedule/
+
+# Misc
+*.bak
