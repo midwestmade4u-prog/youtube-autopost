@@ -789,6 +789,14 @@ BODY & PAYOFF:
 - Use "you" at least 3 times ÃÂ¢ÃÂÃÂ create personal confrontation.
 - Final scene = an uncomfortable reframe. Not a motivational quote. Not a call to action.
 - Leave the viewer slightly disturbed, thinking, re-examining their own behavior.
+
+CLIFFHANGER RULE — SHORT→LONGFORM HOOK (deployed Jun 28 2026):
+- NEVER name and fully explain the bias/effect in the FINAL scene. The Short ends on UNRESOLVED tension.
+- Final scene states the uncomfortable truth but withholds the full mechanism — viewer must watch the full video.
+- BAD ending: "This is called the Fundamental Attribution Error. Now you understand why you judge others unfairly."
+- GOOD ending: "You've been blaming the wrong thing this whole time. And the people closest to you have already noticed it."
+- The bias name (if used) appears MID-script, not as the payoff. Final scene = open question, not an answer.
+- Goal: viewer finishes the Short knowing WHAT is happening, but needing the full video to understand WHY.
 """
     else:
         channel_rules = """
@@ -867,6 +875,14 @@ Add a "thumbnail_spec" object to your JSON output:
   }
 }
 Do not omit thumbnail_spec. A script without it is incomplete and will be rejected.
+
+CLIFFHANGER RULE — MADE FOR KIDS (deployed Jun 28 2026):
+- End the Short on the MOST DRAMATIC UNRESOLVED MOMENT. Do NOT show God's full rescue.
+- Scene 8 (final) must leave children wide-eyed at the impossible situation — not wrapping up the story.
+- BAD final scene: "And so the three boys stepped out of the furnace safe and unharmed, and everyone praised God."
+- GOOD final scene: "The fire was so hot it burned the guards outside the door. But inside the furnace... something no one could explain was happening."
+- The Short makes kids NEED to watch the full Bible story for the resolution. Never write a complete ending.
+- Never use "and they lived happily ever after" or any full resolution. End at the turning point, not after it.
 """
 
     system_prompt = f"""You are a short-form video script writer for YouTube Shorts.
@@ -1259,7 +1275,7 @@ def api_get(path: str, timeout: int = 30) -> dict:
 
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ YouTube Metadata ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 
-def build_yt_metadata(channel: str, title: str, topic: str = "") -> dict:
+def build_yt_metadata(channel: str, title: str, topic: str = "", longform_url: str = "") -> dict:
     """Build YouTube description + tags for a channel.
 
     Description is keyword-rich for Shorts search discoverability (Jan 2026 Shorts
@@ -1273,8 +1289,10 @@ def build_yt_metadata(channel: str, title: str, topic: str = "") -> dict:
     topic_angle   = topic.split(sep, 1)[1].strip() if sep in topic else ""
 
     if channel == "bsg":
+        longform_prefix = f"📖 Watch the full story: {longform_url}\n\n" if longform_url else ""
         if topic_subject:
             description = (
+                longform_prefix +
                 f"📖 {title}\n\n"
                 f"{topic_subject} - {topic_angle + ' ' if topic_angle else ''}"
                 f"Bible Stories for Kids, brought to you by Bible Story Garden. "
@@ -1284,6 +1302,7 @@ def build_yt_metadata(channel: str, title: str, topic: str = "") -> dict:
             )
         else:
             description = (
+                longform_prefix +
                 f"📖 {title}\n\n"
                 "Bible Stories for Kids - brought to you by Bible Story Garden! "
                 "Faith-filled, family-friendly shorts that bring Scripture to life.\n\n"
@@ -1294,8 +1313,10 @@ def build_yt_metadata(channel: str, title: str, topic: str = "") -> dict:
             topic_words = [w for w in topic_subject.replace("'", "").split() if len(w) > 3]
             tags += "," + ",".join(topic_words[:5])
     elif channel == "mz":
+        longform_prefix_mz = f"⚡ Watch the full story: {longform_url}\n\n" if longform_url else ""
         if topic_subject:
             description = (
+                longform_prefix_mz +
                 f"⚡ {title}\n\n"
                 f"{topic_subject}"
                 f"{' - ' + topic_angle if topic_angle else ''}. "
@@ -1306,6 +1327,7 @@ def build_yt_metadata(channel: str, title: str, topic: str = "") -> dict:
             )
         else:
             description = (
+                longform_prefix_mz +
                 f"⚡ {title}\n\n"
                 "Business collapses and corporate scandals - brought to you by Minute Zero. "
                 "One moment. One company. Everything changes.\n\n"
@@ -1317,8 +1339,10 @@ def build_yt_metadata(channel: str, title: str, topic: str = "") -> dict:
             tags += "," + ",".join(topic_words[:5])
     else:
         # TMF
+        longform_prefix_tmf = f"🧠 Watch the full deep-dive: {longform_url}\n\n" if longform_url else ""
         if topic_subject:
             description = (
+                longform_prefix_tmf +
                 f"🧠 {title}\n\n"
                 f"{topic_subject}"
                 f"{' - ' + topic_angle if topic_angle else ''}. "
@@ -1329,6 +1353,7 @@ def build_yt_metadata(channel: str, title: str, topic: str = "") -> dict:
             )
         else:
             description = (
+                longform_prefix_tmf +
                 f"🧠 {title}\n\n"
                 "Dark psychology and human behavior explained - brought to you by The Mind Files. "
                 "Why humans do what they do.\n\n"
@@ -1400,7 +1425,8 @@ def run_headless(channel: str, topic: str, script: dict) -> str:
         sys.exit(1)
 
     print(f"\nÃÂ°ÃÂÃÂÃÂ¤ Uploading to YouTube ({label})...")
-    yt_meta = build_yt_metadata(channel, title, topic=topic)
+    longform_url = get_longform_url(channel)
+    yt_meta = build_yt_metadata(channel, title, topic=topic, longform_url=longform_url)
     try:
         # Use the Flask server's upload endpoint via direct import
         from video_app import youtube_upload as yt_upload_func
@@ -1495,7 +1521,8 @@ def run_via_server(channel: str, topic: str, script: dict) -> str:
     print(f"  ÃÂ¢ÃÂÃÂ Video ready: {filename}")
 
     # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Step: Upload to YouTube ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-    yt_meta = build_yt_metadata(channel, title, topic=topic)
+    longform_url = get_longform_url(channel)
+    yt_meta = build_yt_metadata(channel, title, topic=topic, longform_url=longform_url)
     print(f"\nÃÂ°ÃÂÃÂÃÂ¤ Uploading to YouTube ({label})...")
     try:
         upload_resp = api_post("/youtube-upload", {
@@ -1514,10 +1541,92 @@ def run_via_server(channel: str, topic: str, script: dict) -> str:
         print(f"ÃÂ¢ÃÂÃÂ Upload error: {upload_resp['error']}")
         sys.exit(1)
 
-    return upload_resp.get("url", "(unknown)")
+    video_url = upload_resp.get("url", "(unknown)")
+    video_id  = upload_resp.get("video_id", "")
+    return video_url, video_id
 
 
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Main ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
+
+
+
+# ── Short→Longform funnel helpers ─────────────────────────────────────────────
+
+def get_longform_url(channel: str) -> str:
+    """Return the best longform destination URL for a channel.
+
+    Priority: env-var playlist ID (TMF) → hardcoded playlist → channel page.
+    These are the full-episode playlists where viewers can binge all long-form content.
+    """
+    if channel == "tmf":
+        playlist_id = os.getenv("TMF_LONGFORM_PLAYLIST_ID", "").strip()
+        if playlist_id:
+            return f"https://www.youtube.com/playlist?list={playlist_id}"
+        return "https://www.youtube.com/@TheMindFiles/videos"
+    elif channel == "bsg":
+        return "https://www.youtube.com/playlist?list=PLWwJ5gjyjteowfCIsBJ-9UuoMd-12I3Jg"
+    else:  # mz
+        return "https://www.youtube.com/playlist?list=PLFxFhPJANicOqF4b_CsQxFoIh5AZlcsIJ"
+
+
+def post_funnel_comment(channel: str, video_id: str, longform_url: str) -> None:
+    """Post a Short→Longform funnel comment as channel owner immediately after upload.
+
+    Non-fatal — a comment failure never blocks the upload.
+    Note: YouTube Data API v3 has no public pin endpoint; the comment is posted
+    immediately after upload so it is the first (top) comment on the video.
+    """
+    try:
+        from google.oauth2.credentials import Credentials
+        from google.auth.transport.requests import Request
+        from googleapiclient.discovery import build as yt_build
+
+        token_file = BASE_DIR / f"youtube_token_{channel}.json"
+        if not token_file.exists():
+            print(f"  ⚠️  Funnel comment skipped: token file missing for {channel}")
+            return
+
+        creds = Credentials.from_authorized_user_file(
+            str(token_file),
+            ["https://www.googleapis.com/auth/youtube.upload",
+             "https://www.googleapis.com/auth/youtube"]
+        )
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+            token_file.write_text(creds.to_json())
+
+        youtube = yt_build("youtube", "v3", credentials=creds)
+
+        if channel == "tmf":
+            comment_text = (
+                f"🧠 Want the FULL breakdown?\n"
+                f"👉 {longform_url}\n\n"
+                f"New psychology deep-dives every week — subscribe so you never miss the next one. 🔔"
+            )
+        elif channel == "bsg":
+            comment_text = (
+                f"📖 Want to hear the FULL story?\n"
+                f"👉 {longform_url}\n\n"
+                f"New Bible stories for kids every week — subscribe and share with your family! 🙏"
+            )
+        else:  # mz
+            comment_text = (
+                f"⚡ Want the FULL story? Every minute mattered.\n"
+                f"👉 {longform_url}\n\n"
+                f"New company collapses every week — subscribe so you don't miss the next one. 📈"
+            )
+
+        thread = youtube.commentThreads().insert(
+            part="snippet",
+            body={"snippet": {
+                "videoId": video_id,
+                "topLevelComment": {"snippet": {"textOriginal": comment_text}}
+            }}
+        ).execute()
+        comment_id = thread.get("id", "?")
+        print(f"  💬 Funnel comment posted ({channel}): {comment_id[:24]}...")
+    except Exception as e:
+        print(f"  ⚠️  Funnel comment failed (non-fatal): {str(e)[:200]}")
 
 
 def post_tmf_channel_comment(youtube, video_id: str) -> None:
@@ -1655,9 +1764,13 @@ def main():
 
         # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Run the pipeline ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
         print(f"\nÃÂ¢ÃÂÃÂÃÂ¯ÃÂ¸ÃÂ  Script ready: {title}")
-        video_url = run_via_server(channel, topic, script)
+        video_url, video_id = run_via_server(channel, topic, script)
 
         print(f"  ÃÂ¢ÃÂÃÂ Posted! {video_url}")
+
+        # Short→Longform funnel comment (non-fatal)
+        if video_id:
+            post_funnel_comment(channel, video_id, get_longform_url(channel))
 
         # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Log success ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
         mark_posted(channel, topic, title, video_url)

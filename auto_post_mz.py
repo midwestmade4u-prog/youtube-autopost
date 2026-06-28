@@ -880,8 +880,29 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
         except Exception as e:
             print(f"  ⚠️ Thumbnail upload failed (non-fatal): {e}")
 
-    return video_url
+    return video_url, video_id
 
+
+
+def post_funnel_comment_mz(yt_client, video_id: str, longform_url: str) -> None:
+    """Post Short→Longform funnel comment for MZ. Non-fatal on failure."""
+    try:
+        comment_text = (
+            f"\u26a1 Want the FULL story? Every minute mattered.\n"
+            f"\U0001f449 {longform_url}\n\n"
+            f"New company collapses every week \u2014 subscribe so you don't miss the next one. \U0001f4c8"
+        )
+        thread = yt_client.commentThreads().insert(
+            part="snippet",
+            body={"snippet": {
+                "videoId": video_id,
+                "topLevelComment": {"snippet": {"textOriginal": comment_text}}
+            }}
+        ).execute()
+        comment_id = thread.get("id", "?")
+        print(f"  \U0001f4ac Funnel comment posted (mz): {comment_id[:24]}...")
+    except Exception as e:
+        print(f"  \u26a0\ufe0f  MZ funnel comment failed (non-fatal): {str(e)[:200]}")
 
 # ─── Main ────────────────────────────────────────────────────────────────────
 
@@ -1005,7 +1026,9 @@ def main() -> int:
         f"{script_data.get('description', '')}\n\n"
         f"{hashtags}"
     ).strip()
-    video_url = upload_to_youtube(
+    mz_longform_url = "https://www.youtube.com/playlist?list=PLFxFhPJANicOqF4b_CsQxFoIh5AZlcsIJ"
+    description = f"\u26a1 Watch the full story: {mz_longform_url}\n\n" + description
+    video_url, video_id = upload_to_youtube(
         Path(result["yt_path"]),
         title=script_data["title"],
         description=description,
@@ -1013,7 +1036,27 @@ def main() -> int:
         thumbnail_path=Path(result["thumb_path"]),
         privacy_status="unlisted" if args.unlisted else "public",
     )
-    print(f"  ✅ Posted ({'unlisted' if args.unlisted else 'public'}): {video_url}")
+    print(f"  \u2705 Posted ({'unlisted' if args.unlisted else 'public'}): {video_url}")
+
+    # Short\u2192Longform funnel comment
+    if video_id:
+        try:
+            from google.oauth2.credentials import Credentials
+            from google.auth.transport.requests import Request
+            from googleapiclient.discovery import build as _yt_build
+            _tok = BASE_DIR / "youtube_token_mz.json"
+            _creds = Credentials.from_authorized_user_file(
+                str(_tok),
+                ["https://www.googleapis.com/auth/youtube.upload",
+                 "https://www.googleapis.com/auth/youtube"]
+            )
+            if _creds.expired and _creds.refresh_token:
+                _creds.refresh(Request())
+                _tok.write_text(_creds.to_json())
+            _yt = _yt_build("youtube", "v3", credentials=_creds)
+            post_funnel_comment_mz(_yt, video_id, mz_longform_url)
+        except Exception as _e:
+            print(f"  \u26a0\ufe0f  MZ funnel comment failed (non-fatal): {str(_e)[:200]}")
 
     # 5. Log
     mark_mz_posted(topic, script_data["title"], video_url, format_tag)
