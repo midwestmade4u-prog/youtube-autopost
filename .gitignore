@@ -49,3 +49,67 @@ watcher_error.log
 start.sh
 *.plist
 com.*.autopost-watcher.plist
+
+# Auto-trigger JSON logs (pile up locally, not needed in git)
+auto_trigger_*.json
+
+# Office lock files
+.~lock.*
+~$*
+
+# Local scratch / test files
+.test_write
+
+# TikTok video queue zips (large, local only)
+tiktok-queue-*.zip
+
+# Large local media assets (branding, pin images, demo videos)
+pin_*.jpg
+hero_*.jpg
+*.mp4
+homefinds_profile.jpg
+channelstack_icon_1024.png
+cs_icon_1024.png
+logo1024.png
+*.png
+*.docx
+*.xlsx
+
+# Local-only directories
+ChannelStack/
+_docs/
+_logs/
+_triggers/
+checkpoints/
+research_reports/
+netlify/
+midwestmade4u-shop/
+tiktok-shop-finds/
+MZ_Channel/TikTok/
+stop-slop/
+
+# Local-only scripts and one-off files
+action_executor.py
+action_helpers.py
+batch_generate.py
+carousel_generator.py
+comment_curator.py
+daily_digest.py
+exchange_token.py
+funnel_tracker.py
+get_fb_token.py
+get_ig_token.py
+ig_analytics.py
+ig_analytics.json
+research_digest.py
+run_batch_videos.command
+set_fb_secrets.py
+setup_tmf_mz_fb.sh
+strategy_reviewer.py
+test_ig_token.py
+tiktok_schedule.py
+verify_ig_post.py
+pending_actions.json
+post_log.json
+content_config.json
+topic_bank.json
