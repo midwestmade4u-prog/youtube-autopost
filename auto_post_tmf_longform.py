@@ -791,6 +791,33 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
     return video_url, studio_url
 
 
+
+def post_affiliate_comment(youtube, video_id_yt: str) -> None:
+    """Post the Audible affiliate comment. Needs manual pinning in Studio."""
+    comment_text = (
+        "\U0001f4da Want to go deeper on the psychology behind this? "
+        "Audible has a free trial \u2014 great for books on behavior, influence, and the mind: "
+        f"{_AUDIBLE_LINK}\n\n"
+        "\u2015\u2015\u2015\n"
+        "(Affiliate link \u2014 I earn a small commission at no cost to you.)"
+    )
+    try:
+        youtube.commentThreads().insert(
+            part="snippet",
+            body={
+                "snippet": {
+                    "videoId": video_id_yt,
+                    "topLevelComment": {
+                        "snippet": {"textOriginal": comment_text}
+                    }
+                }
+            }
+        ).execute()
+        print(f"  \u2705 Affiliate comment posted \u2014 go pin it in Studio!")
+    except Exception as e:
+        print(f"  \u26a0\ufe0f  Comment post failed: {e}")
+
+
 def send_review_email(title: str, video_url: str, studio_url: str,
                       topic: str, duration_sec: float) -> None:
     """Email Matt with the Studio link for review."""
@@ -941,6 +968,18 @@ def main() -> int:
 
     mark_posted(topic, title, video_url)
     log_to_sheets(title, video_url, topic)
+
+    # Post affiliate comment (pin it manually in Studio)
+    from google.oauth2.credentials import Credentials
+    from google.auth.transport.requests import Request
+    from googleapiclient.discovery import build
+    _creds2 = Credentials.from_authorized_user_info(json.loads(TOKEN_FILE.read_text()), YT_SCOPES)
+    if _creds2.expired and _creds2.refresh_token:
+        _creds2.refresh(Request())
+    _yt2 = build("youtube", "v3", credentials=_creds2)
+    _vid_id = video_url.split("v=")[-1]
+    post_affiliate_comment(_yt2, _vid_id)
+
     send_review_email(title, video_url, studio_url, topic, render_result["duration_sec"])
 
     print(f"\n{'Ã¢ÂÂ' * 60}")
