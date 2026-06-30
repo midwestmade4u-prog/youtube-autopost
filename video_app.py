@@ -1035,6 +1035,24 @@ def concatenate_clips(clip_paths, out_path):
         shutil.copy(str(concat_tmp), str(out_path))
 
 
+
+def _sanitize_text(text: str) -> str:
+    """Replace smart quotes and typographic chars with plain ASCII equivalents.
+    DeepSeek V3/V4 outputs curly quotes which render as garbage in video overlays
+    and TTS if the rendering layer misinterprets the encoding."""
+    replacements = {
+        '\u2018': "'",   # left single quote
+        '\u2019': "'",   # right single quote
+        '\u201c': '"',  # left double quote
+        '\u201d': '"',  # right double quote
+        '\u2013': '-',  # en dash
+        '\u2014': '-',  # em dash
+        '\u2026': '...', # ellipsis
+    }
+    for src, dst in replacements.items():
+        text = text.replace(src, dst)
+    return text
+
 def run_video_job(title, scenes, voice, fmt="vertical", channel="bsg"):
     global current_job
     try:
@@ -1065,13 +1083,14 @@ def run_video_job(title, scenes, voice, fmt="vertical", channel="bsg"):
             emit(f"  â Image {i+1} saved")
 
             emit(f"  ðï¸ Generating narration...")
-            word_timings = generate_audio(scene["narration"], audio, voice)
+            narration    = _sanitize_text(scene["narration"])
+            word_timings = generate_audio(narration, audio, voice)
             has_captions = bool(word_timings)
             if has_captions:
                 emit(f"  â¨ Word timing captured â animated captions active")
 
             emit(f"  ð Adding image overlay...")
-            add_text_overlay(raw_img, scene["narration"], final_img,
+            add_text_overlay(raw_img, narration, final_img,
                              width=vid_w, height=vid_h, channel=channel,
                              animated_captions=has_captions)
 
