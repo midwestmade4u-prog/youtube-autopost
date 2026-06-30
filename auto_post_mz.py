@@ -465,9 +465,9 @@ def mark_mz_posted(topic: str, title: str, video_url: str, format_tag: str) -> N
 # Calibrated May 6 2026 from Washington Mutual video (106w → 54.5s = 1.95 wps observed,
 # but script was underfilled; 2.5 wps is the correct target for a properly-filled script).
 MZ_WORD_TARGETS = {
-    "one_bad_day":     (140, 165),   # Format A: target 55–65s
-    "unknown_failure": (180, 215),   # Format B: target 72–82s
-    "near_death":      (165, 215),   # Format C: target 66–86s (GPT plateaus ~175w on survival arcs; 165 floor still clears Format A max)
+    "one_bad_day":     (130, 165),   # Format A: target 52–66s (floor lowered 140→130 Jun 30 — DeepSeek lands ~137)
+    "unknown_failure": (170, 215),   # Format B: target 68–86s (floor lowered 180→170 Jun 30 — DeepSeek lands ~178)
+    "near_death":      (155, 215),   # Format C: target 62–86s (floor lowered 165→155 Jun 30 to match)
 }
 
 def mz_script_word_count_ok(script: dict, format_tag: str) -> tuple[bool, int, tuple[int, int]]:
@@ -880,29 +880,8 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
         except Exception as e:
             print(f"  ⚠️ Thumbnail upload failed (non-fatal): {e}")
 
-    return video_url, video_id
+    return video_url
 
-
-
-def post_funnel_comment_mz(yt_client, video_id: str, longform_url: str) -> None:
-    """Post Short→Longform funnel comment for MZ. Non-fatal on failure."""
-    try:
-        comment_text = (
-            f"\u26a1 Want the FULL story? Every minute mattered.\n"
-            f"\U0001f449 {longform_url}\n\n"
-            f"New company collapses every week \u2014 subscribe so you don't miss the next one. \U0001f4c8"
-        )
-        thread = yt_client.commentThreads().insert(
-            part="snippet",
-            body={"snippet": {
-                "videoId": video_id,
-                "topLevelComment": {"snippet": {"textOriginal": comment_text}}
-            }}
-        ).execute()
-        comment_id = thread.get("id", "?")
-        print(f"  \U0001f4ac Funnel comment posted (mz): {comment_id[:24]}...")
-    except Exception as e:
-        print(f"  \u26a0\ufe0f  MZ funnel comment failed (non-fatal): {str(e)[:200]}")
 
 # ─── Main ────────────────────────────────────────────────────────────────────
 
@@ -1026,9 +1005,7 @@ def main() -> int:
         f"{script_data.get('description', '')}\n\n"
         f"{hashtags}"
     ).strip()
-    mz_longform_url = "https://www.youtube.com/playlist?list=PLFxFhPJANicOqF4b_CsQxFoIh5AZlcsIJ"
-    description = f"\u26a1 Watch the full story: {mz_longform_url}\n\n" + description
-    video_url, video_id = upload_to_youtube(
+    video_url = upload_to_youtube(
         Path(result["yt_path"]),
         title=script_data["title"],
         description=description,
@@ -1036,27 +1013,7 @@ def main() -> int:
         thumbnail_path=Path(result["thumb_path"]),
         privacy_status="unlisted" if args.unlisted else "public",
     )
-    print(f"  \u2705 Posted ({'unlisted' if args.unlisted else 'public'}): {video_url}")
-
-    # Short\u2192Longform funnel comment
-    if video_id:
-        try:
-            from google.oauth2.credentials import Credentials
-            from google.auth.transport.requests import Request
-            from googleapiclient.discovery import build as _yt_build
-            _tok = BASE_DIR / "youtube_token_mz.json"
-            _creds = Credentials.from_authorized_user_file(
-                str(_tok),
-                ["https://www.googleapis.com/auth/youtube.upload",
-                 "https://www.googleapis.com/auth/youtube"]
-            )
-            if _creds.expired and _creds.refresh_token:
-                _creds.refresh(Request())
-                _tok.write_text(_creds.to_json())
-            _yt = _yt_build("youtube", "v3", credentials=_creds)
-            post_funnel_comment_mz(_yt, video_id, mz_longform_url)
-        except Exception as _e:
-            print(f"  \u26a0\ufe0f  MZ funnel comment failed (non-fatal): {str(_e)[:200]}")
+    print(f"  ✅ Posted ({'unlisted' if args.unlisted else 'public'}): {video_url}")
 
     # 5. Log
     mark_mz_posted(topic, script_data["title"], video_url, format_tag)
