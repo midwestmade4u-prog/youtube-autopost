@@ -811,6 +811,39 @@ def generate_script(topic: str, format_tag: str) -> dict:
     )
 
 
+# ─── Affiliate comment (Shorts) ──────────────────────────────────────────────
+
+def post_mz_channel_comment(video_id: str) -> None:
+    """Post an affiliate pinned comment on every MZ Short. Pin manually in Studio."""
+    _MZ_AMZN_TAG    = "minutezero-20"
+    _MZ_AUDIBLE_URL = f"https://www.amazon.com/audible/mt/audiblemember?tag={_MZ_AMZN_TAG}"
+    comment_text = (
+        f"\U0001f4da The full business breakdown is in the description.\n"
+        f"\U0001f3a7 Free audiobook trial (Audible — great for business books): {_MZ_AUDIBLE_URL}\n\n"
+        "As an Amazon Associate I earn from qualifying purchases."
+    )
+    try:
+        import json as _json
+        from google.oauth2.credentials import Credentials
+        from google.auth.transport.requests import Request
+        from googleapiclient.discovery import build
+        token_path = BASE_DIR / "youtube_token_mz.json"
+        creds = Credentials.from_authorized_user_file(str(token_path),
+            ["https://www.googleapis.com/auth/youtube.upload",
+             "https://www.googleapis.com/auth/youtube"])
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        youtube = build("youtube", "v3", credentials=creds)
+        youtube.commentThreads().insert(
+            part="snippet",
+            body={"snippet": {"videoId": video_id,
+                              "topLevelComment": {"snippet": {"textOriginal": comment_text}}}}
+        ).execute()
+        print(f"  ✅ Affiliate comment posted on Short — pin it in Studio!")
+    except Exception as e:
+        print(f"  ⚠️  Short affiliate comment failed (non-fatal): {e}")
+
+
 # ─── YouTube upload ──────────────────────────────────────────────────────────
 
 def upload_to_youtube(video_path: Path, title: str, description: str,
@@ -1014,6 +1047,9 @@ def main() -> int:
         privacy_status="unlisted" if args.unlisted else "public",
     )
     print(f"  ✅ Posted ({'unlisted' if args.unlisted else 'public'}): {video_url}")
+
+    # Post affiliate comment (pin manually in Studio)
+    post_mz_channel_comment(video_url.split("/")[-1])
 
     # 5. Log
     mark_mz_posted(topic, script_data["title"], video_url, format_tag)

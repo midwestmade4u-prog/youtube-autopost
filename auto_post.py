@@ -1657,6 +1657,67 @@ def post_tmf_channel_comment(youtube, video_id: str) -> None:
     except Exception as e:
         print(f"  Ã¢ÂÂ Ã¯Â¸Â Comment post failed (non-fatal): {e}")
 
+def post_channel_affiliate_comment(channel: str, video_id: str) -> None:
+    """Post an affiliate pinned comment for TMF or BSG Shorts. Pin manually in Studio.
+
+    Self-contained: builds its own YouTube client from the per-channel token file.
+    Non-fatal — silently no-ops on MFK reclassification or any API error.
+    """
+    _TAG_MAP = {
+        "tmf": "themindf20-20",
+        "bsg": "biblestory07-20",
+    }
+    tag = _TAG_MAP.get(channel)
+    if not tag:
+        return  # MZ uses a separate file; skip unknown channels
+
+    audible_url = f"https://www.amazon.com/audible/mt/audiblemember?tag={tag}"
+
+    if channel == "tmf":
+        _leadmagnet = "https://midwestmade4u-prog.github.io/themindf-hub/"
+        comment_text = (
+            f"\U0001f4c4 Free guide — 7 Dark Psychology Tactics: {_leadmagnet}\n"
+            f"\U0001f3a7 Free audiobook trial (Audible): {audible_url}\n"
+            f"\U0001f4da Full book list in bio.\n\n"
+            "As an Amazon Associate I earn from qualifying purchases."
+        )
+    else:  # bsg
+        comment_text = (
+            f"\U0001f4da Looking for illustrated Bibles and faith-based books for your family? "
+            f"Check the description — and try Audible free: {audible_url}\n\n"
+            "As an Amazon Associate I earn from qualifying purchases."
+        )
+
+    try:
+        from google.oauth2.credentials import Credentials
+        from google.auth.transport.requests import Request
+        from googleapiclient.discovery import build as yt_build
+
+        token_file = BASE_DIR / f"youtube_token_{channel}.json"
+        if not token_file.exists():
+            print(f"  ⚠️  Affiliate comment skipped: token file missing for {channel}")
+            return
+
+        creds = Credentials.from_authorized_user_file(
+            str(token_file),
+            ["https://www.googleapis.com/auth/youtube.upload",
+             "https://www.googleapis.com/auth/youtube"]
+        )
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+            token_file.write_text(creds.to_json())
+
+        youtube = yt_build("youtube", "v3", credentials=creds)
+        youtube.commentThreads().insert(
+            part="snippet",
+            body={"snippet": {"videoId": video_id,
+                              "topLevelComment": {"snippet": {"textOriginal": comment_text}}}}
+        ).execute()
+        print(f"  ✅ Affiliate comment posted ({channel}) — pin it in Studio!")
+    except Exception as e:
+        print(f"  ⚠️  Affiliate comment failed (non-fatal): {str(e)[:200]}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Auto-create and post a YouTube Short")
     parser.add_argument("--channel", choices=["bsg", "tmf"],
@@ -1771,6 +1832,9 @@ def main():
         # Short→Longform funnel comment (non-fatal)
         if video_id:
             post_funnel_comment(channel, video_id, get_longform_url(channel))
+            # Affiliate comment (TMF + BSG only — MZ handled in auto_post_mz.py)
+            if channel in ("tmf", "bsg"):
+                post_channel_affiliate_comment(channel, video_id)
 
         # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Log success ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
         mark_posted(channel, topic, title, video_url)

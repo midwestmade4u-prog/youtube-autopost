@@ -43,6 +43,34 @@ NOTIFY_EMAIL    = "wisseinc@gmail.com"
 # Word targets: 1,100–1,400w at 2.5 wps = ~7.3–9.3 min
 WORD_MIN, WORD_MAX = 1300, 1600
 
+# ── Affiliate constants ────────────────────────────────────────────────────────
+_BSG_AMZN_TAG    = "biblestory07-20"
+_BSG_AUDIBLE_URL = f"https://www.amazon.com/audible/mt/audiblemember?tag={_BSG_AMZN_TAG}"
+_BSG_FTC         = "\U0001f517 Affiliate links — I earn a small commission at no cost to you."
+_BSG_BOOK_MAP = {
+    "noah":          ("The Story of Noah: A Children's Bible Story", "noah+ark+bible+story+childrens+book"),
+    "david":         ("David and Goliath: Bible Stories for Kids",   "david+goliath+bible+story+kids"),
+    "moses":         ("The Story of Moses",                          "moses+exodus+bible+story+childrens"),
+    "joseph":        ("Joseph and the Amazing Dreamcoat Story Bible","joseph+coat+many+colors+bible+kids"),
+    "daniel":        ("Daniel and the Lions' Den",                   "daniel+lions+den+bible+story+children"),
+    "esther":        ("The Story of Esther",                         "esther+bible+story+queen+children"),
+    "jonah":         ("Jonah and the Whale",                         "jonah+whale+bible+story+kids"),
+    "samson":        ("Samson and Delilah Bible Story",              "samson+delilah+bible+story+children"),
+    "elijah":        ("Elijah and the Prophets of Baal",             "elijah+fire+bible+story+kids"),
+    "creation":      ("The Story of Creation",                       "genesis+creation+bible+story+children"),
+    "abraham":       ("Abraham: Father of Many Nations",             "abraham+faith+bible+story+children"),
+    "ruth":          ("The Story of Ruth",                           "ruth+naomi+bible+story+children"),
+    "solomon":       ("The Wisdom of Solomon",                       "solomon+wisdom+bible+story+kids"),
+    "gideon":        ("Gideon and the Three Hundred",                "gideon+bible+story+children"),
+    "easter":        ("The Easter Story Bible",                      "easter+resurrection+bible+story+children"),
+    "christmas":     ("The Christmas Story Bible",                   "christmas+nativity+bible+story+children"),
+    "jesus":         ("The Jesus Storybook Bible",                   "jesus+storybook+bible+children+sally+lloyd+jones"),
+    "parable":       ("The Jesus Storybook Bible",                   "jesus+parables+bible+children"),
+    "sermon":        ("The Beatitudes for Children",                 "sermon+mount+beatitudes+children+bible"),
+    "adam":          ("Adam and Eve: The Beginning",                 "adam+eve+garden+eden+bible+story+children"),
+}
+_BSG_BOOK_FALLBACK = ("The Jesus Storybook Bible", "jesus+storybook+bible+sally+lloyd+jones")
+
 # ── Topic bank ────────────────────────────────────────────────────────────────
 LONGFORM_TOPICS = [
     # Old Testament — foundational stories
@@ -665,6 +693,62 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
     }
 
 
+def _build_bsg_affiliate_footer(topic: str) -> str:
+    """Build the affiliate block appended to every BSG long-form description."""
+    topic_lower = topic.lower()
+    book_title, book_query = _BSG_BOOK_FALLBACK
+    for keyword, (title, query) in _BSG_BOOK_MAP.items():
+        if keyword in topic_lower:
+            book_title, book_query = title, query
+            break
+    book_url = f"https://www.amazon.com/s?k={book_query}&tag={_BSG_AMZN_TAG}"
+    lines = [
+        "",
+        "―" * 37,
+        "\U0001f4da BOOKS & RESOURCES",
+        f"→ {book_title}: {book_url}",
+        "",
+        f"\U0001f3a7 FREE AUDIOBOOK TRIAL (Audible — great for faith & family books): {_BSG_AUDIBLE_URL}",
+        "",
+        _BSG_FTC,
+    ]
+    return "\n".join(lines)
+
+
+def post_bsg_affiliate_comment(video_id: str) -> None:
+    """Post an Audible affiliate comment on every BSG long-form. Pin manually in Studio.
+
+    BSG is marked 'not made for kids' in Studio, but YouTube may auto-reclassify
+    individual videos as MFK which disables comments. The try/except ensures a
+    silent no-op in that case — never fatal.
+    """
+    try:
+        import json as _json
+        from google.oauth2.credentials import Credentials
+        from google.auth.transport.requests import Request
+        from googleapiclient.discovery import build
+        token_data = _json.loads(TOKEN_FILE.read_text())
+        creds = Credentials.from_authorized_user_info(token_data, YT_SCOPES)
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        youtube = build("youtube", "v3", credentials=creds)
+        comment_text = (
+            "\U0001f4da Looking for beautiful illustrated Bibles and faith-based books for your family? "
+            "Check out our favorites in the description — and try Audible free for audiobooks on "
+            f"faith, history, and family: {_BSG_AUDIBLE_URL}\n\n"
+            "―――\n"
+            "(Affiliate link — I earn a small commission at no cost to you.)"
+        )
+        youtube.commentThreads().insert(
+            part="snippet",
+            body={"snippet": {"videoId": video_id,
+                              "topLevelComment": {"snippet": {"textOriginal": comment_text}}}}
+        ).execute()
+        print(f"  ✅ Affiliate comment posted — go pin it in Studio!")
+    except Exception as e:
+        print(f"  ⚠️  Affiliate comment failed (non-fatal): {e}")
+
+
 def _format_description(desc: str) -> str:
     import re
     lines = desc.splitlines()
@@ -900,6 +984,7 @@ def main() -> int:
     print(f"\n📤 Uploading to YouTube (PUBLIC)...")
     description = script_data.get("description", f"{title}\n\n#BibleStories #BibleStoryGarden")
     description = _format_description(description)
+    description += _build_bsg_affiliate_footer(topic)
     tags        = script_data.get("tags", ["bible stories", "bible story garden", "faith"])
     video_url, studio_url = upload_to_youtube(
         render_result["video_path"], title, description, tags,
@@ -909,6 +994,10 @@ def main() -> int:
     mark_posted(topic, title, video_url)
     log_to_sheets(title, video_url, topic)
     send_notification_email(title, video_url, studio_url, topic, render_result["duration_sec"])
+
+    # Post affiliate comment (pin manually in Studio — no-ops silently if MFK)
+    video_id_for_comment = video_url.split("v=")[-1]
+    post_bsg_affiliate_comment(video_id_for_comment)
 
     print(f"\n{'═' * 60}")
     print(f"  ✅ DONE — Uploaded PUBLIC")

@@ -45,6 +45,37 @@ MZ_LONGFORM_PLAYLIST_ID = "PLFxFhPJANicOqF4b_CsQxFoIh5AZlcsIJ"  # "Minute Zero �
 NOTIFY_EMAIL   = "wisseinc@gmail.com"
 MODEL_BACKEND  = os.getenv("MZ_MODEL_BACKEND", "openai")
 
+# ── Affiliate constants ──────────────────────────────────────────────────────
+_MZ_AMZN_TAG    = "minutezero-20"
+_MZ_AUDIBLE_URL = f"https://www.amazon.com/audible/mt/audiblemember?tag={_MZ_AMZN_TAG}"
+_MZ_FTC         = "\U0001f517 Affiliate links — I earn a small commission at no cost to you."
+
+# Topic → book map: keyword in topic string → (display title, Amazon search query)
+_MZ_BOOK_MAP = {
+    "enron":          ("The Smartest Guys in the Room", "smartest+guys+in+the+room+bethany+mclean"),
+    "kodak":          ("The Innovator's Dilemma",       "innovators+dilemma+clayton+christensen"),
+    "boeing":         ("Flying Blind",                  "flying+blind+boeing+peter+robison"),
+    "blockbuster":    ("No Rules Rules",                "no+rules+rules+netflix+erin+meyer"),
+    "theranos":       ("Bad Blood",                     "bad+blood+john+carreyrou+theranos"),
+    "ftx":            ("Going Infinite",                "going+infinite+michael+lewis+ftx"),
+    "wework":         ("The Cult of We",                "cult+of+we+wework+adam+neumann"),
+    "sears":          ("The Death of Expertise",        "sears+roebuck+business+collapse+retail"),
+    "toys r us":      ("Toy Monster",                   "toy+monster+toys+r+us+private+equity"),
+    "worldcom":       ("Disconnected",                  "worldcom+fraud+cynthia+cooper"),
+    "bear stearns":   ("House of Cards",                "house+of+cards+bear+stearns+cohan"),
+    "lehman":         ("A Colossal Failure",             "colossal+failure+of+common+sense+lehman"),
+    "madoff":         ("The Wizard of Lies",            "wizard+of+lies+bernie+madoff"),
+    "knight capital": ("Flash Boys",                    "flash+boys+michael+lewis+high+frequency+trading"),
+    "general motors": ("Once Upon a Car",               "once+upon+a+car+general+motors+bill+vlasic"),
+    "apple":          ("Steve Jobs",                    "steve+jobs+walter+isaacson+biography"),
+    "netflix":        ("No Rules Rules",                "no+rules+rules+netflix+hastings"),
+    "starbucks":      ("Onward",                        "onward+howard+schultz+starbucks"),
+    "domino":         ("The Comeback",                  "dominos+pizza+turnaround+business+comeback"),
+    "fedex":          ("Delivering the Goods",          "fedex+fred+smith+overnight+delivery+business"),
+    "wirecard":       ("The Billion Dollar Lie",        "wirecard+billion+dollar+lie+olaf+storbeck"),
+}
+_MZ_BOOK_FALLBACK = ("The Innovator's Dilemma", "innovators+dilemma+clayton+christensen")
+
 # Word targets: 1400–1700w at 2.5 wps = ~9.3–11.3 min (guarantees 8-min mid-roll threshold)
 WORD_MIN, WORD_MAX = 1400, 1700
 
@@ -684,6 +715,58 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
     }
 
 
+def _build_mz_affiliate_footer(topic: str) -> str:
+    """Build the affiliate block appended to every MZ long-form description."""
+    topic_lower = topic.lower()
+    book_title, book_query = _MZ_BOOK_FALLBACK
+    for keyword, (title, query) in _MZ_BOOK_MAP.items():
+        if keyword in topic_lower:
+            book_title, book_query = title, query
+            break
+
+    book_url = f"https://www.amazon.com/s?k={book_query}&tag={_MZ_AMZN_TAG}"
+    lines = [
+        "",
+        "―" * 37,
+        "\U0001f4da BOOKS MENTIONED",
+        f"→ {book_title}: {book_url}",
+        "",
+        f"\U0001f3a7 FREE AUDIOBOOK TRIAL (Audible): {_MZ_AUDIBLE_URL}",
+        "",
+        _MZ_FTC,
+    ]
+    return "\n".join(lines)
+
+
+def post_mz_affiliate_comment(video_id: str) -> None:
+    """Post the Audible affiliate comment on every MZ longform. Pin manually in Studio."""
+    import json as _json
+    from google.oauth2.credentials import Credentials
+    from google.auth.transport.requests import Request
+    from googleapiclient.discovery import build
+    try:
+        token_data = _json.loads(TOKEN_FILE.read_text())
+        creds = Credentials.from_authorized_user_info(token_data, YT_SCOPES)
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        youtube = build("youtube", "v3", credentials=creds)
+        comment_text = (
+            "\U0001f4da Want to go deeper on the business story behind this? "
+            f"Audible has a free trial — great for books on business, finance, and corporate collapse: "
+            f"{_MZ_AUDIBLE_URL}\n\n"
+            "―――\n"
+            "(Affiliate link — I earn a small commission at no cost to you.)"
+        )
+        youtube.commentThreads().insert(
+            part="snippet",
+            body={"snippet": {"videoId": video_id,
+                              "topLevelComment": {"snippet": {"textOriginal": comment_text}}}}
+        ).execute()
+        print(f"  ✅ Affiliate comment posted — go pin it in Studio!")
+    except Exception as e:
+        print(f"  ⚠️  Affiliate comment failed (non-fatal): {e}")
+
+
 def _format_description(desc: str) -> str:
     """Enforce YouTube chapter and hashtag formatting rules.
 
@@ -955,6 +1038,7 @@ def main() -> int:
     print(f"\n📤 Uploading to YouTube (PRIVATE)...")
     description = script_data.get("description", f"{title}\n\n#MinuteZero #BusinessHistory")
     description = _format_description(description)
+    description += _build_mz_affiliate_footer(topic)
     tags        = script_data.get("tags", ["minute zero", "business failure", "corporate history"])
     video_url, studio_url = upload_to_youtube(
         render_result["video_path"], title, description, tags,
@@ -965,6 +1049,10 @@ def main() -> int:
     mark_posted(topic, title, video_url)
     log_to_sheets(title, video_url, topic)
     send_review_email(title, video_url, studio_url, topic, render_result["duration_sec"])
+
+    # Post affiliate comment (pin manually in Studio)
+    video_id = video_url.split("v=")[-1]
+    post_mz_affiliate_comment(video_id)
 
     print(f"\n{'═' * 60}")
     print(f"  ✅ DONE — Uploaded PRIVATE")
