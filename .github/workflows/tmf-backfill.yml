@@ -1,0 +1,38 @@
+name: TMF Log Backfill (run once)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib
+
+      - name: Write TMF token
+        run: echo '${{ secrets.YT_TOKEN_TMF }}' > youtube_token_tmf.json
+
+      - name: Run backfill
+        run: python3 backfill_tmf_log.py
+
+      - name: Commit updated log
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          git config --local user.email "automation@youtube.local"
+          git config --local user.name "YouTube AutoPost Bot"
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/midwestmade4u-prog/youtube-autopost.git
+          git pull --rebase origin main || true
+          git add tmf_post_log.json
+          git diff --cached --quiet && echo "Nothing to commit" && exit 0
+          git commit -m "Backfill tmf_post_log.json with full channel history"
+          git push
