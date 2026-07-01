@@ -47,7 +47,7 @@ NOTIFY_EMAIL    = "wisseinc@gmail.com"
 _AMZN_TAG     = "themindf20-20"
 _AMZN_URL     = f"https://www.amazon.com/audible/mt/audiblemember?tag={_AMZN_TAG}"
 _AUDIBLE_LINK  = _AMZN_URL
-_BLINKIST_LINK = "PASTE_BLINKIST_IMPACT_LINK_HERE"
+_KU_LINK       = f"https://www.amazon.com/kindle-dbs/hz/subscribe/ku?tag={_AMZN_TAG}"
 _LEADMAGNET   = "https://midwestmade4u-prog.github.io/themindf-hub/"
 _FTC          = "\U0001f517 Affiliate links above \u2014 I earn a small commission at no cost to you."
 
@@ -908,7 +908,7 @@ def _build_affiliate_footer(script_data: dict) -> str:
         lines.append(f"â {b}: {url}")
     lines.append("")
     lines.append(f"ð§ FREE AUDIOBOOK TRIAL (Audible): {_AUDIBLE_LINK}")
-    lines.append(f"â¡ BOOK SUMMARIES IN 15 MIN (Blinkist): {_BLINKIST_LINK}")
+    lines.append(f"📖 READ UNLIMITED BOOKS (Kindle Unlimited — free trial): {_KU_LINK}")
     lines.append("")
     if _LEADMAGNET and "YOUR_FORM" not in _LEADMAGNET:
         lines.append(f"ð FREE GUIDE â 7 Dark Psychology Tactics: {_LEADMAGNET}")
