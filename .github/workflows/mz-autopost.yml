@@ -94,10 +94,10 @@ jobs:
           git config --local user.email "automation@youtube.local"
           git config --local user.name "YouTube AutoPost Bot"
           git remote set-url origin https://x-access-token:${GH_PAT}@github.com/midwestmade4u-prog/youtube-autopost.git
-          git pull --rebase origin main || true
           git add mz_post_log.json auto_post_log.json auto_trigger_mz_*.json pexels_used_mz.json 2>/dev/null || true
           git diff --cached --quiet && echo "Nothing to commit, skipping" && exit 0
           git commit -m "Auto-post log (MZ) - $(date)"
+          git pull --rebase origin main || true
           git push
 
       - name: Upload logs
