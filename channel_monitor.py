@@ -82,6 +82,15 @@ CHANNELS = {
     },
 }
 
+# Issue types that warrant an email alert.
+# fb_missed_post and workflow_failure (when YT still posted) are logged to Sheets only.
+CRITICAL_ISSUE_TYPES = {
+    "missed_posts",           # YouTube video count below expected
+    "yt_api_error",           # Can't reach YouTube API at all
+    "no_workflow_runs",       # Workflow never fired
+    "silent_upload_failure",  # Workflow said success but 0 YT posts
+}
+
 # Errors we know how to fix automatically (safe list)
 AUTO_FIX_PATTERNS = {
     "insufficient_quota":        "openai_quota",
@@ -772,41 +781,50 @@ def main() -> int:
     # Log to Sheets
     append_to_sheets(sheet_rows)
 
-    # Send alert email only if actionable issues exist
-    if issues:
-        diagnosis = diagnose_with_claude(issues)
-        print(f"\n🚨 {len(issues)} issue(s) found — sending alert email")
+    # Split issues into critical (email) vs non-critical (Sheets only)
+    critical_issues = [i for i in issues if i["type"] in CRITICAL_ISSUE_TYPES]
+    noise_issues    = [i for i in issues if i["type"] not in CRITICAL_ISSUE_TYPES]
+
+    if noise_issues:
+        print(f"\nℹ️  {len(noise_issues)} non-critical issue(s) logged to Sheets (no email):")
+        for i in noise_issues:
+            print(f"   • {i['channel']}: {i['type']} — {i.get('detail', i.get('run_url', ''))[:80]}")
+
+    # Send alert email only for critical issues (missed YT posts / API failures)
+    if critical_issues:
+        diagnosis = diagnose_with_claude(critical_issues)
+        print(f"\n🚨 {len(critical_issues)} CRITICAL issue(s) — sending alert email")
         print(f"  Diagnosis: {diagnosis}")
 
         sheets_url = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit#gid=0"
         issue_lines = "\n".join(
             f"• {i['channel']}: {i['type']} — {i.get('detail', i.get('run_url', ''))}"
             + (f"\n  Videos: {i['videos']}" if i.get('videos') else "")
-            for i in issues
+            for i in critical_issues
         )
 
         body_text = (
             f"YouTube Channel Monitor — {date_str}\n\n"
-            f"⚠️  {len(issues)} issue(s) detected:\n{issue_lines}\n\n"
+            f"⚠️  {len(critical_issues)} issue(s) detected:\n{issue_lines}\n\n"
             f"Diagnosis:\n{diagnosis}\n\n"
             f"Full log: {sheets_url}"
         )
         body_html = f"""
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
           <h2 style="color:#c0392b">⚠️ Channel Monitor Alert — {date_str}</h2>
-          <p><strong>{len(issues)} issue(s) detected:</strong></p>
-          <ul>{''.join(f"<li><b>{i['channel']}</b>: {i['type']} — {i.get('detail', i.get('run_url', ''))}</li>" for i in issues)}</ul>
+          <p><strong>{len(critical_issues)} issue(s) detected:</strong></p>
+          <ul>{''.join(f"<li><b>{i['channel']}</b>: {i['type']} — {i.get('detail', i.get('run_url', ''))}</li>" for i in critical_issues)}</ul>
           <p><strong>Diagnosis:</strong><br>{diagnosis}</p>
           <p><a href="{sheets_url}" style="background:#2980b9;color:white;padding:10px 20px;text-decoration:none;border-radius:4px">View Full Log in Sheets</a></p>
         </div>
         """
         send_alert_email(
-            subject=f"🚨 Channel Alert ({len(issues)} issue{'s' if len(issues) > 1 else ''}) — {date_str}",
+            subject=f"🚨 Channel Alert ({len(critical_issues)} issue{'s' if len(critical_issues) > 1 else ''}) — {date_str}",
             body_text=body_text,
             body_html=body_html,
         )
     else:
-        print(f"\n✅ All clear — no issues detected. No email sent.")
+        print(f"\n✅ All clear — no critical issues. No email sent.")
 
     print(f"\n{'═'*60}\n")
     return 0
