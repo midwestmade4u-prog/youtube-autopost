@@ -158,7 +158,6 @@ NEAR_DEATH_TOPICS = [
     # Added May 2026 — analytics confirm recovery/survival narratives outperform destruction
     "Marvel — 1996 — declares bankruptcy with $700M debt; Ike Perlmutter buys the company for $82.5M; goes on to build the MCU worth $53B",
     "Levi Strauss — 2003 — closes all US factories, $6B in debt; CEO Phil Marineau's turnaround saves the brand without going bankrupt",
-    "Best Buy — 2012 — CEO ousted in sex scandal, stock at $11, Amazon declared it dead; Hubert Joly's 60-day turnaround plan saves the company",
     "Old Spice — 2008 — brand dying, P&G nearly discontinues it; 'The Man Your Man Could Smell Like' campaign reverses a decade of decline in 30 days",
     "Hostess — Nov 2012 — shuts down entirely, 18,500 jobs gone; private equity buys the brand 8 months later and brings back Twinkies",
     "Atari — 1984 — the Great Video Game Crash wipes $536M in revenue; Jack Tramiel buys the company for $50M and pivots to computers",
