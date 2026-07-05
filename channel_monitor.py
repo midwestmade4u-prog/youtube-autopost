@@ -49,13 +49,19 @@ FROM_EMAIL      = "wisseinc@gmail.com"
 GITHUB_REPO     = "midwestmade4u-prog/youtube-autopost"
 CT              = ZoneInfo("America/Chicago")
 
+# schedule_days uses Python's datetime.weekday() convention: Mon=0 ... Sun=6.
+# Cadence cut Jul 5 2026: TMF/MZ/BSG all reduced from 14-21/wk down per analytics
+# review. Monitor now only expects/flags posts on each channel's actual posting
+# days -- checking every single day against a channel that posts 4x/wk would
+# false-alarm "missed_posts" on the 3 off days every week.
 CHANNELS = {
     "tmf": {
         "label":          "The Mind Files",
         "channel_id":     "UC0O6KbbHKW4_a7d9epNo93A",
         "token_env":      "YT_TOKEN_TMF",
         "token_file":     "youtube_token_tmf.json",
-        "expected_posts": 2,
+        "expected_posts": 1,
+        "schedule_days":  (0, 1, 2, 3, 4, 5),  # Mon-Sat, 6/wk
         "workflow":       "tmf-autopost.yml",
         "fb_token_env":   "FB_PAGE_ACCESS_TOKEN_TMF",
         "fb_page_id_env": "FB_PAGE_ID_TMF",
@@ -66,7 +72,8 @@ CHANNELS = {
         "token_env":      "YT_TOKEN_BSG",
         "token_file":     "youtube_token_bsg.json",
         "expected_posts": 1,
-        "workflow":       "youtube-autopost.yml",
+        "schedule_days":  (0, 1, 2, 3, 4, 5, 6),  # every day, 7/wk
+        "workflow":       "bsg-autopost.yml",
         "fb_token_env":   "FB_PAGE_ACCESS_TOKEN_BSG",
         "fb_page_id_env": "FB_PAGE_ID_BSG",
     },
@@ -75,7 +82,8 @@ CHANNELS = {
         "channel_id":     "UCMVhjR4HetJctXeYkuPgg6w",
         "token_env":      "YT_TOKEN_MZ",
         "token_file":     "youtube_token_mz.json",
-        "expected_posts": 2,
+        "expected_posts": 1,
+        "schedule_days":  (0, 2, 4, 6),  # Mon/Wed/Fri/Sun, 4/wk
         "workflow":       "mz-autopost.yml",
         "fb_token_env":   "FB_PAGE_ACCESS_TOKEN_MZ",
         "fb_page_id_env": "FB_PAGE_ID_MZ",
@@ -599,6 +607,9 @@ def update_longform_queue(channel_key: str, channel_id: str, token_file: str) ->
 
 def main() -> int:
     now_ct = datetime.now(CT)
+    # The 26h lookback window means we're really validating "yesterday's" posting
+    # day (monitor runs at 2 AM CT, workflows fire earlier the previous day).
+    yesterday_ct = now_ct - timedelta(days=1)
     date_str = now_ct.strftime("%Y-%m-%d")
     print(f"\n{'═'*60}")
     print(f"  📡 Channel Monitor  |  {now_ct.strftime('%Y-%m-%d %H:%M CT')}")
@@ -615,16 +626,22 @@ def main() -> int:
         if token_json:
             open(ch["token_file"], "w").write(token_json)
 
+        # Is yesterday one of this channel's scheduled posting days?
+        # (defaults to every day if schedule_days isn't set, for safety)
+        is_scheduled_day = yesterday_ct.weekday() in ch.get("schedule_days", range(7))
+
         # 1. Check YouTube posts
         videos = videos_posted_last_24h(ch["channel_id"], ch["token_file"])
         post_errors = [v for v in videos if "error" in v]
         actual_posts = len([v for v in videos if "error" not in v])
-        expected = ch["expected_posts"]
+        expected = ch["expected_posts"] if is_scheduled_day else 0
 
         yt_status = "✅ OK"
         if post_errors:
             yt_status = f"❌ API error: {post_errors[0]['error'][:60]}"
             issues.append({"channel": ch["label"], "type": "yt_api_error", "detail": post_errors[0]["error"]})
+        elif not is_scheduled_day and actual_posts == 0:
+            yt_status = "⏭️  off day (not scheduled)"
         elif actual_posts < expected:
             yt_status = f"⚠️  {actual_posts}/{expected} videos posted"
             issues.append({
@@ -647,6 +664,8 @@ def main() -> int:
         gh_status = "✅ OK"
         if run_errors:
             gh_status = f"❌ API error: {run_errors[0]['error'][:60]}"
+        elif not runs and not is_scheduled_day:
+            gh_status = "⏭️  no runs (off day, not scheduled)"
         elif not runs:
             gh_status = "⚠️  No runs in last 24h"
             issues.append({"channel": ch["label"], "type": "no_workflow_runs", "detail": "No runs found"})
@@ -713,7 +732,8 @@ def main() -> int:
 
         # Rule 2: No workflow runs found + 0 YT posts → dispatch fresh run
         # Guard: both conditions must be true — if posts exist, don't dispatch.
-        if not runs and not run_errors and actual_posts == 0:
+        # Guard: only on scheduled posting days — an off day is expected to have 0 runs.
+        if not runs and not run_errors and actual_posts == 0 and is_scheduled_day:
             print(f"  🔧 Auto-fix: no workflow runs + 0 YT posts — dispatching {ch['workflow']}...")
             auto_dispatch_workflow(ch["workflow"], ch["label"])
 
