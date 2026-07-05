@@ -699,9 +699,13 @@ def title_already_published(title: str, channel: str) -> bool:
 # 5ÃÂ¢ÃÂÃÂ7 videos on a single day, which Apr 2026 analytics showed dilutes the
 # algorithm and tanks per-video views.
 DAILY_POST_CAPS = {
-    "tmf": 3,
-    "bsg": 2,
-    "mz":  2,
+    # Tightened Jul 5 2026: every channel is now scheduled for at most 1 post/day
+    # (see tmf-autopost.yml / bsg-autopost.yml / mz-autopost.yml cron changes).
+    # Caps stay at 1 to guard against workflow_dispatch or retries stacking extra
+    # posts on top of the scheduled one.
+    "tmf": 1,
+    "bsg": 1,
+    "mz":  1,
 }
 
 def posts_today_count(channel: str) -> int:
