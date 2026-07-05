@@ -1423,7 +1423,12 @@ def save_config():
 
 YT_SECRETS_FILE = BASE_DIR / "youtube_client_secrets.json"
 YT_SCOPES       = ["https://www.googleapis.com/auth/youtube.upload",
-                   "https://www.googleapis.com/auth/youtube"]
+                   "https://www.googleapis.com/auth/youtube",
+                   # Added Jul 5 2026 -- lets us pull Shorts/longform retention %
+                   # (average view percentage) via the YouTube Analytics API instead
+                   # of manually checking Studio. Requires re-running OAuth per channel
+                   # (delete youtube_token_X.json, hit /youtube-connect?channel=X again).
+                   "https://www.googleapis.com/auth/yt-analytics.readonly"]
 
 # Each channel has its own token file â so BSG and TMF can be different YouTube accounts
 YT_TOKEN_FILES = {
