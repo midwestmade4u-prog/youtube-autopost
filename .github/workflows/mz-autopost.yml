@@ -2,8 +2,9 @@ name: YouTube Auto-Post - Minute Zero
 
 on:
   schedule:
-    - cron: '0 14 * * *'
-    - cron: '0 0 * * *'
+    # Cadence cut Jul 5 2026: dropped evening slot, now Mon/Wed/Fri/Sun only (4/wk,
+    # down from 14/wk) per weekly analytics review -- volume was diluting per-video views.
+    - cron: '0 14 * * 0,1,3,5'
   workflow_dispatch:
     inputs:
       format:
