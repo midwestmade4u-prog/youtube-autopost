@@ -643,15 +643,15 @@ def main() -> int:
         elif not is_scheduled_day and actual_posts == 0:
             yt_status = "⏭️  off day (not scheduled)"
         elif actual_posts < expected:
-            yt_status = f"⚠️  {actual_posts}/{expected} videos posted"
+            yt_status = f"⚠️  Expected {expected} / Published {actual_posts}"
             issues.append({
                 "channel":  ch["label"],
                 "type":     "missed_posts",
-                "detail":   f"Expected {expected}, found {actual_posts} in last 24h",
+                "detail":   f"Expected {expected} / Published {actual_posts} (last 24h)",
                 "videos":   videos,
             })
         else:
-            yt_status = f"✅ {actual_posts}/{expected} posted"
+            yt_status = f"✅ Expected {expected} / Published {actual_posts}"
 
         print(f"  YouTube: {yt_status}")
 
@@ -770,7 +770,7 @@ def main() -> int:
                 "type":    "silent_upload_failure",
                 "detail":  (
                     f"Workflow ran and reported ✅ success (continue-on-error) but "
-                    f"0/{expected} videos found on YouTube. "
+                    f"Expected {expected} / Published 0 on YouTube. "
                     f"Likely cause: YouTube token expired/invalid (re-OAuth needed). "
                     f"Last run: {runs[0].get('url', 'unknown')}"
                 ),
