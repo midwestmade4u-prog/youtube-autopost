@@ -576,6 +576,48 @@ def _normalize_title(t: str) -> str:
     s = _re.sub(r"[^a-z0-9 ]+", " ", s)
     return _re.sub(r"\s+", " ", s).strip()
 
+# Stopwords stripped before duplicate-detection keyword comparison. Includes
+# generic connectors AND per-channel branding words (kids/bible/story/garden)
+# that appear in every BSG title and would otherwise inflate overlap scores.
+_TITLE_DEDUP_STOPWORDS = {
+    "the", "a", "an", "of", "in", "on", "at", "to", "for", "and", "or", "with",
+    "why", "your", "you", "kids", "bible", "story", "stories", "garden",
+}
+
+def _title_keyword_set(t: str) -> set:
+    """Emoji/punctuation-stripped, stopword-filtered, lightly-stemmed keyword
+    set used for fuzzy duplicate detection.
+
+    Fixes confirmed gaps in the old exact-string-after-normalize check:
+    "&" vs "and" ("Ruth & Naomi" vs "Ruth and Naomi"), emoji variants, plural
+    or possessive drift ("Daniel's Lion Den" vs "Daniel in the Lion's Den"),
+    and reworded-but-same-story titles ("Jesus Feeds 5000" vs "Feeding the
+    5,000"). Confirmed root cause of BSG republishing the same stories 2-5x
+    within a single 28-day window (Jul 5 2026 analytics review).
+    """
+    norm = _normalize_title(t)
+    kws = set()
+    for w in norm.split():
+        if w in _TITLE_DEDUP_STOPWORDS or len(w) < 3:
+            continue
+        if w.endswith("s") and len(w) > 4:
+            w = w[:-1]
+        kws.add(w)
+    return kws
+
+def _titles_are_duplicate(a: str, b: str, threshold: float = 0.6) -> bool:
+    """True if two titles are the same story/concept: exact match after basic
+    normalization, OR high keyword overlap (Jaccard similarity) once emoji,
+    punctuation, stopwords, and light plural/possessive stemming are removed.
+    """
+    na, nb = _normalize_title(a), _normalize_title(b)
+    if na and na == nb:
+        return True
+    ka, kb = _title_keyword_set(a), _title_keyword_set(b)
+    if not ka or not kb:
+        return False
+    return len(ka & kb) / len(ka | kb) >= threshold
+
 def title_passes_tmf_rules(title: str) -> tuple[bool, str]:
     """
     Returns (ok, reason). False reason gets fed back into the retry prompt.
@@ -632,16 +674,20 @@ def title_already_published(title: str, channel: str) -> bool:
     Reads from the per-channel log (primary source of truth) so it stays
     accurate even when the shared auto_post_log.json lags behind due to
     concurrent GH Actions runs or merge conflicts.
+
+    Uses _titles_are_duplicate() (keyword-overlap, not exact string match) so
+    emoji variants, "&" vs "and", plurals/possessives, and reworded-but-same-
+    story titles are caught -- not just byte-identical titles. Fixed Jul 5
+    2026 after analytics showed near-duplicate titles slipping through on
+    all three channels (worst on BSG).
     """
-    # Use per-channel log as primary — it is committed by every workflow run
     log = _load_channel_log(channel)
-    norm = _normalize_title(title)
-    if not norm:
+    if not (title or "").strip():
         return False
     for post in log.get("posts", []):
         if post.get("channel") != channel:
             continue
-        if _normalize_title(post.get("title", "")) == norm:
+        if _titles_are_duplicate(title, post.get("title", "")):
             return True
     return False
 
@@ -1061,6 +1107,17 @@ PROSE QUALITY ÃÂ¢ÃÂÃÂ NO AI TELLS (applies to every narration f
                 print(f"    ÃÂ¢ÃÂÃÂ BSG title validator: {title}")
 
                 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ BSG action gate validator ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
+                bsg_dup = title_already_published(title, channel) if bsg_format_ok else False
+                if bsg_dup:
+                    print(f"    [FAIL] BSG duplicate on attempt {attempt}: \"{title}\" -- story already published, pick a different Bible story or a clearly different angle.")
+                    extra_constraints = (
+                        "\n\nIMPORTANT -- your previous draft was REJECTED as a DUPLICATE. "
+                        f"Title was: \"{title}\"\n"
+                        "This story (or a very similarly-worded version of it) has already been "
+                        "published on this channel. Pick a COMPLETELY DIFFERENT Bible story -- "
+                        "not just a reworded title for the same story."
+                    )
+                    continue
                 if not script.get("has_action_gate", True):
                     print(f"    ÃÂ¢ÃÂÃÂ ÃÂ¯ÃÂ¸ÃÂ  BSG action gate FAIL on attempt {attempt}: story lacks dramatic peak")
                     extra_constraints = (
