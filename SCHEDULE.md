@@ -51,6 +51,18 @@ This cadence has NOT changed as part of the Jul 5 2026 Shorts cadence work.
 - `weekly-digest.yml` runs Sunday 3 AM CT (`0 8 * * 0`) -- separate from the
   nightly monitor, produces the weekly analytics digest Matt reviews by hand.
 
+## Retention checking
+
+`check_shorts_retention.py` pulls average view percentage (retention) per Short
+via the YouTube Analytics API, flagged against the ~70% bar from the Jul 5 2026
+research digest. Requires the token file for that channel to have been generated
+with the `yt-analytics.readonly` scope (added Jul 5 2026 to `video_app.py` /
+`refresh_token_bsg.py` / `refresh_token_mz.py`). Existing tokens predate this --
+each channel needs one re-OAuth (delete `youtube_token_X.json`, re-run the flow,
+re-paste into the matching GH secret) before the script will work. Until that's
+done for a channel, the script prints "SKIPPED: token doesn't have ... scope yet"
+for it rather than failing silently.
+
 ## Change log
 
 - **Jul 5 2026**: BSG duplicate-workflow bug fixed (youtube-autopost.yml disabled).
