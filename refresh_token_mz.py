@@ -21,6 +21,7 @@ from google.oauth2.credentials import Credentials
 SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube",
+    "https://www.googleapis.com/auth/yt-analytics.readonly",  # added Jul 5 2026
 ]
 
 CLIENT_SECRETS = Path(__file__).parent / "youtube_client_secrets.json"
