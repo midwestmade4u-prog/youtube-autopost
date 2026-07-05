@@ -3,9 +3,10 @@ name: YouTube Auto-Post - Bible Story Garden
 on:
   schedule:
     # 12 PM CDT = 17:00 UTC  (family audience: afternoon scroll window)
+    # Cadence cut Jul 5 2026: dropped 7PM slot -- this workflow is now the ONLY
+    # BSG poster (youtube-autopost.yml's BSG job disabled same day -- it was
+    # duplicate-posting alongside this file, ~21/wk combined vs 7/wk expected).
     - cron: '0 17 * * *'
-    # 7 PM CDT = 00:00 UTC  (family audience: evening scroll window)
-    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
