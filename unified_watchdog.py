@@ -12,7 +12,7 @@ Usage (called from GH Actions watchdog workflows):
   python3 unified_watchdog.py --channel tmf --slot-utc 15 --post-type longform --check-type retry --slot-day 0
 """
 
-import argparse, json, os, smtplib, sys, urllib.request as ureq
+import argparse, json, os, re, smtplib, sys, urllib.request as ureq
 from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -55,9 +55,19 @@ CHANNELS = {
 
 
 # ── YouTube API check ─────────────────────────────────────────────────────────
-def check_youtube_for_recent_video(channel_id: str, token_file: str, since: datetime) -> tuple[bool, str | None]:
+def _duration_seconds(duration_iso: str) -> int:
+    m = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration_iso or "")
+    h  = int(m.group(1) or 0) if m else 0
+    mi = int(m.group(2) or 0) if m else 0
+    s  = int(m.group(3) or 0) if m else 0
+    return h * 3600 + mi * 60 + s
+
+
+def check_youtube_for_recent_video(channel_id: str, token_file: str, since: datetime, post_type: str = "shorts") -> tuple[bool, str | None]:
     """
-    Ground-truth check: did this channel publish a video since `since`?
+    Ground-truth check: did this channel publish a video of the EXPECTED TYPE since `since`?
+    post_type: "shorts" (<=180s) or "longform" (>180s) -- prevents mistaking a same-day
+    longform upload for a Shorts confirmation (or vice versa).
     Returns (found: bool, url: str | None)
     """
     try:
@@ -84,16 +94,35 @@ def check_youtube_for_recent_video(channel_id: str, token_file: str, since: date
 
         since_utc = since.replace(tzinfo=timezone.utc) if since.tzinfo is None else since
 
+        candidates = []
         for item in pl.get("items", []):
             pub_raw = item["snippet"]["publishedAt"]
             pub_dt  = datetime.fromisoformat(pub_raw.replace("Z", "+00:00"))
             if pub_dt >= since_utc:
-                vid_id = item["contentDetails"]["videoId"]
-                title  = item["snippet"].get("title", "")
-                print(f"  ✅ Found video since {since_utc.strftime('%H:%M UTC')}: '{title}' → https://youtu.be/{vid_id}")
-                return True, f"https://youtu.be/{vid_id}"
+                candidates.append(item)
 
-        print(f"  ❌ No video found on channel since {since_utc.strftime('%Y-%m-%d %H:%M UTC')}")
+        if not candidates:
+            print(f"  ❌ No video found on channel since {since_utc.strftime('%Y-%m-%d %H:%M UTC')}")
+            return False, None
+
+        # Fetch durations for all candidates in one call and filter by expected type
+        vid_ids = [c["contentDetails"]["videoId"] for c in candidates]
+        vresp = youtube.videos().list(part="contentDetails", id=",".join(vid_ids)).execute()
+        durations = {v["id"]: _duration_seconds(v["contentDetails"].get("duration", "")) for v in vresp.get("items", [])}
+
+        for item in candidates:
+            vid_id = item["contentDetails"]["videoId"]
+            title  = item["snippet"].get("title", "")
+            secs   = durations.get(vid_id, 0)
+            is_short = secs <= 180
+            wanted_short = post_type == "shorts"
+            if is_short == wanted_short:
+                print(f"  ✅ Found {post_type} video ({secs}s) since {since_utc.strftime('%H:%M UTC')}: '{title}' → https://youtu.be/{vid_id}")
+                return True, f"https://youtu.be/{vid_id}"
+            else:
+                print(f"  ⏭️  Skipping '{title}' ({secs}s) — wrong type for {post_type} check")
+
+        print(f"  ❌ No {post_type} video found on channel since {since_utc.strftime('%Y-%m-%d %H:%M UTC')} (found {len(candidates)} video(s) of the wrong type)")
         return False, None
 
     except Exception as e:
@@ -289,7 +318,7 @@ def main():
     print(f"╚══════════════════════════════════════════════════════")
 
     # ── Check YouTube directly ────────────────────────────────────────────────
-    found, url = check_youtube_for_recent_video(cfg["channel_id"], cfg["token_file"], slot_start)
+    found, url = check_youtube_for_recent_video(cfg["channel_id"], cfg["token_file"], slot_start, args.post_type)
 
     if found:
         print(f"✅ {cfg['label']} {args.post_type} confirmed posted — all good")
