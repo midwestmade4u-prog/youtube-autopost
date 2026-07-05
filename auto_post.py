@@ -573,6 +573,7 @@ def _contains_banned_hook(title: str) -> bool:
 def _normalize_title(t: str) -> str:
     """Lowercase + strip punctuation/whitespace for fuzzy comparison."""
     s = (t or "").lower()
+    s = _re.sub(r"(?<=[0-9]),(?=[0-9])", "", s)  # "5,000" -> "5000"
     s = _re.sub(r"[^a-z0-9 ]+", " ", s)
     return _re.sub(r"\s+", " ", s).strip()
 
@@ -600,7 +601,9 @@ def _title_keyword_set(t: str) -> set:
     for w in norm.split():
         if w in _TITLE_DEDUP_STOPWORDS or len(w) < 3:
             continue
-        if w.endswith("s") and len(w) > 4:
+        if w.endswith("ing") and len(w) > 5:
+            w = w[:-3]
+        elif w.endswith("s") and len(w) > 4:
             w = w[:-1]
         kws.add(w)
     return kws
