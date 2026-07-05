@@ -819,7 +819,8 @@ def post_affiliate_comment(youtube, video_id_yt: str) -> None:
 
 
 def send_review_email(title: str, video_url: str, studio_url: str,
-                      topic: str, duration_sec: float) -> None:
+                      topic: str, duration_sec: float,
+                      cross_link_note: str = "") -> None:
     """Email Matt with the Studio link for review."""
     password = os.getenv("GMAIL_APP_PASSWORD", "")
     if not password:
@@ -848,6 +849,7 @@ def send_review_email(title: str, video_url: str, studio_url: str,
         Ã¢ÂÂ¶ Preview on YouTube
       </a>
     </p>
+    {cross_link_note}
     <hr>
     <p style="color: #999; font-size: 12px;">The Mind Files Long-Form Auto-Post System</p>
     </body></html>
@@ -916,6 +918,124 @@ def _build_affiliate_footer(script_data: dict) -> str:
     lines.append(_FTC)
     return "\n".join(lines)
 
+def _normalize_title(t: str) -> str:
+    import re
+    s = (t or "").lower()
+    s = re.sub(r"(?<=[0-9]),(?=[0-9])", "", s)
+    s = re.sub(r"[^a-z0-9 ]+", " ", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+_TITLE_DEDUP_STOPWORDS = {
+    "the", "a", "an", "of", "in", "on", "at", "to", "for", "and", "or", "with",
+    "why", "your", "you",
+}
+
+
+def _title_keyword_set(t: str) -> set:
+    kws = set()
+    for w in _normalize_title(t).split():
+        if w in _TITLE_DEDUP_STOPWORDS or len(w) < 3:
+            continue
+        if w.endswith("ing") and len(w) > 5:
+            w = w[:-3]
+        elif w.endswith("s") and len(w) > 4:
+            w = w[:-1]
+        kws.add(w)
+    return kws
+
+
+def _find_source_short(topic: str, queue: list) -> str | None:
+    """Best-effort: find the Short this long-form topic came from, so we can
+    cross-link back to it. Two paths:
+      1. Queue-sourced topics (a breakout Short the daily monitor queued for
+         longform amplification) carry an exact video_id.
+      2. Bank-sourced topics: fuzzy keyword-match against the channel's own
+         Shorts log (tmf_post_log.json) and use the best match above threshold.
+    Returns a video_id, or None if no confident match.
+    """
+    for item in queue:
+        if item.get("topic", "") == topic and item.get("video_id"):
+            return item["video_id"]
+
+    shorts_log_file = BASE_DIR / "tmf_post_log.json"
+    if not shorts_log_file.exists():
+        return None
+    try:
+        shorts_log = json.loads(shorts_log_file.read_text())
+    except Exception:
+        return None
+
+    topic_kw = _title_keyword_set(topic)
+    if not topic_kw:
+        return None
+
+    best_id, best_score = None, 0.0
+    for post in shorts_log.get("posts", []):
+        if post.get("channel") != "tmf":
+            continue
+        kw = _title_keyword_set(post.get("title", ""))
+        if not kw:
+            continue
+        score = len(topic_kw & kw) / len(topic_kw | kw)
+        if score > best_score:
+            best_score, best_id = score, post.get("url", "")
+
+    if best_score >= 0.5 and best_id:
+        return best_id.rstrip("/").split("v=")[-1].split("/")[-1].split("?")[0]
+    return None
+
+
+def cross_link_source_short(source_video_id: str, longform_url: str) -> None:
+    """Link the source Short back to this new long-form video: post a comment
+    (needs manual pin -- YouTube's API cannot pin comments or add end-screens/
+    cards to Shorts; Shorts don't support end-screens/cards at all, that's a
+    long-form-only UI feature) and append the link to the Short's description
+    (fully automatic, no manual step needed).
+    """
+    if not source_video_id:
+        return
+    try:
+        from google.oauth2.credentials import Credentials
+        from google.auth.transport.requests import Request
+        from googleapiclient.discovery import build
+        creds = Credentials.from_authorized_user_info(json.loads(TOKEN_FILE.read_text()), YT_SCOPES)
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        youtube = build("youtube", "v3", credentials=creds)
+    except Exception as e:
+        print(f"  [WARN] Cross-link setup failed (non-fatal): {e}")
+        return
+
+    try:
+        comment_text = (
+            "This story went deeper than 60 seconds could hold. "
+            f"Watch the full breakdown here: {longform_url}"
+        )
+        youtube.commentThreads().insert(
+            part="snippet",
+            body={"snippet": {"videoId": source_video_id,
+                              "topLevelComment": {"snippet": {"textOriginal": comment_text}}}}
+        ).execute()
+        print(f"  [OK] Cross-link comment posted on {source_video_id} -- pin it in Studio!")
+    except Exception as e:
+        print(f"  [WARN] Cross-link comment failed (non-fatal): {e}")
+
+    try:
+        vid_resp = youtube.videos().list(part="snippet", id=source_video_id).execute()
+        items = vid_resp.get("items", [])
+        if items:
+            snippet = items[0]["snippet"]
+            existing_desc = snippet.get("description", "")
+            if longform_url not in existing_desc:
+                link_line = f"\n\nWant the full story? Watch the deep dive: {longform_url}"
+                snippet["description"] = (existing_desc + link_line)[:5000]
+                youtube.videos().update(part="snippet", body={"id": source_video_id, "snippet": snippet}).execute()
+                print(f"  [OK] Long-form link added to {source_video_id}'s description")
+    except Exception as e:
+        print(f"  [WARN] Description update failed (non-fatal): {e}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="TMF Long-Form Auto-Post")
     parser.add_argument("--topic", default="", help="Override topic string")
@@ -980,7 +1100,20 @@ def main() -> int:
     _vid_id = video_url.split("v=")[-1]
     post_affiliate_comment(_yt2, _vid_id)
 
-    send_review_email(title, video_url, studio_url, topic, render_result["duration_sec"])
+    # Cross-link: connect this long-form video back to the Short that inspired it
+    cross_link_note = ""
+    source_short_id = _find_source_short(topic, _load_longform_queue())
+    if source_short_id:
+        cross_link_source_short(source_short_id, video_url)
+        cross_link_note = (
+            f'<p>Also posted a cross-link comment on the source Short '
+            f'(https://youtu.be/{source_short_id}) linking to this long-form video '
+            f'-- pin it in Studio.</p>'
+        )
+    else:
+        print("  Info: no matching Short found to cross-link")
+
+    send_review_email(title, video_url, studio_url, topic, render_result["duration_sec"], cross_link_note)
 
     print(f"\n{'Ã¢ÂÂ' * 60}")
     print(f"  Ã¢ÂÂ DONE Ã¢ÂÂ Uploaded PUBLIC and live")
