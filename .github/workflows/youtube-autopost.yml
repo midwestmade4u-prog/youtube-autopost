@@ -1,9 +1,11 @@
 name: YouTube Auto-Post - Bible Story Garden
 
+# DISABLED Jul 5 2026: this workflow was duplicate-posting BSG content alongside
+# bsg-autopost.yml (this ran 1x/day + bsg-autopost.yml ran 2x/day = 3 trigger points/day,
+# ~21/wk actual vs 7/wk expected). bsg-autopost.yml is now the sole canonical BSG
+# poster (it also has the FB crosspost step + GH_PAT log persistence this file lacks).
+# Schedule trigger removed; workflow_dispatch kept for manual/emergency use only.
 on:
-  schedule:
-    # 4 PM CDT = 21:00 UTC  (kids/family: after-school window, 1x daily)
-    - cron: '0 21 * * *'
   workflow_dispatch:
 
 jobs:
@@ -64,8 +66,9 @@ jobs:
 
       # BSG re-enabled May 5 2026. Token must be generated under midwestmade4u@gmail.com
       # selecting Bible Story Garden brand account. bsgchannel99 is manager only — never token source.
+      # Disabled Jul 5 2026 -- bsg-autopost.yml is now the sole BSG poster (see top-of-file note).
       - name: Run Bible Story Garden auto-post
-        if: true
+        if: false
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
