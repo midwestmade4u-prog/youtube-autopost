@@ -2,9 +2,10 @@ name: YouTube Auto-Post - The Mind Files
 
 on:
   schedule:
-    # Cadence cut Jul 5 2026: 1x/day, Mon-Sat (6/wk). Dropped 2nd daily slot
-    # and Sunday per weekly analytics review -- 14/wk was diluting per-video views.
-    - cron: '0 13 * * 1,2,3,4,5,6'
+    # Jul 5 2026: 1x/day, every day (7/wk) -- Matt wants a daily-minimum floor
+    # per channel. Dropped the 2nd/evening slot (was 14/wk) but kept full 7-day
+    # coverage rather than the analytics-review's suggested Mon-Sat/6-wk cut.
+    - cron: '0 13 * * *'
   workflow_dispatch:
 
 jobs:
