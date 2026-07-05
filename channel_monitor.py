@@ -61,7 +61,7 @@ CHANNELS = {
         "token_env":      "YT_TOKEN_TMF",
         "token_file":     "youtube_token_tmf.json",
         "expected_posts": 1,
-        "schedule_days":  (0, 1, 2, 3, 4, 5),  # Mon-Sat, 6/wk
+        "schedule_days":  (0, 1, 2, 3, 4, 5, 6),  # every day, 7/wk (Matt wants a daily floor)
         "workflow":       "tmf-autopost.yml",
         "fb_token_env":   "FB_PAGE_ACCESS_TOKEN_TMF",
         "fb_page_id_env": "FB_PAGE_ID_TMF",
@@ -83,7 +83,7 @@ CHANNELS = {
         "token_env":      "YT_TOKEN_MZ",
         "token_file":     "youtube_token_mz.json",
         "expected_posts": 1,
-        "schedule_days":  (0, 2, 4, 6),  # Mon/Wed/Fri/Sun, 4/wk
+        "schedule_days":  (0, 1, 2, 3, 4, 5, 6),  # every day, 7/wk (Matt wants a daily floor)
         "workflow":       "mz-autopost.yml",
         "fb_token_env":   "FB_PAGE_ACCESS_TOKEN_MZ",
         "fb_page_id_env": "FB_PAGE_ID_MZ",
