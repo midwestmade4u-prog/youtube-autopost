@@ -310,6 +310,13 @@ def _bsg_story_ever_posted(topic: str) -> bool:
             continue
         if _bsg_story_slug(post.get("topic", "")) == slug:
             return True
+    # Fixed Jul 7 2026: "posts" (structured, timestamped) lagged behind the
+    # legacy flat "bsg" topic list -- mark_posted() writes both, but "posts"
+    # was missing real entries (e.g. Creation Story, Easter Story), letting
+    # this guard miss duplicates it was built to stop. Check both lists.
+    for past_topic in log.get("bsg", []):
+        if _bsg_story_slug(past_topic) == slug:
+            return True
     return False
 
 
