@@ -214,9 +214,19 @@ def _bsg_story_tier(topic: str) -> int:
     return 2
 
 
+_BSG_NAME_SPLIT_RE = _re_imports.compile(
+    "\\s*(?:\u2014|\u2013|-|\u00c3\u0083\u00c2\u00a2\u00c3\u0082\u00c2\u0080\u00c3\u0082\u00c2\u0094)\\s*"
+)
+# Matches any dash-style separator between story name and hook: em-dash, en-dash,
+# hyphen, or the legacy mojibake-corrupted em-dash sequence baked into some older
+# log entries. Fixed Jul 7 2026 -- the old version split on a literal corrupted
+# string, which only matched already-corrupted text and silently failed on
+# cleanly-encoded (normal) topic strings, breaking dedup for fresh topics.
+
+
 def _bsg_story_name(topic: str) -> str:
-    """Extract core story name for dedup (text before first ' ÃÂ¢ÃÂÃÂ ')."""
-    return topic.split(" ÃÂ¢ÃÂÃÂ ")[0].strip().lower()
+    """Extract core story name for dedup (text before the first dash separator)."""
+    return _BSG_NAME_SPLIT_RE.split(topic, maxsplit=1)[0].strip().lower()
 
 
 # Canonical slug map: catches AI-generated title variations for the same story.
