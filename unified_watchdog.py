@@ -19,7 +19,7 @@ from email.mime.text import MIMEText
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-# ── Channel config ────────────────────────────────────────────────────────────
+# ── Channel config ──────────────────────────────────────────────────────────
 CHANNELS = {
     "tmf": {
         "label":            "The Mind Files",
@@ -51,6 +51,14 @@ CHANNELS = {
         "token_name":       "YT_TOKEN_BSG",
         "refresh_script":   "refresh_token_bsg.py",
     },
+}
+
+# Per-channel post-log filenames (repo root), used by _channel_posted_today()
+# to tell a benign burst-guard skip apart from a real token/upload failure.
+POST_LOG_FILES = {
+    "tmf": "tmf_post_log.json",
+    "mz":  "mz_post_log.json",
+    "bsg": "bsg_post_log.json",
 }
 
 
@@ -131,11 +139,61 @@ def check_youtube_for_recent_video(channel_id: str, token_file: str, since: date
         return True, None
 
 
-# ── Diagnosis ─────────────────────────────────────────────────────────────────
-def diagnose_failure(workflow_id: str, slot_start: datetime, gh_token: str) -> str:
+# ── Burst-guard detection ──────────────────────────────────────────────────────
+def _channel_posted_today(ch_key: str) -> bool:
+    """
+    Check whether this channel's post_log already has an entry for today's
+    US/Central calendar date.
+
+    Why this exists: a GH Actions run can report conclusion == "success" with
+    no new video showing up in the watchdog's slot window for a completely
+    benign reason -- auto_post.py's burst_guard_or_exit() intentionally exits 0
+    (success, no-op) when today's per-channel posting cap is already met. This
+    commonly happens when an earlier run's cron fires a few minutes late and
+    lands just after local midnight (cron jitter) -- that post still counts as
+    "today" for the cap check, but the watchdog's slot-window check (which only
+    looks for a NEW video after the current slot's start time) doesn't see it
+    and would otherwise misdiagnose this as a token/upload failure.
+
+    Root-caused 2026-07-05 on Bible Story Garden: a 3:01 AM post satisfied the
+    day's cap, and the evening watchdog check found no new video since its own
+    slot start and nearly fired a false "token expired" alert. See
+    project_bsg_false_token_alert_jul5 memory for the full chain.
+
+    Returns True if a same-day post exists (i.e. the "no new video" result is
+    very likely burst-guard, not a real failure). Fails safe: any fetch/parse
+    error returns False, so we fall back to treating it as a real token issue
+    rather than silently swallowing a genuine outage.
+    """
+    log_file = POST_LOG_FILES.get(ch_key)
+    if not log_file:
+        return False
+    try:
+        url = f"https://raw.githubusercontent.com/midwestmade4u-prog/youtube-autopost/main/{log_file}"
+        with ureq.urlopen(url, timeout=10) as resp:
+            log = json.loads(resp.read())
+        posts = log.get("posts", []) if isinstance(log, dict) else log
+        today_ct = datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d")
+        for post in posts:
+            if post.get("channel") == ch_key and str(post.get("posted_at", "")).startswith(today_ct):
+                return True
+        return False
+    except Exception as e:
+        print(f"  ⚠️  Could not check post log for burst-guard skip: {e}")
+        return False
+
+
+# ── Diagnosis ─────────────────────────────────────────────────────────────
+def diagnose_failure(workflow_id: str, slot_start: datetime, gh_token: str, ch_key: str) -> str:
     """
     Inspects recent GH Actions runs to identify the failure type.
     Returns a human-readable diagnosis.
+
+    A "success" conclusion with no matching video is NOT automatically a token
+    issue -- it's first checked against the channel's own post log to rule out
+    a benign burst-guard skip (today's posting cap already met earlier in the
+    day). Only if that check comes back negative do we report token_issue.
+    See _channel_posted_today() for the full rationale.
     """
     try:
         url = (f"https://api.github.com/repos/midwestmade4u-prog/youtube-autopost"
@@ -164,7 +222,12 @@ def diagnose_failure(workflow_id: str, slot_start: datetime, gh_token: str) -> s
         if conclusion == "failure":
             return f"workflow_failed|{logs_url}"
         elif conclusion == "success":
-            # Success but no YT video = token issue (continue-on-error pattern)
+            # Success but no YT video in the slot window -- could be the
+            # classic continue-on-error token failure, OR a benign burst-guard
+            # skip (channel already met today's post cap earlier in the day).
+            # Check the post log before concluding it's a real token issue.
+            if _channel_posted_today(ch_key):
+                return f"burst_guard_skip|{logs_url}"
             return f"token_issue|{logs_url}"
         else:
             return f"unknown:{conclusion}|{logs_url}"
@@ -222,6 +285,13 @@ pbcopy &lt; {cfg['token_file']}</pre>
           GitHub Secrets</a> → <strong>{token_nm}</strong> → Update → paste full JSON → Save</p>
           <p>Then: <a href="https://github.com/midwestmade4u-prog/youtube-autopost/actions/workflows/{workflow}">
           Re-trigger {label} {post_type} workflow</a></p>
+        </div>"""
+    elif diag_type == "burst_guard_skip":
+        action_html = f"""
+        <div style="background:#d4edda;border-left:4px solid #28a745;padding:12px;margin:12px 0;">
+          <strong>✅ Not a failure — burst guard skip</strong>
+          <p>{label} already posted earlier today; today's posting cap was already met, so
+          this slot's run intentionally skipped. No action needed.</p>
         </div>"""
     elif diag_type == "workflow_failed":
         action_html = f"""
@@ -312,10 +382,10 @@ def main():
             sys.exit(0)
 
     elapsed_min = (now - slot_start).total_seconds() / 60
-    print(f"╔══════════════════════════════════════════════════════")
+    print(f"╔═════════════════════════════════════════════════════")
     print(f"║  Unified Watchdog — {cfg['label']} {args.post_type.title()}")
     print(f"║  Slot: {slot_start.strftime('%Y-%m-%d %H:%M')} UTC  |  T+{elapsed_min:.0f}min  |  Mode: {args.check_type}")
-    print(f"╚══════════════════════════════════════════════════════")
+    print(f"╚═════════════════════════════════════════════════════")
 
     # ── Check YouTube directly ────────────────────────────────────────────────
     found, url = check_youtube_for_recent_video(cfg["channel_id"], cfg["token_file"], slot_start, args.post_type)
@@ -339,8 +409,13 @@ def main():
     elif args.check_type == "alert":
         # Diagnose before alerting
         print(f"🚨 Still no video after retry — diagnosing and alerting")
-        diagnosis = diagnose_failure(workflow, slot_start, gh_token) if gh_token else "no_gh_token"
+        diagnosis = diagnose_failure(workflow, slot_start, gh_token, args.channel) if gh_token else "no_gh_token"
         print(f"  Diagnosis: {diagnosis}")
+
+        diag_type = diagnosis.split("|")[0]
+        if diag_type == "burst_guard_skip":
+            print(f"✅ Not a real failure — {cfg['label']} already posted earlier today (burst guard). Suppressing alert.")
+            sys.exit(0)
 
         if gmail_pwd:
             send_alert(args.channel, cfg, diagnosis, args.post_type, gmail_pwd)
