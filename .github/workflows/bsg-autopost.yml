@@ -14,8 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    timeout-minutes: 50
+    timeout-minutes: 80
     steps:
+      - name: Anti-repetition jitter (schedule only)
+        if: github.event_name == 'schedule'
+        run: |
+          DELAY=$((RANDOM % 1200))
+          echo "Jitter: sleeping ${DELAY}s (max 20 min; watchdog retry window is T+60)"
+          sleep $DELAY
+
       - name: Checkout code
         uses: actions/checkout@v3
 
