@@ -688,6 +688,16 @@ def script_word_count_ok(script: dict) -> tuple[bool, int]:
         total += len((scene.get("narration") or "").split())
     return (140 <= total <= 180), total
 
+def script_word_count_ok_bsg(script: dict) -> tuple[bool, int]:
+    """BSG narration gate: 100-130 words (~45-55s at Jenny's ~2.4 w/s kids-story pacing).
+    Added Jul 12 2026 (W1-C): BSG previously had NO length gate -- published Shorts
+    ran 68-97s while the shared prompt assumed TMF's 3.3 w/s rate. Ground truth:
+    124w script published at 51s (2.43 w/s). 100w = ~41s, 130w = ~54s."""
+    total = 0
+    for scene in script.get("scenes", []):
+        total += len((scene.get("narration") or "").split())
+    return (100 <= total <= 130), total
+
 def title_already_published(title: str, channel: str) -> bool:
     """Fuzzy-match the candidate title against past posts.
 
@@ -955,11 +965,20 @@ CLIFFHANGER RULE — MADE FOR KIDS (deployed Jun 28 2026):
 - Never use "and they lived happily ever after" or any full resolution. End at the turning point, not after it.
 """
 
+    # Per-channel narration length (W1-C Jul 12 2026): BSG's Jenny voice narrates
+    # kids stories at ~2.4 w/s vs TMF's ~3.3 w/s -- same 42-55s target needs fewer words.
+    if channel == "bsg":
+        _wc_lo, _wc_hi, _tts_rate = 100, 130, 2.4
+        _sc_lo, _sc_hi = 12, 17
+    else:
+        _wc_lo, _wc_hi, _tts_rate = 140, 180, 3.3
+        _sc_lo, _sc_hi = 20, 32
+
     system_prompt = f"""You are a short-form video script writer for YouTube Shorts.
 
 TARGET LENGTH: 42ÃÂ¢ÃÂÃÂ55 seconds. NEVER under 40 or over 60 seconds.
-- Total narration across ALL scenes combined: 140ÃÂ¢ÃÂÃÂ180 words. Do not go below 140 or above 180.
-- TTS speaks at ~3.3 words/sec. 140w = ~42s, 180w = ~55s. Hit this range every time.
+- Total narration across ALL scenes combined: {_wc_lo}ÃÂ¢ÃÂÃÂ{_wc_hi} words. Do not go below {_wc_lo} or above {_wc_hi}.
+- TTS speaks at ~{_tts_rate} words/sec. {_wc_lo}w = ~42s, {_wc_hi}w = ~55s. Hit this range every time.
 - Jun 7 2026 data: top-7 TMF videos (462ÃÂ¢ÃÂÃÂ802 views) all landed 42ÃÂ¢ÃÂÃÂ55s. Keep scripts tight.
 
 Channel style: {style_guide}
@@ -974,7 +993,7 @@ Output ONLY valid JSON in this exact format:
   }},
   "scenes": [
     {{
-      "narration": "Spoken narration, 20ÃÂ¢ÃÂÃÂ32 words, sentences averaging 10ÃÂ¢ÃÂÃÂ14 words.",
+      "narration": "Spoken narration, {_sc_lo}ÃÂ¢ÃÂÃÂ{_sc_hi} words, sentences averaging 10ÃÂ¢ÃÂÃÂ14 words.",
       "image_prompt": "Vivid scene description for AI image generation. Be specific."
     }}
   ]
@@ -1142,6 +1161,21 @@ PROSE QUALITY ÃÂ¢ÃÂÃÂ NO AI TELLS (applies to every narration f
                         "not just a reworded title for the same story."
                     )
                     continue
+                # -- BSG word-count gate (W1-C Jul 12 2026) ---------------------
+                # BSG had no length enforcement; published Shorts ran 68-97s.
+                # 2026 Shorts algo weights absolute watch time -- keep 45-55s.
+                wc_ok_bsg, bsg_words = script_word_count_ok_bsg(script)
+                if not wc_ok_bsg:
+                    print(f"    [FAIL] BSG length on attempt {attempt}: {bsg_words} words (must be 100-130 = ~45-55s at ~2.4 w/s)")
+                    extra_constraints = (
+                        "\n\nIMPORTANT -- your previous draft was REJECTED: narration length. "
+                        f"Total narration was {bsg_words} words. On this channel the voice speaks at "
+                        "~2.4 words/sec, so total narration across ALL scenes combined MUST be "
+                        "100-130 words (renders ~45-55 seconds). Shorten every scene; keep the drama."
+                    )
+                    continue
+                print(f"    [OK] BSG length gate: {bsg_words} words")
+
                 if not script.get("has_action_gate", True):
                     print(f"    ÃÂ¢ÃÂÃÂ ÃÂ¯ÃÂ¸ÃÂ  BSG action gate FAIL on attempt {attempt}: story lacks dramatic peak")
                     extra_constraints = (

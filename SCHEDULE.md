@@ -1,6 +1,6 @@
 # Posting Schedule -- Source of Truth
 
-Last updated: Jul 5 2026. This file is the canonical reference for cadence across
+Last updated: Jul 12 2026. This file is the canonical reference for cadence across
 all 3 channels. If you change a cron schedule, a DAILY_POST_CAPS value, or a
 channel_monitor.py schedule_days entry, update this file in the same commit.
 
@@ -20,6 +20,20 @@ channel_monitor.py schedule_days entry, update this file in the same commit.
 - `DAILY_POST_CAPS` in `auto_post.py`: `{"tmf": 1, "bsg": 1, "mz": 1}`. This is a
   safety ceiling, not the schedule itself -- it exists so a manual workflow_dispatch
   or a retry can't stack a 2nd post on top of the scheduled one.
+- **Anti-repetition jitter (W1-A, Jul 12 2026):** each shorts autopost workflow
+  sleeps a random 0-20 minutes at job start on SCHEDULED runs only
+  (`if: github.event_name == 'schedule'`; manual dispatches skip it). Purpose:
+  YouTube's 2026 Anti-Repetitive Content AI flags accounts posting at the exact
+  same minute daily with templated formats. Jitter is capped at 20 min so
+  jitter + render still finishes inside the per-channel watchdog's T+60min
+  retry window -- do NOT widen the jitter without also shifting the watchdog
+  crons. Rollout: BSG Jul 12 (canary); TMF + MZ after BSG's first clean run.
+  timeout-minutes bumped to absorb the sleep (BSG 50->80).
+- **BSG word-count gate (W1-C, Jul 12 2026):** `script_word_count_ok_bsg()` in
+  `auto_post.py` enforces 100-130 words total narration (~45-55s at Jenny's
+  measured ~2.4 w/s). BSG previously had NO length gate and published 68-97s
+  Shorts. Prompt word/scene targets are now per-channel (`_wc_lo/_wc_hi`,
+  `_sc_lo/_sc_hi`). TMF numbers unchanged (140-180w @ 3.3 w/s).
 
 ## Longform (auto_post_*_longform.py)
 
