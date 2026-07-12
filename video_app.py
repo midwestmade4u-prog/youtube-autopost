@@ -25,6 +25,7 @@ import concurrent.futures
 import json
 import os
 import queue
+import random
 import subprocess
 import sys
 import threading
@@ -783,18 +784,33 @@ def _make_ass_captions(word_timings, ass_path, width=1280, height=720, channel="
 
     # Large bold font â sized so it's readable on a phone screen
     # AutoShorts-style: very large text, 1-2 words per line, punchy and immediate
-    font_size = 95 if is_vertical else 52
-    margin_v  = int(height * 0.08)   # distance from bottom
+    # W1-B (Jul 12 2026): rotate caption styling per render so TMF/BSG don't
+    # present an identical visual template every video (YouTube's 2026
+    # Anti-Repetitive Content AI flags format-farms). Font stays Arial Black
+    # (runner font stack is fragile); vary size/position/box/grouping instead.
+    CAPTION_VARIANTS = [
+        {"name": "classic", "font_scale": 1.00, "margin_frac": 0.08, "wpl": 2,
+         "border": 1, "outline": 5, "active": 108, "bg_box": "&H00000000"},
+        {"name": "high",    "font_scale": 0.88, "margin_frac": 0.20, "wpl": 3,
+         "border": 1, "outline": 4, "active": 112, "bg_box": "&H00000000"},
+        {"name": "boxed",   "font_scale": 0.95, "margin_frac": 0.12, "wpl": 2,
+         "border": 3, "outline": 3, "active": 106, "bg_box": "&H60000000"},
+    ]
+    _v = random.choice(CAPTION_VARIANTS)
+    print(f"  Caption variant: {_v['name']}")
+
+    font_size = int((95 if is_vertical else 52) * _v["font_scale"])
+    margin_v  = int(height * _v["margin_frac"])   # distance from bottom
 
     # Channel accent color in ASS &HAABBGGRR format (AA=00 = fully opaque)
     # ASS uses BGR order: BSG = amber #C8923A â BGR 3A92C8, TMF = vivid yellow â BGR 00EEFF
     accent = "&H003A92C8" if channel == "bsg" else "&H0000EEFF"
     white  = "&H00FFFFFF"
     black_outline = "&H00000000"
-    bg_box = "&H00000000"   # transparent â thick outline is enough
+    bg_box = _v["bg_box"]   # boxed variant uses semi-opaque box; others transparent â thick outline is enough
 
     # Group into short lines â 2 words per line for big punchy captions
-    WORDS_PER_LINE = 2
+    WORDS_PER_LINE = _v["wpl"]
     lines = []
     i = 0
     while i < len(word_timings):
@@ -822,7 +838,7 @@ WrapStyle: 2
 
 [V4+ Styles]
 Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,Strikeout,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
-Style: Default,Arial Black,{font_size},{white},{accent},{black_outline},{bg_box},-1,0,0,0,100,100,0,0,1,5,2,2,20,20,{margin_v},1
+Style: Default,Arial Black,{font_size},{white},{accent},{black_outline},{bg_box},-1,0,0,0,100,100,0,0,{_v['border']},{_v['outline']},2,2,20,20,{margin_v},1
 
 [Events]
 Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
@@ -842,7 +858,7 @@ Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
                 word_upper = w["word"].upper()
                 if j == wi:
                     # Active word: accent color, slightly larger scale
-                    parts.append(f"{{\\c{accent}\\fscx108\\fscy108}}{word_upper}{{\\fscx100\\fscy100}}")
+                    parts.append(f"{{\\c{accent}\\fscx{_v['active']}\\fscy{_v['active']}}}{word_upper}{{\\fscx100\\fscy100}}")
                 else:
                     # Inactive words: white
                     parts.append(f"{{\\c{white}}}{word_upper}")
