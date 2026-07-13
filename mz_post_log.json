@@ -215,6 +215,14 @@
       "title": "The Bribe That Killed Insys Therapeutics",
       "url": "https://youtu.be/5naoGXwMLJE",
       "posted_at": "2026-07-12 15:02:51"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Boeing \u2014 The MCAS single-sensor design call (737 MAX)",
+      "title": "The Sensor That Killed Boeing",
+      "url": "https://youtu.be/5R1gRsPB41I",
+      "posted_at": "2026-07-13 16:39:30"
     }
   ],
   "mz": [],
@@ -267,6 +275,7 @@
     "Rite Aid \u2014 Jun 2003 \u2014 CEO Martin Grass sentenced to 8 years; $1.6B accounting fraud at the nation's third-largest drugstore chain",
     "Theranos \u2014 Oct 16, 2015 \u2014 WSJ story drops",
     "Yahoo \u2014 1998 meeting \u2014 Yahoo passes on buying Google for $1M",
-    "Insys Therapeutics \u2014 2019 \u2014 founder John Kapoor convicted of racketeering; company paid doctors cash bribes to prescribe fentanyl to patients who didn't need it; 47 dead linked to the scheme"
+    "Insys Therapeutics \u2014 2019 \u2014 founder John Kapoor convicted of racketeering; company paid doctors cash bribes to prescribe fentanyl to patients who didn't need it; 47 dead linked to the scheme",
+    "Boeing \u2014 The MCAS single-sensor design call (737 MAX)"
   ]
 }
