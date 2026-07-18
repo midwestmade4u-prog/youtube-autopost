@@ -183,6 +183,47 @@ def _channel_posted_today(ch_key: str) -> bool:
         return False
 
 
+# ── Content-skip detection ──────────────────────────────────────────────────
+def _run_had_no_video_produced(run_id: int, gh_token: str) -> bool:
+    """
+    Distinguishes a content-generation skip from a real token/upload
+    failure. When a channel's script generator can't pass its length
+    validator (the primary AND fallback topic both fail after 3 retries
+    each), auto_post_*.py exits 0 without ever rendering a video -- that
+    "success with no video" looks identical to a real token failure
+    unless we check further. See project_mz_false_token_alert_jul14
+    memory for the Jul 14 2026 MZ incident this fix addresses.
+
+    Looks at the run's job steps for "Post Facebook video (<channel>)",
+    which only runs when a video file actually exists. A content-skip
+    never renders a file, so that step shows conclusion "skipped". A
+    real token failure DOES render the video locally (only the YouTube
+    upload call itself fails), so that step still runs -- making
+    "skipped" here a reliable, channel-agnostic content-skip signal.
+
+    Fails safe: any API error or unexpected step layout returns False,
+    so we never accidentally suppress a genuine token alert.
+    """
+    try:
+        url = (f"https://api.github.com/repos/midwestmade4u-prog/youtube-autopost"
+               f"/actions/runs/{run_id}/jobs")
+        r = ureq.Request(url, headers={
+            "Authorization": f"Bearer {gh_token}",
+            "Accept": "application/vnd.github+json",
+        })
+        with ureq.urlopen(r, timeout=10) as resp:
+            jobs = json.loads(resp.read())["jobs"]
+        for job in jobs:
+            for step in job.get("steps", []):
+                name = (step.get("name") or "").lower()
+                if "post facebook video" in name:
+                    return step.get("conclusion") == "skipped"
+        return False
+    except Exception as e:
+        print(f"  ⚠️  Could not inspect run steps for content-skip check: {e}")
+        return False
+
+
 # ── Diagnosis ─────────────────────────────────────────────────────────────
 def diagnose_failure(workflow_id: str, slot_start: datetime, gh_token: str, ch_key: str) -> str:
     """
@@ -228,6 +269,8 @@ def diagnose_failure(workflow_id: str, slot_start: datetime, gh_token: str, ch_k
             # Check the post log before concluding it's a real token issue.
             if _channel_posted_today(ch_key):
                 return f"burst_guard_skip|{logs_url}"
+            if _run_had_no_video_produced(last["id"], gh_token):
+                return f"content_skip|{logs_url}"
             return f"token_issue|{logs_url}"
         else:
             return f"unknown:{conclusion}|{logs_url}"
@@ -293,6 +336,18 @@ pbcopy &lt; {cfg['token_file']}</pre>
           <p>{label} already posted earlier today; today's posting cap was already met, so
           this slot's run intentionally skipped. No action needed.</p>
         </div>"""
+    elif diag_type == "content_skip":
+        action_html = f"""
+<div style="background:#d4edda;border-left:4px solid #28a745;padding:12px;margin:12px 0;">
+<strong>✅ Not a token issue — content generation skip</strong>
+<p>{label}'s script generator couldn't produce a script that passed the length
+validator for this slot (the primary AND fallback topic both failed word-count
+validation after 3 retries each), so the run correctly skipped without ever
+rendering a video. No video file was created, so this has nothing to do with
+the YouTube token.</p>
+<p>This should self-resolve on the channel's next scheduled slot with a fresh
+topic. No action needed unless it repeats for several slots in a row.</p>
+</div>"""
     elif diag_type == "workflow_failed":
         action_html = f"""
         <div style="background:#f8d7da;border-left:4px solid #dc3545;padding:12px;margin:12px 0;">
@@ -415,6 +470,10 @@ def main():
         diag_type = diagnosis.split("|")[0]
         if diag_type == "burst_guard_skip":
             print(f"✅ Not a real failure — {cfg['label']} already posted earlier today (burst guard). Suppressing alert.")
+            sys.exit(0)
+
+        if diag_type == "content_skip":
+            print(f"✅ Not a real failure — {cfg['label']} content generator skipped (no video produced this slot). Suppressing alert.")
             sys.exit(0)
 
         if gmail_pwd:
