@@ -98,9 +98,30 @@ jobs:
           git remote set-url origin https://x-access-token:${GH_PAT}@github.com/midwestmade4u-prog/youtube-autopost.git
           git add mz_post_log.json auto_post_log.json auto_trigger_mz_*.json pexels_used_mz.json 2>/dev/null || true
           git diff --cached --quiet && echo "Nothing to commit, skipping" && exit 0
+          # Fixed Jul 19 2026: previously did `git pull --no-rebase -X ours`
+          # AFTER committing, then `git push` with no error handling. `-X ours`
+          # resolves any real merge conflict by keeping OUR side of the hunk
+          # and discarding theirs -- since mz_post_log.json/auto_post_log.json
+          # are re-dumped with json.dumps(indent=2) on every write, almost any
+          # concurrent edit reflows enough of the file to conflict, so "ours"
+          # could silently erase a previously-logged dedup entry (a real
+          # candidate for the Toys R Us repost from the Jul 19 2026 weekly
+          # review, on top of the punctuation-matching bug fixed in
+          # auto_post_mz.py the same day). Now: real rebase (never discards
+          # the other side's entries) with retry, and a loud failure instead
+          # of a silent one if it still can't land.
           git commit -m "Auto-post log (MZ) - $(date)"
-          git pull --no-rebase -X ours origin main || true
-          git push
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push; then
+              echo "Pushed dedup-log commit on attempt $i"
+              exit 0
+            fi
+            echo "Push attempt $i failed (likely concurrent run) -- retrying"
+            git rebase --abort 2>/dev/null || true
+            sleep $(( (RANDOM % 15) + 5 ))
+          done
+          echo "::error::MZ dedup-log commit FAILED to push after 5 attempts -- this run's post will NOT be recorded and may repeat."
+          exit 1
 
       - name: Upload logs
         if: always()

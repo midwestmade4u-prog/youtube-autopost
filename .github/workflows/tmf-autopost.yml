@@ -80,11 +80,30 @@ jobs:
           git config --local user.email "automation@youtube.local"
           git config --local user.name "YouTube AutoPost Bot"
           git remote set-url origin https://x-access-token:${GH_PAT}@github.com/midwestmade4u-prog/youtube-autopost.git
-          git pull --rebase origin main || true
           git add tmf_post_log.json auto_post_log.json auto_trigger_tmf_*.json 2>/dev/null || true
           git diff --cached --quiet && echo "Nothing to commit, skipping" && exit 0
+          # Fixed Jul 19 2026: previously ran `git pull --rebase` BEFORE this
+          # commit, while tmf_post_log.json was still uncommitted/dirty from
+          # the auto-post run above. If origin had moved (e.g. TMF's own long
+          # runtime bleeding into MZ's start time), that pull silently failed
+          # (`|| true`), the commit landed on a stale HEAD, and the final
+          # `git push` was rejected (non-fast-forward) -- losing this run's
+          # dedup-log write entirely (matches the confirmed byte-identical
+          # title repost from the Jul 19 2026 weekly review). Now: commit
+          # locally first, then retry pull+push so a real race resolves
+          # instead of silently vanishing.
           git commit -m "Auto-post log (TMF) - $(date)"
-          git push
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push; then
+              echo "Pushed dedup-log commit on attempt $i"
+              exit 0
+            fi
+            echo "Push attempt $i failed (likely concurrent run) -- retrying"
+            git rebase --abort 2>/dev/null || true
+            sleep $(( (RANDOM % 15) + 5 ))
+          done
+          echo "::error::TMF dedup-log commit FAILED to push after 5 attempts -- this run's post will NOT be recorded and may repeat."
+          exit 1
 
       - name: Upload logs
         if: always()
