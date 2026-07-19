@@ -922,6 +922,22 @@ STORY SELECTION ÃÂ¢ÃÂÃÂ DRAMA AND VISUAL PAYOFF FIRST (Jun 2026
 - TIER 3 (use sparingly ÃÂ¢ÃÂÃÂ must reframe around a single dramatic moment): quiet/relational stories
 - NEVER pick: verse cards, the Beatitudes, pure-teaching parables without physical conflict,
   out-of-season content (Christmas outside NovÃÂ¢ÃÂÃÂDec, Easter outside MarÃÂ¢ÃÂÃÂApr)
+  DOCTRINE-AS-TEACHING EXCLUSION (added Jul 19 2026 -- weekly review):
+  Some events have real physical drama (a death, an empty tomb, a blinding light)
+  but got scripted as abstract theological reflection instead of a concrete kid's
+  story, and bombed (0-1 views vs 50+ for the proven visual-narrative canon).
+  NEVER pick these framings -- reuse the proven story instead, or reframe around
+  ONE concrete physical moment a kid can picture:
+    - The Crucifixion / Resurrection told as theology or "what this means" --
+      the concrete version already exists as "The Easter Story" in the topic bank.
+    - Peter's vision of Cornelius, or any "vision + instruction" story told as a
+      teaching moment about inclusion/doctrine rather than a scene with people,
+      places, and a physical turning point.
+    - Paul's road to Damascus told as a lesson about conversion rather than the
+      dramatic story already covered by "Saul's Conversion" in the topic bank.
+  A vision, voice, or instruction from God is NOT enough on its own to pass the
+  ACTION GATE below -- it must be paired with a concrete physical event a kid can
+  picture (not just "God told him to...").
 
 ACTION GATE (hard rule ÃÂ¢ÃÂÃÂ if a story fails this, output "has_action_gate": false and stop):
 Every script MUST have ALL FOUR:

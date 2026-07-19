@@ -1274,6 +1274,14 @@ def generate_script():
             "Scene 1 MUST be a dramatic hook that stops scrolling. Start with a question or stunning visual, not exposition. "
             "Example: Don't open with 'Once upon a time...' — open with 'He was FACING CERTAIN DEATH. Then...' "
             "Scene 1 image: Make it VISUALLY STRIKING — bold colors, dramatic moment, something that makes people stop scrolling."
+            "\n*** NEVER tell it as doctrine/teaching (added Jul 19 2026 -- weekly review): "
+            "confirmed 0-1 views vs 50+ for concrete stories when a story is scripted as abstract "
+            "theological reflection instead of a scene kids can picture. Don't write the Crucifixion "
+            "or Resurrection as 'what this means' -- tell it as a concrete scene (a tomb, a stone, "
+            "soldiers, a garden). Don't write a vision or voice from God (e.g. Peter and Cornelius, "
+            "Paul's road to Damascus) as a lesson about doctrine or inclusion -- tell it as a scene "
+            "with a specific person, place, and physical turning point. A vision or instruction alone "
+            "is NOT a story; it needs a concrete physical moment paired with it. ***"
         )
         cta_instruction = ""
     system_prompt = f"""You are a short-form video script writer optimized for YouTube Shorts (60 seconds).
