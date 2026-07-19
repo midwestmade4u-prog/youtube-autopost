@@ -189,7 +189,17 @@ def _extract_company_name(topic: str) -> str:
     """Extract company name from topic string (text before first ' — ')."""
     raw = topic.split(" — ")[0].strip()
     # Strip leading date-like tokens (e.g. "FTX — Nov 2..." → raw = "FTX")
-    return raw.lower()
+    name = raw.lower()
+    # Normalize punctuation so "Toys 'R' Us" and "Toys R Us" are recognized as
+    # the SAME company for dedup purposes. Fixed Jul 19 2026: apostrophes/quotes
+    # in AI-generated topic strings broke the substring match in
+    # _company_posted_ever()/_company_posted_recently(), letting Toys R Us
+    # repost under a differently-punctuated topic string (confirmed leak,
+    # weekly review Jul 19 2026).
+    for ch in ("'", "’", "‘", '"', "“", "”"):
+        name = name.replace(ch, "")
+    name = " ".join(name.split())
+    return name
 
 
 def _company_posted_recently(company_name: str, days: int = 30) -> bool:

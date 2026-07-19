@@ -231,7 +231,17 @@ def _bsg_story_name(topic: str) -> str:
 
 # Canonical slug map: catches AI-generated title variations for the same story.
 # Key = canonical slug, value = list of substrings that map to it.
+# NOTE (Jul 19 2026 weekly review): "creation story" and "adam and eve" are both
+# Tier 1 keywords (BSG_TIER1_KEYWORDS above) but were missing from this table --
+# a code comment near _bsg_story_ever_posted() even referenced "Creation Story"
+# as a known gap that was never actually closed. Without a slug entry, dedup
+# fell back to exact-text name matching, which is fragile against any wording
+# drift. Confirmed leak: Creation Story published 3x (weekly review Jul 19 2026).
 _BSG_STORY_SLUGS: dict[str, list[str]] = {
+    "creation-story":      ["creation story", "how god made everything", "six days of creation",
+                            "made everything in 6 days", "made the world in six days",
+                            "made the world in 6 days"],
+    "adam-eve":            ["adam and eve", "garden of eden"],
     "daniel-lions-den":    ["daniel in the lion", "daniel's lion", "daniel and the lion"],
     "feeding-5000":        ["feeding 5,000", "feeding 5000", "jesus feeds 5,000", "jesus feeds 5000",
                             "feeding the 5,000", "feeds 5000", "feeds 5,000"],
