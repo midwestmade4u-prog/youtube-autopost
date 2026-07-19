@@ -196,6 +196,24 @@ TMF_TOPICS = [
     "Why You Assume Everyone Can See How Anxious You Really Are",
 ]
 
+# --- Task 4 test (weekly review Jul 19 2026): reversible 1-week concept-name
+# title exception for exactly these 2 videos. Data is genuinely mixed -- best
+# CTR this window (7.69%) was a concept-name title ("The Illusory Truth Effect
+# Explained"), but Apr 2026 data showed concept-name/jargon titles usually
+# bomb ("Pseudocertainty Effect Unveiled" 19 views, "Anchoring Bias" 7 views).
+# This is a controlled test, NOT a formula switch -- both titles vetted
+# against the full 228-video history for duplicates.
+# TO REVERT: set TMF_CONCEPT_NAME_TEST_ENABLED = False (single flag; nothing
+# else needs to change -- title_passes_tmf_rules() falls back to requiring
+# "Why You"/"Why Your" for every title, same as before this test).
+TMF_CONCEPT_NAME_TEST_ENABLED = True
+TMF_CONCEPT_NAME_TEST_TITLES = {
+    "The Chaos-Chemistry Confusion Explained",
+    "The Sunk-Cost Apology Trap Explained",
+}
+if TMF_CONCEPT_NAME_TEST_ENABLED:
+    TMF_TOPICS.extend(sorted(TMF_CONCEPT_NAME_TEST_TITLES))
+
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ BSG Tier 1 stories (proven top performers ÃÂ¢ÃÂÃÂ weighted 3ÃÂÃÂ in topic selection) ÃÂ¢ÃÂÃÂ
 BSG_TIER1_KEYWORDS = [
     "noah", "david vs goliath", "moses parted", "birth of jesus",
@@ -658,6 +676,15 @@ def title_passes_tmf_rules(title: str) -> tuple[bool, str]:
         return False, "empty title"
     t = title.strip()
 
+    # Task 4 test exception (weekly review Jul 19 2026): 2 explicitly flagged
+    # concept-name titles bypass the "Why You" + colon rules below. See
+    # TMF_CONCEPT_NAME_TEST_ENABLED above to revert with a single flag flip.
+    if TMF_CONCEPT_NAME_TEST_ENABLED and t in TMF_CONCEPT_NAME_TEST_TITLES:
+        if len(t) > 65:
+            return False, f"title too long ({len(t)} chars; keep under 60)"
+        return True, "TASK4_TEST_EXCEPTION: concept-name format (reversible 1-week test)"
+
+
     if len(t) > 65:
         return False, f"title too long ({len(t)} chars; keep under 60)"
 
@@ -1057,6 +1084,16 @@ PROSE QUALITY ÃÂ¢ÃÂÃÂ NO AI TELLS (applies to every narration f
             print(f"    Connecting to OpenAI API (gpt-4o)...")
 
         user_msg = f"Write a {num_scenes}-scene script about: {topic}"
+        # Task 4 test exception (weekly review Jul 19 2026): for these 2 flagged
+        # topics, force the exact pre-approved concept-name title instead of
+        # letting the model apply the channel's normal "Why You" rule. See
+        # TMF_CONCEPT_NAME_TEST_ENABLED above to revert with a single flag flip.
+        if channel == "tmf" and TMF_CONCEPT_NAME_TEST_ENABLED and topic in TMF_CONCEPT_NAME_TEST_TITLES:
+            user_msg += (
+                f"\n\nTITLE OVERRIDE (pre-approved 1-week test, Task 4 Jul 19 2026): "
+                f"use EXACTLY this title, verbatim, do NOT rewrite it to start with "
+                f'"Why You": "{topic}"'
+            )
         extra_constraints = ""  # accumulated feedback for retries
         last_script: dict | None = None
         last_title_reason = ""
