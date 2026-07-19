@@ -1354,7 +1354,17 @@ Rules:
                 )
             elif channel == "bsg":
                 # BSG: must follow "[Story] [emoji] | Bible Story for Kids | Bible Story Garden"
-                title_ok = "| Bible Story for Kids | Bible Story Garden" in title
+                # Fixed Jul 19 2026: this only checked the suffix was present, not
+                # that the whole title fit YouTube's real 100-char limit -- same
+                # gap as auto_post.py's validator, and this manual "paste into
+                # app" path (Episode_Tracker.xlsx -> /generate-script) is the
+                # likely actual route for the 3 format-breaking titles confirmed
+                # in the Jul 19 2026 weekly review (none of them match any entry
+                # in the automated BSG_TOPICS pool).
+                title_ok = (
+                    "| Bible Story for Kids | Bible Story Garden" in title
+                    and len(title) <= 100
+                )
                 if title_ok:
                     break
                 extra_constraints = (
@@ -1376,7 +1386,10 @@ Rules:
             if channel == "tmf":
                 final_ok = final_title.lower().startswith("why you") or final_title.lower().startswith("why your")
             else:
-                final_ok = "| Bible Story for Kids | Bible Story Garden" in final_title
+                final_ok = (
+                    "| Bible Story for Kids | Bible Story Garden" in final_title
+                    and len(final_title) <= 100
+                )
             if not final_ok:
                 return jsonify({"error": f"TITLE_VALIDATION_SKIP: all {max_attempts} attempts failed â last title: \"{final_title}\""}), 422
 
