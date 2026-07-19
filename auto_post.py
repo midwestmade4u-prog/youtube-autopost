@@ -1143,16 +1143,31 @@ PROSE QUALITY ÃÂ¢ÃÂÃÂ NO AI TELLS (applies to every narration f
             else:
                 # BSG title validator ÃÂ¢ÃÂÃÂ enforce "X emoji | Bible Story for Kids | Bible Story Garden" format
                 title = (script.get("title") or "").strip()
-                bsg_format_ok = "| Bible Story for Kids | Bible Story Garden" in title
+                # Fixed Jul 19 2026: this check only verified the suffix was PRESENT,
+                # not that the whole title fit YouTube's real 100-char limit. The
+                # actual upload (video_app.py /youtube-upload) does title[:100],
+                # which silently chops the required suffix off any title that
+                # passed here but ran long -- confirmed root cause for 3 titles
+                # that published without the required format despite this
+                # validator (weekly review Jul 19 2026). Now also reject
+                # anything over 100 chars so it never reaches upload.
+                bsg_format_ok = (
+                    "| Bible Story for Kids | Bible Story Garden" in title
+                    and len(title) <= 100
+                )
                 if not bsg_format_ok:
                     print(f"    ÃÂ¢ÃÂÃÂ ÃÂ¯ÃÂ¸ÃÂ  BSG title format FAIL on attempt {attempt}: \"{title}\"")
                     extra_constraints = (
                         f"\n\nIMPORTANT ÃÂ¢ÃÂÃÂ your previous draft was REJECTED. "
-                        f"Title was: \"{title}\"\n"
-                        f"The BSG title MUST follow this EXACT format: "
+                        f"Title was: \"{title}\" ({len(title)} chars)\n"
+                        f"The BSG title MUST follow this EXACT format AND fit in 100 "
+                        f"characters total (YouTube's real limit -- longer titles get "
+                        f"silently truncated at upload and lose the required suffix): "
                         f"[Story Name] [single emoji] | Bible Story for Kids | Bible Story Garden\n"
                         f"Examples: \"Noah's Ark ÃÂ°ÃÂÃÂÃÂ | Bible Story for Kids | Bible Story Garden\"\n"
                         f"          \"David vs Goliath ÃÂ¢ÃÂÃÂÃÂ¯ÃÂ¸ÃÂ | Bible Story for Kids | Bible Story Garden\"\n"
+                        f"Keep the story name SHORT (no subtitle/colon clause) so the "
+                        f"full title plus the required suffix stays under 100 characters. "
                         f"Rewrite the title to match this format exactly. No exceptions."
                     )
                     continue

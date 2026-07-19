@@ -37,6 +37,33 @@ from pathlib import Path
 
 from flask import Flask, Response, jsonify, redirect, render_template_string, request, send_file
 
+# Fixed Jul 19 2026: youtube_upload() used to do a blind title[:100] to fit
+# YouTube's real title-length limit. For BSG that silently chopped the
+# required "| Bible Story for Kids | Bible Story Garden" suffix off any title
+# that ran long (confirmed root cause of 3 titles that published without the
+# required format despite the auto_post.py validator already checking for
+# that suffix -- weekly review Jul 19 2026). auto_post.py's BSG validator now
+# also rejects >100-char titles before they get here, but this is a second,
+# independent guard in case a title ever reaches upload some other way.
+_BSG_REQUIRED_SUFFIX = " | Bible Story for Kids | Bible Story Garden"
+
+
+def _safe_truncate_title(title, limit=100):
+    """Truncate to `limit` chars WITHOUT cutting into the BSG required suffix.
+
+    If the suffix is present and the title is over the limit, shorten the
+    story-name prefix instead of blind-slicing from the end, so a
+    validator-approved title never loses its required format at upload.
+    """
+    if len(title) <= limit:
+        return title
+    if _BSG_REQUIRED_SUFFIX in title:
+        prefix = title.split(_BSG_REQUIRED_SUFFIX, 1)[0]
+        keep = limit - len(_BSG_REQUIRED_SUFFIX)
+        if keep > 0:
+            return prefix[:keep].rstrip() + _BSG_REQUIRED_SUFFIX
+    return title[:limit]
+
 # ââ Paths âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 BASE_DIR   = Path(__file__).parent
 TEMP_DIR   = BASE_DIR / "temp_work"
@@ -1649,7 +1676,7 @@ def youtube_upload():
 
         body = {
             "snippet": {
-                "title":       title[:100],
+                "title":       _safe_truncate_title(title),
                 "description": description,
                 "tags":        tags[:30],
                 "categoryId":  "27",   # Education
