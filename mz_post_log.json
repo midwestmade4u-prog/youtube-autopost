@@ -263,6 +263,14 @@
       "title": "The Press Conference That Killed AOL",
       "url": "https://youtu.be/vUhRUqumJYE",
       "posted_at": "2026-07-19 15:00:39"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Yahoo \u2014 1998 meeting \u2014 Yahoo passes on buying Google for $1M",
+      "title": "The Meeting That Killed Yahoo",
+      "url": "https://youtu.be/WyErzVA_UEQ",
+      "posted_at": "2026-07-20 15:54:12"
     }
   ],
   "mz": [],
@@ -296,6 +304,7 @@
     "Marvel \u2014 1996 \u2014 declares bankruptcy with $700M debt; Ike Perlmutter buys the company for $82.5M; goes on to build the MCU worth $53B",
     "IBM \u2014 1993 \u2014 Lou Gerstner's first board meeting, $8B loss",
     "Qwest / Joseph Nacchio \u2014 2002 \u2014 CEO convicted of 19 counts of insider trading; sold $52M in stock while publicly hyping a company he knew was collapsing",
-    "AOL\u2013Time Warner \u2014 Jan 10, 2000 \u2014 merger announcement press conference"
+    "AOL\u2013Time Warner \u2014 Jan 10, 2000 \u2014 merger announcement press conference",
+    "Yahoo \u2014 1998 meeting \u2014 Yahoo passes on buying Google for $1M"
   ]
 }
