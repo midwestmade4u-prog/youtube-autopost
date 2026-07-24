@@ -632,7 +632,7 @@ def _call_deepseek(system: str, user: str) -> str:
         raise RuntimeError("DEEPSEEK_API_KEY is missing or empty")
     client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
     r = client.chat.completions.create(
-        model="deepseek-chat",
+        model="deepseek-v4-flash",
         response_format={"type": "json_object"},
         messages=[
             {"role": "system", "content": system},
@@ -711,7 +711,7 @@ def generate_script(topic: str, format_tag: str) -> dict:
         primary_fn,  primary_name  = _call_anthropic, "anthropic"
         fallback_fn, fallback_name = _call_openai,    "openai"
     elif deepseek_available:
-        primary_fn,  primary_name  = _call_deepseek, "deepseek-chat"
+        primary_fn,  primary_name  = _call_deepseek, "deepseek-v4-flash"
         fallback_fn, fallback_name = _call_openai,   "openai"
     else:
         primary_fn,  primary_name  = _call_openai,    "openai"
