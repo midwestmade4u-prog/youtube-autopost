@@ -1314,7 +1314,7 @@ Rules:
         deepseek_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
         if deepseek_key:
             client = openai.OpenAI(api_key=deepseek_key, base_url="https://api.deepseek.com")
-            model_name = "deepseek-chat"
+            model_name = "deepseek-v4-flash"
         else:
             client = openai.OpenAI(api_key=api_key)
             model_name = "gpt-4o"
