@@ -1074,9 +1074,9 @@ PROSE QUALITY ÃÂ¢ÃÂÃÂ NO AI TELLS (applies to every narration f
         openai_client = openai.OpenAI(api_key=api_key)   # always available as fallback
         if deepseek_key:
             client = openai.OpenAI(api_key=deepseek_key, base_url="https://api.deepseek.com")
-            model_name = "deepseek-chat"
+            model_name = "deepseek-v4-flash"
             _fallback_available = True
-            print(f"    Connecting to DeepSeek API (deepseek-chat)...")
+            print(f"    Connecting to DeepSeek API (deepseek-v4-flash)...")
         else:
             client = openai_client
             model_name = "gpt-4o"
