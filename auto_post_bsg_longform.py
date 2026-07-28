@@ -36,7 +36,8 @@ OUTPUT_DIR      = BASE_DIR / "BSG_Longform_Output"
 BSG_CHANNEL_ID  = "UCcyBf84Mc-evMSYZlqh3zVA"
 TOKEN_FILE      = BASE_DIR / "youtube_token_bsg.json"
 YT_SCOPES       = ["https://www.googleapis.com/auth/youtube.upload",
-                   "https://www.googleapis.com/auth/youtube"]
+                   "https://www.googleapis.com/auth/youtube",
+                   "https://www.googleapis.com/auth/youtube.force-ssl"]
 BSG_LONGFORM_PLAYLIST_ID = os.getenv("BSG_LONGFORM_PLAYLIST_ID", "PLWwJ5gjyjteowfCIsBJ-9UuoMd-12I3Jg")
 NOTIFY_EMAIL    = "wisseinc@gmail.com"
 

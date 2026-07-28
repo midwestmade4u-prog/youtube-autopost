@@ -22,6 +22,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube",
     "https://www.googleapis.com/auth/yt-analytics.readonly",  # added Jul 5 2026
+    "https://www.googleapis.com/auth/youtube.force-ssl",       # added Jul 28 2026 -- required for commentThreads().insert() (funnel/affiliate comments)
 ]
 
 CLIENT_SECRETS = Path(__file__).parent / "youtube_client_secrets.json"

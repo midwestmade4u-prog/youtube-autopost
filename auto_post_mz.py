@@ -839,7 +839,8 @@ def post_mz_channel_comment(video_id: str) -> None:
         token_path = BASE_DIR / "youtube_token_mz.json"
         creds = Credentials.from_authorized_user_file(str(token_path),
             ["https://www.googleapis.com/auth/youtube.upload",
-             "https://www.googleapis.com/auth/youtube"])
+             "https://www.googleapis.com/auth/youtube",
+             "https://www.googleapis.com/auth/youtube.force-ssl"])  # required for commentThreads().insert()
         if creds.expired and creds.refresh_token:
             creds.refresh(Request())
         youtube = build("youtube", "v3", credentials=creds)
@@ -876,7 +877,8 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
     creds = Credentials.from_authorized_user_file(
         str(token_path),
         ["https://www.googleapis.com/auth/youtube.upload",
-         "https://www.googleapis.com/auth/youtube"]
+         "https://www.googleapis.com/auth/youtube",
+         "https://www.googleapis.com/auth/youtube.force-ssl"]  # required for commentThreads().insert()
     )
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())

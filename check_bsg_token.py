@@ -11,6 +11,7 @@ TOKEN_FILE = BASE_DIR / "youtube_token_bsg.json"
 YT_SCOPES  = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube",
+    "https://www.googleapis.com/auth/youtube.force-ssl",
 ]
 
 print("=" * 60)

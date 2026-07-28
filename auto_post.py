@@ -1782,7 +1782,8 @@ def post_funnel_comment(channel: str, video_id: str, longform_url: str) -> None:
         creds = Credentials.from_authorized_user_file(
             str(token_file),
             ["https://www.googleapis.com/auth/youtube.upload",
-             "https://www.googleapis.com/auth/youtube"]
+             "https://www.googleapis.com/auth/youtube",
+             "https://www.googleapis.com/auth/youtube.force-ssl"]  # required for commentThreads().insert()
         )
         if creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -1894,7 +1895,8 @@ def post_channel_affiliate_comment(channel: str, video_id: str) -> None:
         creds = Credentials.from_authorized_user_file(
             str(token_file),
             ["https://www.googleapis.com/auth/youtube.upload",
-             "https://www.googleapis.com/auth/youtube"]
+             "https://www.googleapis.com/auth/youtube",
+             "https://www.googleapis.com/auth/youtube.force-ssl"]  # required for commentThreads().insert()
         )
         if creds.expired and creds.refresh_token:
             creds.refresh(Request())

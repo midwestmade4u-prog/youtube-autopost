@@ -38,7 +38,8 @@ OUTPUT_DIR      = BASE_DIR / "TMF_Longform_Output"
 TMF_CHANNEL_ID  = "UC0O6KbbHKW4_a7d9epNo93A"
 TOKEN_FILE      = BASE_DIR / "youtube_token_tmf.json"
 YT_SCOPES       = ["https://www.googleapis.com/auth/youtube.upload",
-                   "https://www.googleapis.com/auth/youtube"]
+                   "https://www.googleapis.com/auth/youtube",
+                   "https://www.googleapis.com/auth/youtube.force-ssl"]
 # Create this playlist manually in YouTube Studio first, then paste the ID here
 TMF_LONGFORM_PLAYLIST_ID = os.getenv("TMF_LONGFORM_PLAYLIST_ID", "")
 NOTIFY_EMAIL    = "wisseinc@gmail.com"

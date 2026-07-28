@@ -16,7 +16,8 @@ TOKEN_FILE = BASE_DIR / "youtube_token_tmf.json"
 LOG_FILE   = BASE_DIR / "tmf_post_log.json"
 CHANNEL_ID = "UC0O6KbbHKW4_a7d9epNo93A"
 YT_SCOPES  = ["https://www.googleapis.com/auth/youtube",
-               "https://www.googleapis.com/auth/youtube.upload"]
+               "https://www.googleapis.com/auth/youtube.upload",
+               "https://www.googleapis.com/auth/youtube.force-ssl"]
 
 
 def get_credentials():

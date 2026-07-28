@@ -1492,7 +1492,13 @@ YT_SCOPES       = ["https://www.googleapis.com/auth/youtube.upload",
                    # (average view percentage) via the YouTube Analytics API instead
                    # of manually checking Studio. Requires re-running OAuth per channel
                    # (delete youtube_token_X.json, hit /youtube-connect?channel=X again).
-                   "https://www.googleapis.com/auth/yt-analytics.readonly"]
+                   "https://www.googleapis.com/auth/yt-analytics.readonly",
+                   # Added Jul 28 2026 -- commentThreads().insert() (funnel/affiliate
+                   # self-pin comments in auto_post.py/auto_post_mz.py) was silently
+                   # failing with "insufficient authentication scopes" on every post
+                   # because this scope was never requested. Requires re-running OAuth
+                   # per channel to take effect on existing tokens.
+                   "https://www.googleapis.com/auth/youtube.force-ssl"]
 
 # Each channel has its own token file â so BSG and TMF can be different YouTube accounts
 YT_TOKEN_FILES = {

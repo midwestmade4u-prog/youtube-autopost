@@ -40,7 +40,8 @@ OUTPUT_DIR     = BASE_DIR / "MZ_Longform_Output"
 MZ_CHANNEL_ID  = "UCMVhjR4HetJctXeYkuPgg6w"
 TOKEN_FILE     = BASE_DIR / "youtube_token_mz.json"
 YT_SCOPES      = ["https://www.googleapis.com/auth/youtube.upload",
-                  "https://www.googleapis.com/auth/youtube"]
+                  "https://www.googleapis.com/auth/youtube",
+                  "https://www.googleapis.com/auth/youtube.force-ssl"]
 MZ_LONGFORM_PLAYLIST_ID = "PLFxFhPJANicOqF4b_CsQxFoIh5AZlcsIJ"  # "Minute Zero — Full Episodes"
 NOTIFY_EMAIL   = "wisseinc@gmail.com"
 MODEL_BACKEND  = os.getenv("MZ_MODEL_BACKEND", "openai")
