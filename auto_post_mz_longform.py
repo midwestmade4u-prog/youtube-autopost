@@ -41,7 +41,13 @@ MZ_CHANNEL_ID  = "UCMVhjR4HetJctXeYkuPgg6w"
 TOKEN_FILE     = BASE_DIR / "youtube_token_mz.json"
 YT_SCOPES      = ["https://www.googleapis.com/auth/youtube.upload",
                   "https://www.googleapis.com/auth/youtube",
-                  "https://www.googleapis.com/auth/youtube.force-ssl"]
+                  "https://www.googleapis.com/auth/youtube.force-ssl"]  # comment-posting only -- token not yet re-authed with this scope (Jul 29 2026)
+# Upload itself doesn't need force-ssl. Requesting it during refresh() for a
+# token that was never granted it makes google-auth reject with invalid_scope
+# and crash the whole run. Use this narrower list for uploads until MZ is
+# re-authed with refresh_token_mz.py.
+UPLOAD_SCOPES  = ["https://www.googleapis.com/auth/youtube.upload",
+                  "https://www.googleapis.com/auth/youtube"]
 MZ_LONGFORM_PLAYLIST_ID = "PLFxFhPJANicOqF4b_CsQxFoIh5AZlcsIJ"  # "Minute Zero — Full Episodes"
 NOTIFY_EMAIL   = "wisseinc@gmail.com"
 MODEL_BACKEND  = os.getenv("MZ_MODEL_BACKEND", "openai")
@@ -841,7 +847,7 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
     from googleapiclient.http import MediaFileUpload
 
     token_data = _json.loads(TOKEN_FILE.read_text())
-    creds = Credentials.from_authorized_user_info(token_data, YT_SCOPES)
+    creds = Credentials.from_authorized_user_info(token_data, UPLOAD_SCOPES)
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())
         TOKEN_FILE.write_text(creds.to_json())

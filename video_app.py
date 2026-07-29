@@ -1486,19 +1486,27 @@ def save_config():
 # ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 YT_SECRETS_FILE = BASE_DIR / "youtube_client_secrets.json"
+# NOTE: this list is used ONLY for uploading video via /youtube-upload below --
+# this file never calls commentThreads().insert(), so it does NOT need
+# youtube.force-ssl. Requesting a scope during refresh() that a stored token
+# was never granted makes google-auth reject the whole refresh with
+# invalid_scope -- confirmed root cause of the Jul 29 2026 TMF/MZ/BSG outage
+# (BSG and MZ were never re-authed with force-ssl; TMF's re-auth also broke
+# uploads once this scope was added here). Keep force-ssl OUT of this list;
+# the comment-posting code in auto_post.py/auto_post_mz.py has its own
+# separate scope list that includes it.
 YT_SCOPES       = ["https://www.googleapis.com/auth/youtube.upload",
                    "https://www.googleapis.com/auth/youtube",
                    # Added Jul 5 2026 -- lets us pull Shorts/longform retention %
                    # (average view percentage) via the YouTube Analytics API instead
                    # of manually checking Studio. Requires re-running OAuth per channel
                    # (delete youtube_token_X.json, hit /youtube-connect?channel=X again).
-                   "https://www.googleapis.com/auth/yt-analytics.readonly",
-                   # Added Jul 28 2026 -- commentThreads().insert() (funnel/affiliate
-                   # self-pin comments in auto_post.py/auto_post_mz.py) was silently
-                   # failing with "insufficient authentication scopes" on every post
-                   # because this scope was never requested. Requires re-running OAuth
-                   # per channel to take effect on existing tokens.
-                   "https://www.googleapis.com/auth/youtube.force-ssl"]
+                   "https://www.googleapis.com/auth/yt-analytics.readonly"]
+# Used only when starting a brand-new OAuth grant (/youtube-connect below) --
+# safe to request force-ssl here since this is a fresh consent screen, not a
+# refresh of an existing token. Once a channel re-authenticates through this
+# flow it'll have force-ssl and comment-posting will start working for it.
+CONNECT_SCOPES  = YT_SCOPES + ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
 # Each channel has its own token file â so BSG and TMF can be different YouTube accounts
 YT_TOKEN_FILES = {
@@ -1579,7 +1587,7 @@ def youtube_connect():
         from google_auth_oauthlib.flow import Flow
         flow = Flow.from_client_secrets_file(
             str(YT_SECRETS_FILE),
-            scopes=YT_SCOPES,
+            scopes=CONNECT_SCOPES,
             redirect_uri=f"http://localhost:5002/youtube-callback?channel={channel}"
         )
         auth_url, _ = flow.authorization_url(prompt="consent", access_type="offline")

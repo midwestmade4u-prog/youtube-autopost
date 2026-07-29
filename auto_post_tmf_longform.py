@@ -39,7 +39,14 @@ TMF_CHANNEL_ID  = "UC0O6KbbHKW4_a7d9epNo93A"
 TOKEN_FILE      = BASE_DIR / "youtube_token_tmf.json"
 YT_SCOPES       = ["https://www.googleapis.com/auth/youtube.upload",
                    "https://www.googleapis.com/auth/youtube",
-                   "https://www.googleapis.com/auth/youtube.force-ssl"]
+                   "https://www.googleapis.com/auth/youtube.force-ssl"]  # comment-posting only
+# Upload itself doesn't need force-ssl. Requesting a scope during refresh()
+# that the stored token wasn't granted makes google-auth reject with
+# invalid_scope and crash the whole run (confirmed root cause of the Jul 29
+# 2026 MZ/TMF outage). Always safe to request fewer scopes than granted, so
+# use this narrower list for uploads.
+UPLOAD_SCOPES   = ["https://www.googleapis.com/auth/youtube.upload",
+                   "https://www.googleapis.com/auth/youtube"]
 # Create this playlist manually in YouTube Studio first, then paste the ID here
 TMF_LONGFORM_PLAYLIST_ID = os.getenv("TMF_LONGFORM_PLAYLIST_ID", "")
 NOTIFY_EMAIL    = "wisseinc@gmail.com"
@@ -717,7 +724,7 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
     from googleapiclient.http import MediaFileUpload
 
     token_data = json.loads(TOKEN_FILE.read_text())
-    creds = Credentials.from_authorized_user_info(token_data, YT_SCOPES)
+    creds = Credentials.from_authorized_user_info(token_data, UPLOAD_SCOPES)
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())
         TOKEN_FILE.write_text(creds.to_json())

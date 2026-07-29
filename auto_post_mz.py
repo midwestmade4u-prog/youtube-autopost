@@ -874,11 +874,16 @@ def upload_to_youtube(video_path: Path, title: str, description: str,
     if not token_path.exists():
         raise RuntimeError("youtube_token_mz.json missing — complete OAuth first")
 
+    # NOTE: upload itself doesn't need force-ssl (that's only required for
+    # commentThreads().insert(), done separately in post_mz_channel_comment()).
+    # Requesting a scope during refresh() that this stored token was never
+    # granted makes google-auth reject with invalid_scope and crash the whole
+    # run -- confirmed root cause of the Jul 29 2026 MZ outage. Keep this list
+    # narrow until MZ is re-authed with refresh_token_mz.py.
     creds = Credentials.from_authorized_user_file(
         str(token_path),
         ["https://www.googleapis.com/auth/youtube.upload",
-         "https://www.googleapis.com/auth/youtube",
-         "https://www.googleapis.com/auth/youtube.force-ssl"]  # required for commentThreads().insert()
+         "https://www.googleapis.com/auth/youtube"]
     )
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())
