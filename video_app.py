@@ -1335,13 +1335,25 @@ Rules:
                 max_tokens=2000,
                 temperature=0.8,
             )
-            raw = resp.choices[0].message.content.strip()
+            raw = (resp.choices[0].message.content or "").strip()
             # Strip markdown code fences if present
             if raw.startswith("```"):
                 raw = raw.split("```")[1]
                 if raw.startswith("json"):
                     raw = raw[4:]
-            script = json.loads(raw.strip())
+            # Fixed Jul 31 2026: DeepSeek occasionally returns an empty/malformed
+            # response (content == ""), which crashed json.loads() immediately on
+            # attempt 1 with no retry -- took down TMF+BSG script generation for
+            # that run (json.JSONDecodeError: Expecting value: line 1 column 1).
+            # Now treated as a retryable failure, same as a bad title.
+            try:
+                script = json.loads(raw.strip())
+            except json.JSONDecodeError as e:
+                print(f"WARNING: DeepSeek returned unparseable script on attempt {attempt}/{max_attempts}: {e} | raw[:200]={raw[:200]!r}")
+                if attempt == max_attempts:
+                    raise
+                extra_constraints = "\n\nIMPORTANT — your previous response was not valid JSON. Return ONLY the JSON object, nothing else."
+                continue
             last_script = script
             title = (script.get("title") or "").strip()
 
