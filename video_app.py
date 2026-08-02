@@ -1332,7 +1332,16 @@ Rules:
                     {"role": "system", "content": system_prompt + extra_constraints},
                     {"role": "user", "content": user_msg}
                 ],
-                max_tokens=2000,
+                # Fixed Aug 2 2026: BSG failed 6/6 attempts (2 runs x 3 retries) with
+                # content == "" -> json.loads("") -> "Expecting value: line 1 column 1".
+                # deepseek-v4-flash is a reasoning model; max_tokens=2000 covers both
+                # hidden reasoning tokens AND the visible JSON output. BSG's system
+                # prompt carries more constraints than MZ/TMF's (doctrine-avoidance
+                # rules, strict title format), so it likely pushes reasoning longer
+                # and leaves nothing left in the budget for the actual answer -- MZ,
+                # with a shorter prompt, wasn't hitting this. Raised so reasoning has
+                # room to finish before the visible answer needs to be written.
+                max_tokens=6000,
                 temperature=0.8,
             )
             raw = (resp.choices[0].message.content or "").strip()
