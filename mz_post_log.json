@@ -359,6 +359,14 @@
       "title": "The Meeting That Killed Kodak",
       "url": "https://youtu.be/TvVZHuu4usM",
       "posted_at": "2026-07-31 16:54:04"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "FTX \u2014 Nov 2, 2022 \u2014 CoinDesk leaks the Alameda balance sheet",
+      "title": "The Leak That Killed FTX",
+      "url": "https://youtu.be/Ua3lN66DE7o",
+      "posted_at": "2026-08-02 09:18:57"
     }
   ],
   "mz": [],
@@ -405,6 +413,7 @@
     "Bear Stearns \u2014 Mar 13, 2008 \u2014 the midnight call admitting insolvency",
     "Outcome Health \u2014 2017 \u2014 startup valued at $5.5B; executives charged with defrauding advertisers by inflating installation numbers; doctors' waiting room screens showed ads that never ran",
     "Enron \u2014 Aug 14, 2001 \u2014 Skilling's sudden resignation call",
-    "Kodak \u2014 1975 \u2014 internal engineers invent the digital camera; management shelves it to protect film revenue; Kodak files bankruptcy 36 years later"
+    "Kodak \u2014 1975 \u2014 internal engineers invent the digital camera; management shelves it to protect film revenue; Kodak files bankruptcy 36 years later",
+    "FTX \u2014 Nov 2, 2022 \u2014 CoinDesk leaks the Alameda balance sheet"
   ]
 }
