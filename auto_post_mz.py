@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import re
 import json
 import os
 import random
@@ -89,6 +90,42 @@ ONE_BAD_DAY_TOPICS = [
     "Radio Shack — 2015 — files bankruptcy; was once America's #1 consumer electronics brand with 7,000 stores",
     "Toys 'R' Us — 2000 — signs exclusive deal to sell toys only on Amazon; Amazon opens the marketplace to competitors 2 years later; Toys 'R' Us is locked in and dies",
     "Fyre Festival — Apr 27 2017 — the morning 5,000 festival-goers arrive to FEMA tents and cheese sandwiches; Billy McFarland had sold $26M in tickets for an event that didn't exist",
+    # ── Added Aug 2 2026 — bank refill after the hard-duplicate-block fix. ──
+    # Every entry below was fact-checked against primary sources (SEC filings,
+    # CPSC releases, DOJ releases, contemporaneous press) before inclusion.
+    # Corrections applied during that pass are noted inline.
+    "Xerox — Dec 1979 — lets Steve Jobs see the PARC graphical interface and mouse in exchange for buying 100,000 pre-IPO Apple shares for $1M; Apple ships Lisa and Macintosh, Xerox ships the $16,595 Star in 1981 and it flops",
+    # Corrected: the $100,000 offer and the 'electrical toy' memo are both
+    # undocumented legend (the $100K first appears uncited in Casson 1910).
+    # The documented version is Hubbard's one-sixth interest for $10,000.
+    "Western Union — 1876 — president William Orton waves off Alexander Graham Bell's telephone patent as having no value except as a toy; the famous $100,000 offer is later legend, the real one was a one-sixth patent interest for $10,000",
+    "Circuit City — Mar 28, 2007 — fires roughly 3,400 of its most experienced store employees for earning too much and replaces them with cheaper hires",
+    # Corrected: Super Bowl ad was Jan 30 2000, BEFORE the Feb 11 IPO. The
+    # widely repeated "268 days" is actually 270.
+    "Pets.com — Feb 11, 2000 — IPOs at $11 a share twelve days after its sock-puppet Super Bowl ad, then announces liquidation Nov 7, 2000, roughly 270 days later",
+    # Corrected: accelerated batch fermentation began in the early 1970s, not
+    # 1976. The 1976 event is the Chill-garde recall. Schlitz was #2 in 1976,
+    # not #1 — it lost the top spot to Budweiser in 1957.
+    "Schlitz — 1976 — the Chill-garde switch reacts with its own foam stabilizer and forces a recall of 10 million bottles, capping the accelerated-fermentation era that wrecked America's #2 beer",
+    # Dedup key is deliberately "Edsel", not "Ford": Ford's 2006 blue-oval
+    # mortgage story is already published, and _company_posted_ever() does
+    # substring matching, so a "Ford — ..." string here would be permanently
+    # blocked. The Edsel is a genuinely different story, not a repeat angle.
+    "Edsel — Sep 4, 1957 — Ford launches the Edsel on 'E-Day' after spending over $250M; the brand is killed Nov 19, 1959 having lost about $350M",
+    "Napster — Jul 11, 2001 — court-ordered shutdown; 80 million users",
+    "Pan Am — Apr 22, 1985 — agrees to sell its Pacific routes to United for $750M to cover losses; the world's most famous airline begins dismantling itself",
+    "Kmart — Jan 22, 2002 — the largest retail bankruptcy in US history at the time",
+    "Segway — Dec 3, 2001 — unveiled on Good Morning America after Steve Jobs called it as significant as the PC and Dean Kamen said it would be to the car what the car was to the horse and buggy",
+    "Quibi — Apr 6, 2020 — launches with $1.75B raised and announces its shutdown Oct 21, 2020, about six months later",
+    "Vine — Oct 27, 2016 — Twitter announces it is shutting down Vine",
+    # Corrected: Motorola never went bankrupt — Iridium LLC did, Aug 13 1999.
+    "Motorola — Aug 13, 1999 — Iridium LLC, the satellite phone venture Motorola built and bankrolled, files Chapter 11 nine months after launch; a $5B constellation is later sold for $25M",
+    "Woolworth — Jul 17, 1997 — closes its remaining 400 US five-and-dime stores after 117 years",
+    "Webvan — Jul 9, 2001 — bankruptcy after losing over $800M, including a $1B warehouse order placed with Bechtel",
+    "Compaq — Jan 26, 1998 — agrees to buy Digital Equipment Corp for $9.6B; absorbed by HP four years later",
+    "Smith Corona — Jul 5, 1995 — Chapter 11; the typewriter company that watched the PC arrive",
+    "Peloton — May 5, 2021 — recalls the Tread+ after one child's death and 70+ injuries, three weeks after publicly calling the CPSC's urgent warning inaccurate and misleading",
+    "Tower Records — Aug 20, 2006 — Chapter 11 filing; a court-ordered liquidation follows in October",
 ]
 # Removed from ONE_BAD_DAY (Apr 30 2026 cleanup):
 # - Barings Bank (UK), Société Générale (France), Swissair (Switzerland),
@@ -115,6 +152,15 @@ UNKNOWN_FAILURE_TOPICS_TIER1 = [
     "Washington Mutual — Sep 25, 2008 — FDIC seizes the bank at 6 PM, sells it to JPMorgan for $1.9B by midnight; $307B in assets gone in one night",
     "Countrywide / Angelo Mozilo — 2008 — internal emails surface where Mozilo calls his own mortgage products 'toxic' and 'poison' while selling them to customers",
     "Adelphia / Rigas family — Jul 24, 2002 — John Rigas and son Timothy arrested at their Manhattan apartment; secretly borrowed $2.3B from their own public company",
+    # ── Added Aug 2 2026 — fact-checked bank refill. ──
+    # Corrected: the Sacklers never pleaded guilty to anything criminal — they
+    # settled civilly for $225M with no admission. Only Purdue Pharma L.P. pleaded.
+    "Purdue Pharma — Oct 21, 2020 — agrees to plead guilty to three federal felonies over OxyContin marketing in an $8.3B resolution, while the Sackler family settles civilly for $225M and admits nothing",
+    "AIG — Sep 16, 2008 — $85B federal rescue; a London unit called AIG Financial Products had written credit default swaps that dwarfed the parent company",
+    "Fannie Mae — Sep 22, 2004 — OFHEO report alleges accounting manipulation; a $6.3B restatement follows and CEO Franklin Raines is out that December",
+    # Corrected: the causal order is the reverse of how this is usually told.
+    # Drexel went bankrupt Feb 13 1990, ten weeks BEFORE Milken's guilty plea.
+    "Drexel Burnham Lambert — Feb 13, 1990 — Wall Street's most profitable firm files for bankruptcy; ten weeks later junk bond king Michael Milken pleads guilty to six felonies",
 ]
 
 # Tier 2 — lesser-known names, stories are insane; hook must lead with the unbelievable fact
@@ -132,6 +178,22 @@ UNKNOWN_FAILURE_TOPICS_TIER2 = [
     "Nikola Motors — Sep 2020 — short seller Hindenburg Research publishes report; CEO Trevor Milton had faked a truck rolling downhill as self-driving; $35B market cap collapses in days",
     "Insys Therapeutics — 2019 — founder John Kapoor convicted of racketeering; company paid doctors cash bribes to prescribe fentanyl to patients who didn't need it; 47 dead linked to the scheme",
     "Outcome Health — 2017 — startup valued at $5.5B; executives charged with defrauding advertisers by inflating installation numbers; doctors' waiting room screens showed ads that never ran",
+    # ── Added Aug 2 2026 — fact-checked bank refill. ──
+    # Corrected: the bricks were shipped in autumn 1987; 1989 is when the fraud
+    # was exposed. Dating the bricks to 1989 is the common distortion.
+    "MiniScribe — autumn 1987 — packs 26,000 actual bricks into disk drive boxes and ships them overseas to book the revenue; the fraud is exposed in 1989 and the company is bankrupt by Jan 1990",
+    "Equity Funding — 1973 — invents roughly 64,000 insurance policies on people who did not exist and sells them to reinsurers",
+    # Corrected: the boxes held fruit baskets and polo shirts, not sand. The
+    # "best-performing NYSE stock of 1996" line is poorly sourced — Centennial
+    # only moved to the NYSE that November — so it is deliberately omitted.
+    "Centennial Technologies — Feb 1997 — CEO Emanuel Pinez is arrested after the company ships fruit baskets and polo shirts booked as $2M of PC card sales; the stock is delisted in March over a $40M overstatement",
+    "Peregrine Financial Group / Russell Wasendorf — Jul 9, 2012 — a suicide note confesses to 20 years of forged bank statements; $215M in customer money is gone",
+    # Corrected: 21,000+ victims and $285M (not 23,000). The key detail is that
+    # they bought uninsured parent-company bonds at bank branches.
+    "Lincoln Savings / Charles Keating — Apr 14, 1989 — seized; more than 21,000 mostly elderly customers had been sold $285M of uninsured parent-company bonds inside bank branches; five US senators implicated",
+    "Waste Management — 1998 — a $1.7B restatement, the largest in US history at the time",
+    "Stanford Financial / Allen Stanford — Feb 17, 2009 — SEC charges a $7B Ponzi built on certificates of deposit from his Antiguan bank",
+    "DHB Industries / David Brooks — Oct 2007 — the body armor maker's CEO is arrested for looting the company; he had thrown a $10M bat mitzvah",
 ]
 
 NEAR_DEATH_TOPICS = [
@@ -161,6 +223,27 @@ NEAR_DEATH_TOPICS = [
     "Old Spice — 2008 — brand dying, P&G nearly discontinues it; 'The Man Your Man Could Smell Like' campaign reverses a decade of decline in 30 days",
     "Hostess — Nov 2012 — shuts down entirely, 18,500 jobs gone; private equity buys the brand 8 months later and brings back Twinkies",
     "Atari — 1984 — the Great Video Game Crash wipes $536M in revenue; Jack Tramiel buys the company for $50M and pivots to computers",
+    # ── Added Aug 2 2026 — fact-checked bank refill. ──
+    "Johnson & Johnson — Oct 1982 — seven Tylenol cyanide deaths; pulls 31 million bottles at a cost of about $100M and survives",
+    # Corrected: the all-store closure was Feb 8 2016, not Oct 2015 — that was
+    # the outbreak. Two separate events, commonly collapsed into one.
+    "Chipotle — Feb 8, 2016 — closes every US restaurant for a day of food-safety retraining after the October 2015 E. coli outbreak drove same-store sales down nearly 30%",
+    # Corrected: AMD's low was ~$1.62 in 2015, after Su took over — not $2 in 2014.
+    "AMD — Oct 8, 2014 — Lisa Su takes over a chipmaker written off for dead; the stock bottoms near $1.62 in 2015 before Ryzen and EPYC rebuild it",
+    "Tesla — Dec 24, 2008 — a $40M financing round closes on Christmas Eve, days before Tesla would have missed payroll",
+    # Corrected: the $183.6M loss was fiscal 2008, disclosed in the Mar 2009
+    # 10-K with going-concern doubt. The 2009 loss was far smaller (~$42M).
+    "Crocs — Mar 2009 — files a 10-K showing a $183.6M loss for 2008 with going-concern doubt; the shoe everyone called a fad is written off as dead",
+    "Barnes & Noble — Jun 7, 2019 — agrees to sell itself to Elliott for $683M; James Daunt hands buying power back to individual stores",
+    # Corrected: the plane sale was spring 1972 for operating capital, not 1971
+    # "to make payroll" — and it is what forced the ten-minute turn.
+    "Southwest Airlines — spring 1972 — down to $143 in the bank a year after launching, sells one of its four planes and invents the ten-minute turn to fly the same schedule with three",
+    # Corrected: the SEC investigation opened Oct 2004; the restatement was Jan 2005.
+    "Krispy Kreme — Oct 2004 — the SEC opens a formal accounting investigation after overexpansion; a January 2005 restatement wipes out $25M of income and the stock collapses",
+    "Six Flags — Jun 13, 2009 — Chapter 11 with $2.4B in debt",
+    "Uber — 2017 — a year of scandals ends with Travis Kalanick out in June and Dara Khosrowshahi in by August",
+    "Papa John's — Jul 11, 2018 — founder John Schnatter resigns as chairman after Forbes reports he used a racial slur on a conference call; the brand rebuild follows",
+    "Dell — Oct 29, 2013 — Michael Dell and Silver Lake complete a $24.9B buyout to take the company private and fix it away from public markets",
 ]
 # Removed from NEAR_DEATH (Apr 30 2026 cleanup):
 # - Marvel → already posted Apr 28, removed to prevent duplicate
@@ -183,7 +266,25 @@ MZ_HOUSEHOLD_BRANDS = {
     "best buy", "domino's", "airbnb", "marvel", "polaroid", "gm",
     "bernie madoff", "worldcom", "tyco", "imclone", "martha stewart",
     "washington mutual", "countrywide", "adelphia", "nikola",
+    # Added Aug 2 2026 with the bank refill — recognisable names get the 3× weight.
+    "xerox", "western union", "circuit city", "kmart", "napster", "pan am",
+    "woolworth", "motorola", "compaq", "peloton", "tower records", "edsel",
+    "segway", "quibi", "vine", "pets.com", "smith corona", "webvan",
+    "johnson & johnson", "chipotle", "tesla", "crocs", "barnes & noble",
+    "southwest airlines", "krispy kreme", "six flags", "uber", "papa john's",
+    "dell", "amd", "aig", "fannie mae", "purdue pharma",
 }
+
+# Warn when a format's never-posted pool drops to this many topics or fewer.
+MZ_LOW_POOL_THRESHOLD = 5
+
+
+class TopicBankExhausted(RuntimeError):
+    """Every company in a format's topic pool already has a published video.
+
+    Raised instead of silently re-publishing a duplicate (Aug 2 2026 fix).
+    """
+
 
 def _extract_company_name(topic: str) -> str:
     """Extract company name from topic string (text before first ' — ')."""
@@ -200,6 +301,45 @@ def _extract_company_name(topic: str) -> str:
         name = name.replace(ch, "")
     name = " ".join(name.split())
     return name
+
+
+# Genuine same-company abbreviations. The old substring matcher claimed to
+# catch these ("General Motors" vs "GM") but never could — "gm" is not a
+# substring of "general motors".
+_COMPANY_ALIASES = {
+    "gm": "general motors",
+}
+
+# Dropped before comparison so "Tyco International" matches "Tyco".
+_COMPANY_STOPWORDS = {
+    "the", "inc", "corp", "corporation", "company", "co", "group",
+    "holdings", "llc", "lp", "ltd", "plc", "and",
+}
+
+
+def _company_tokens(name: str) -> frozenset:
+    """Normalise a company key to a set of comparable word tokens."""
+    name = (name or "").strip().lower()
+    name = _COMPANY_ALIASES.get(name, name)
+    toks = {t for t in re.split(r"[^a-z0-9]+", name) if t}
+    stripped = toks - _COMPANY_STOPWORDS
+    # Never return empty for a name that was purely stopwords.
+    return frozenset(stripped or toks)
+
+
+def _same_company(a: str, b: str) -> bool:
+    """True if two company keys refer to the same company.
+
+    Token-subset match, not substring. Fixed Aug 2 2026: the previous
+    `a in b or b in a` test blocked "Stanford Financial" because the published
+    company "Ford" is a substring of "stanFORD". Subset matching still catches
+    the intended cases — "Tyco" vs "Tyco International / Dennis Kozlowski" —
+    without matching on accidental letter runs.
+    """
+    ta, tb = _company_tokens(a), _company_tokens(b)
+    if not ta or not tb:
+        return False
+    return ta <= tb or tb <= ta
 
 
 def _company_posted_recently(company_name: str, days: int = 30) -> bool:
@@ -219,8 +359,7 @@ def _company_posted_recently(company_name: str, days: int = 30) -> bool:
             continue
         # Check company name in post's topic string
         post_company = _extract_company_name(post.get("topic", ""))
-        # Fuzzy: use substring match to catch "General Motors" vs "GM"
-        if company_lc in post_company or post_company in company_lc:
+        if _same_company(company_lc, post_company):
             return True
     return False
 
@@ -235,7 +374,7 @@ def _company_posted_ever(company_name: str) -> bool:
         if post.get("channel") != "mz":
             continue
         post_company = _extract_company_name(post.get("topic", ""))
-        if company_lc in post_company or post_company in company_lc:
+        if _same_company(company_lc, post_company):
             return True
     return False
 
@@ -244,7 +383,7 @@ def _is_household_brand(topic: str) -> bool:
     """True if the topic's company is an iconic household name."""
     company = _extract_company_name(topic)
     for brand in MZ_HOUSEHOLD_BRANDS:
-        if brand in company or company in brand:
+        if _same_company(company, brand):
             return True
     return False
 
@@ -341,33 +480,51 @@ def pick_topic(format_letter: str) -> tuple[str, str]:
     else:
         raise ValueError(f"Invalid format letter: {format_letter}")
 
-    # ── Apply 30-day company-name dedup ───────────────────────────────────────
+    # ── Apply HARD company dedup: one definitive video per company, ever ──────
+    # Fixed Aug 2 2026. Previously the filter used a 30-day window and
+    # _company_posted_ever() only printed a warning — so Kodak (70 days apart)
+    # and Blockbuster (83 days apart) both re-posted. Confirmed duplicates in
+    # the Jul 31 / Aug 1 weekly review: Kodak, Blockbuster, Bear Stearns,
+    # Yahoo, Arthur Andersen. The ever-block is now the actual filter, which
+    # is what this module's docstrings claimed all along.
     available = [
         t for t in pool
         if t not in used
-        and not _company_posted_recently(_extract_company_name(t), days=30)
+        and not _company_posted_ever(_extract_company_name(t))
     ]
 
-    # ── Warn on duplicate-angle topics (ever-posted, not just 30d) ──────────────
-    for t in available:
-        cname = _extract_company_name(t)
-        if _company_posted_ever(cname):
-            print(f"  ⚠️  DUPLICATE-ANGLE WARNING: {cname} has been posted before — consider replacing this topic in the bank")
+    # ── Low-pool early warning ────────────────────────────────────────────────
+    # With a hard ever-block the bank drains permanently, so warn BEFORE the
+    # exhaustion path forces a compromise.
+    if 0 < len(available) <= MZ_LOW_POOL_THRESHOLD:
+        print(f"  🟡 TOPIC BANK LOW — only {len(available)} unused, never-posted "
+              f"topic(s) left for Format {format_letter}. Add new topics soon.")
 
     if not available:
-        print(f"  🔄 All MZ Format {format_letter} topics used (or company-deduped) — resetting cycle")
-        # Clear only this format's used-set — preserve other formats' rotation
+        # Clear this format's used-set — a topic may be marked used without ever
+        # having been published (validator skips, fallbacks), so recover those first.
+        print(f"  🔄 All MZ Format {format_letter} topics marked used — resetting cycle")
         for t in pool:
             used.discard(t)
         log["mz_topics_used"] = list(used)
         _save_log(log)
-        # Loosen to cycle-only dedup (keep company dedup to avoid immediate repeat)
+        # Re-apply the HARD ever-block. Only topics never actually published
+        # are eligible — this recovers skipped topics without re-serving
+        # anything that already has a video live.
         available = [
             t for t in pool
-            if not _company_posted_recently(_extract_company_name(t), days=14)
+            if not _company_posted_ever(_extract_company_name(t))
         ]
-        if not available:
-            available = pool[:]  # Last resort: full pool
+
+    if not available:
+        # Genuine exhaustion: every company in this pool already has a video.
+        # Refuse to publish a duplicate — that is the bug we just fixed.
+        # Format B has a second tier and main() has a Format-B fallback, so a
+        # clean skip is safe and strictly better than a repeat.
+        raise TopicBankExhausted(
+            f"MZ Format {format_letter}: every topic in the pool has already been "
+            f"published. Add new topics to the bank — refusing to post a duplicate."
+        )
 
     # ── Format A: weight household brands 3× ─────────────────────────────────
     if format_letter == "A" and available:
@@ -820,16 +977,86 @@ def generate_script(topic: str, format_tag: str) -> dict:
     )
 
 
-# ─── Affiliate comment (Shorts) ──────────────────────────────────────────────
+# ─── Subscribe CTA (Shorts) ──────────────────────────────────────────────────
+# Added Aug 2 2026. MZ had NO subscribe ask anywhere: 17,873 views → 25 subs
+# (0.14% view-to-sub; healthy Shorts channels run 0.5-1%).
+#
+# Design constraint: v3 prompt rule #1 is the loop-design final line (the last
+# story sentence must trigger a rewatch). The CTA is appended AFTER that line
+# as a separate tag so the rewatch hook still closes the narrative, and it is
+# written as a curiosity loop of its own ("the next one") rather than a bare
+# "please subscribe" — giving a reason-why instead of an ask.
+#
+# Set MZ_SUB_CTA=0 to disable and A/B against the 0.14% baseline.
 
-def post_mz_channel_comment(video_id: str) -> None:
-    """Post an affiliate pinned comment on every MZ Short. Pin manually in Studio."""
-    _MZ_AMZN_TAG    = "minutezero-20"
-    _MZ_AUDIBLE_URL = f"https://www.amazon.com/audible/mt/audiblemember?tag={_MZ_AMZN_TAG}"
+MZ_SUB_CTAS = [
+    "Every empire has a minute zero. Subscribe before the next one.",
+    "There's another collapse tomorrow. Subscribe and watch it happen.",
+    "One company. One bad day. Every day. Subscribe.",
+    "The next empire is already breaking. Subscribe to catch it.",
+    "Somewhere, another minute zero just started. Subscribe.",
+]
+
+
+def append_sub_cta(script_data: dict, topic: str) -> tuple[dict, str | None]:
+    """Append a spoken subscribe CTA to the narration. Returns (script_data, cta).
+
+    Called after validators pass so the word-count band is untouched. Rotates
+    deterministically on the topic string so the same company always gets the
+    same CTA (stable re-runs) but consecutive uploads vary.
+    """
+    if os.environ.get("MZ_SUB_CTA", "1").strip() == "0":
+        print("  ⏭️  Spoken subscribe CTA disabled (MZ_SUB_CTA=0)")
+        return script_data, None
+
+    cta = MZ_SUB_CTAS[sum(ord(c) for c in topic) % len(MZ_SUB_CTAS)]
+    narration = (script_data.get("script") or "").rstrip()
+    if not narration:
+        print("  ⚠️  Empty narration — skipping subscribe CTA")
+        return script_data, None
+
+    if not narration.endswith((".", "!", "?", '"')):
+        narration += "."
+    script_data["script"] = f"{narration} {cta}"
+
+    added = len(cta.split())
+    print(f"  📣 Subscribe CTA appended (+{added}w, ~+{added / 2.5:.1f}s): \"{cta}\"")
+    return script_data, cta
+
+
+# ─── Pinned comment (Shorts) ─────────────────────────────────────────────────
+
+MZ_COMMENT_QUESTIONS = [
+    "Which collapse should I cover next? Drop a company below.",
+    "Could this one have been survived? Tell me where they went wrong.",
+    "What's the most avoidable business failure you can think of?",
+    "Name a company you think is one bad day away right now.",
+    "Did you know this story, or is this the first you're hearing it?",
+]
+
+
+def post_mz_channel_comment(video_id: str, topic: str = "") -> None:
+    """Post the pinned comment on every MZ Short. Pin manually in Studio.
+
+    Rewritten Aug 2 2026. Previously 100% Audible affiliate, zero subscribe ask
+    — on a channel with 88 subs that link converts ~nothing, while the pinned
+    comment is the highest-intent conversion surface a Short has.
+
+    Now: subscribe ask + an open question. The question also targets the
+    zero-engagement signal flagged in the Aug 2 digest — Shorts with no
+    comments read as low-quality to the ranker, and a pinned question is the
+    cheapest legitimate way to seed replies.
+
+    Affiliate link intentionally removed from Shorts comments; it remains in
+    the video description. Restore it here once the channel is monetized.
+    """
+    question = MZ_COMMENT_QUESTIONS[
+        sum(ord(c) for c in (topic or video_id)) % len(MZ_COMMENT_QUESTIONS)
+    ]
     comment_text = (
-        f"\U0001f4da The full business breakdown is in the description.\n"
-        f"\U0001f3a7 Free audiobook trial (Audible — great for business books): {_MZ_AUDIBLE_URL}\n\n"
-        "As an Amazon Associate I earn from qualifying purchases."
+        f"{question}\n\n"
+        "\U0001f4c9 New business collapse every day — subscribe so you don't miss "
+        "the next minute zero."
     )
     try:
         import json as _json
@@ -849,9 +1076,9 @@ def post_mz_channel_comment(video_id: str) -> None:
             body={"snippet": {"videoId": video_id,
                               "topLevelComment": {"snippet": {"textOriginal": comment_text}}}}
         ).execute()
-        print(f"  ✅ Affiliate comment posted on Short — pin it in Studio!")
+        print(f"  ✅ Pinned comment posted (subscribe + question) — PIN IT in Studio!")
     except Exception as e:
-        print(f"  ⚠️  Short affiliate comment failed (non-fatal): {e}")
+        print(f"  ⚠️  Short pinned comment failed (non-fatal): {e}")
 
 
 # ─── YouTube upload ──────────────────────────────────────────────────────────
@@ -995,7 +1222,12 @@ def main() -> int:
 
         if format_tag != "unknown_failure":
             print("   🔄 Falling back to Format B (unknown_failure) ...")
-            fb_topic, fb_format_tag = pick_topic("B")
+            try:
+                fb_topic, fb_format_tag = pick_topic("B")
+            except TopicBankExhausted as te:
+                print(f"\n⏭️  SKIPPED — {te}")
+                append_to_google_sheets(f"[SKIPPED] topic bank exhausted", "", format_tag)
+                return 0
             print(f"   📖 Fallback topic: {fb_topic}")
             try:
                 script_data = generate_script(fb_topic, fb_format_tag)
@@ -1031,6 +1263,9 @@ def main() -> int:
     if not any((h or {}).get("hook") for h in hooks):
         print("  ⚠️  All hook variants null — script body hook will still render, but v4 rotation data is empty")
 
+    # 2b. Append spoken subscribe CTA (after validators — word band untouched)
+    script_data, sub_cta_used = append_sub_cta(script_data, topic)
+
     # 3. Render
     print(f"\n🎥 Rendering video (clean master + variants) ...")
     from video_mz import render_video
@@ -1050,8 +1285,11 @@ def main() -> int:
     print(f"\n📤 Uploading to YouTube ...")
     hashtags = script_data.get("hashtags", "").strip()
     tags = [h.lstrip("#") for h in hashtags.split() if h.startswith("#")]
+    # Subscribe line sits above the hashtags — visible in the collapsed
+    # description on mobile, where most Shorts viewers are. Added Aug 2 2026.
     description = (
         f"{script_data.get('description', '')}\n\n"
+        f"\U0001f4c9 A new business collapse every day — subscribe to Minute Zero.\n\n"
         f"{hashtags}"
     ).strip()
     video_url = upload_to_youtube(
@@ -1064,8 +1302,8 @@ def main() -> int:
     )
     print(f"  ✅ Posted ({'unlisted' if args.unlisted else 'public'}): {video_url}")
 
-    # Post affiliate comment (pin manually in Studio)
-    post_mz_channel_comment(video_url.split("/")[-1])
+    # Post pinned comment — subscribe ask + engagement question (pin in Studio)
+    post_mz_channel_comment(video_url.split("/")[-1], topic)
 
     # 5. Log
     mark_mz_posted(topic, script_data["title"], video_url, format_tag)
