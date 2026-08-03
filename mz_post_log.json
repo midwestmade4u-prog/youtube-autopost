@@ -375,6 +375,14 @@
       "title": "The Press Conference That Almost Killed Coca-Cola",
       "url": "https://youtu.be/faBuyzZKlCQ",
       "posted_at": "2026-08-02 15:09:24"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Tower Records \u2014 Aug 20, 2006 \u2014 Chapter 11 filing; a court-ordered liquidation follows in October",
+      "title": "The Bankruptcy Filing That Killed Tower Records",
+      "url": "https://youtu.be/9zhRU10SRLU",
+      "posted_at": "2026-08-03 16:34:31"
     }
   ],
   "mz": [],
@@ -423,6 +431,7 @@
     "Enron \u2014 Aug 14, 2001 \u2014 Skilling's sudden resignation call",
     "Kodak \u2014 1975 \u2014 internal engineers invent the digital camera; management shelves it to protect film revenue; Kodak files bankruptcy 36 years later",
     "FTX \u2014 Nov 2, 2022 \u2014 CoinDesk leaks the Alameda balance sheet",
-    "Coca-Cola \u2014 Apr 23, 1985 \u2014 the day they announced 'New Coke'"
+    "Coca-Cola \u2014 Apr 23, 1985 \u2014 the day they announced 'New Coke'",
+    "Tower Records \u2014 Aug 20, 2006 \u2014 Chapter 11 filing; a court-ordered liquidation follows in October"
   ]
 }
