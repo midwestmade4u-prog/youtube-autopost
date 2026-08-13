@@ -765,13 +765,29 @@ def main() -> int:
         # runs (that's Rule 1), and zero actual posts despite expecting some.
         if runs and not failed_runs and not run_errors and actual_posts == 0 and expected > 0:
             print(f"  🚨 Rule 4: workflow reported success but 0 YT posts — silent upload failure!")
+            # Do NOT blame the YouTube token here. Reaching this branch requires
+            # videos_posted_last_24h() to have returned cleanly, and that call
+            # authenticates with this very token file -- an expired or invalid
+            # token raises and yields an "error" entry, which run_errors /
+            # actual_posts would have caught above. In other words, by the time
+            # Rule 4 fires we have just PROVED the token works.
+            #
+            # The old text said "Likely cause: YouTube token expired/invalid
+            # (re-OAuth needed)". On Aug 4 2026 that sent Matt to re-OAuth BSG
+            # two days after he already had, on a token that published fine the
+            # same day. Point at the causes that are actually still open.
             issues.append({
                 "channel": ch["label"],
                 "type":    "silent_upload_failure",
                 "detail":  (
                     f"Workflow ran and reported ✅ success (continue-on-error) but "
                     f"Expected {expected} / Published 0 on YouTube. "
-                    f"Likely cause: YouTube token expired/invalid (re-OAuth needed). "
+                    f"NOTE: the YouTube token is NOT the cause — this monitor "
+                    f"authenticated with it moments ago to read the channel, so it is "
+                    f"valid. Do not re-OAuth on the strength of this alert. "
+                    f"Check instead, in order: (1) script generation returning empty or "
+                    f"malformed JSON, (2) the render step producing no video file, "
+                    f"(3) the upload call failing under continue-on-error. "
                     f"Last run: {runs[0].get('url', 'unknown')}"
                 ),
             })

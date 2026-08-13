@@ -224,6 +224,98 @@ def _run_had_no_video_produced(run_id: int, gh_token: str) -> bool:
         return False
 
 
+# ── Real-slot derivation ─────────────────────────────────────────────────────
+def _scheduled_slot_hours(workflow_file: str) -> set:
+    """UTC hours the channel's autopost workflow is actually scheduled to run.
+
+    Added Aug 2026 after the Aug 10 TMF false alarm. On Jul 5 2026 cadence was
+    cut to 1x/day and the second daily cron was deleted from the autopost
+    workflows, but the watchdog schedules still monitored the removed slot:
+
+        channel  real slot   phantom slot
+        TMF      13:00 UTC   23:00 UTC
+        MZ       14:00 UTC   00:00 UTC
+        BSG      17:00 UTC   00:00 UTC
+
+    No autopost run can exist after a slot that isn't scheduled, so every night
+    diagnose_failure() returned "no_runs_found" and emailed "the cron job may
+    not have fired." That path returns before the burst-guard suppression, so
+    the existing false-alarm guard couldn't catch it.
+
+    Rather than hardcode the correct slots (which is what drifted in the first
+    place), read them from the autopost workflow itself. Cadence changes now
+    propagate automatically.
+
+    Returns an empty set when the schedule can't be parsed confidently --
+    an unreadable file, or an hour field using * , - or / . The caller treats
+    empty as "don't suppress", so a parsing gap can never mask a real outage.
+    """
+    try:
+        path = Path(__file__).resolve().parent / ".github" / "workflows" / workflow_file
+        text = path.read_text()
+    except Exception as e:
+        print(f"  ⚠️  Could not read {workflow_file} to validate the slot: {e}")
+        return set()
+
+    hours = set()
+    for raw in text.splitlines():
+        stripped = raw.strip()
+        if stripped.startswith("#"):
+            continue
+        m = re.match(r"""-\s*cron:\s*['"]([^'"]+)['"]""", stripped)
+        if not m:
+            continue
+        fields = m.group(1).split()
+        if len(fields) < 2:
+            continue
+        hour_field = fields[1]
+        if hour_field.isdigit():
+            hours.add(int(hour_field))
+        else:
+            # */4, 1-5, 0,12 -- don't guess, fall back to no suppression.
+            return set()
+    return hours
+
+
+# ── In-progress detection ────────────────────────────────────────────────────
+def _run_still_in_progress(workflow_id: str, slot_start: datetime, gh_token: str):
+    """Return (True, html_url) if a run for this slot is still queued/running.
+
+    Scheduled Actions runs are frequently delayed under runner load, and these
+    jobs then render a video and upload it -- so finishing well after the cron
+    time is normal. Measured publish windows:
+        TMF cron 13:00 UTC -> posts land 13:38-14:15 (T+38 to T+75 min)
+        MZ  cron 14:00 UTC -> posts land 15:09-18:05 (T+69 to T+245 min)
+        BSG cron 17:00 UTC -> posts land 18:08-21:38 (T+68 to T+278 min)
+
+    Treating in-flight as failure caused a false "action needed" email AND a
+    duplicate workflow dispatch racing the original run.
+
+    Fails safe: on any API error return False, so real outages still alert.
+    """
+    try:
+        url = (f"https://api.github.com/repos/midwestmade4u-prog/youtube-autopost"
+               f"/actions/workflows/{workflow_id}/runs?per_page=5")
+        r = ureq.Request(url, headers={
+            "Authorization": f"Bearer {gh_token}",
+            "Accept": "application/vnd.github+json",
+        })
+        with ureq.urlopen(r, timeout=10) as resp:
+            runs = json.loads(resp.read())["workflow_runs"]
+
+        slot_aware = slot_start.replace(tzinfo=timezone.utc) if slot_start.tzinfo is None else slot_start
+        for run in runs:
+            created = datetime.fromisoformat(run["created_at"].replace("Z", "+00:00"))
+            if created < slot_aware:
+                continue
+            if run.get("status") in ("queued", "in_progress") or run.get("conclusion") is None:
+                return True, run.get("html_url", "")
+        return False, ""
+    except Exception as e:
+        print(f"  ⚠️  Could not check for in-progress runs: {e}")
+        return False, ""
+
+
 # ── Diagnosis ─────────────────────────────────────────────────────────────
 def diagnose_failure(workflow_id: str, slot_start: datetime, gh_token: str, ch_key: str) -> str:
     """
@@ -257,8 +349,15 @@ def diagnose_failure(workflow_id: str, slot_start: datetime, gh_token: str, ch_k
             return "no_runs_found"
 
         last = recent[0]
-        conclusion = last.get("conclusion", "in_progress")
+        # The API returns "conclusion": null -- key present, value null -- while
+        # a run is still going, so dict.get()'s default never fired and this
+        # produced the bogus "unknown:None" diagnosis. Check status instead.
+        status     = last.get("status")
+        conclusion = last.get("conclusion")
         logs_url   = last.get("html_url", "https://github.com/midwestmade4u-prog/youtube-autopost/actions")
+
+        if status in ("queued", "in_progress") or conclusion is None:
+            return f"still_running|{logs_url}"
 
         if conclusion == "failure":
             return f"workflow_failed|{logs_url}"
@@ -436,6 +535,17 @@ def main():
             print(f"⏰ Not near a {args.post_type} posting window for {cfg['label']} — skipping")
             sys.exit(0)
 
+    # ── Phantom-slot guard ───────────────────────────────────────────────────
+    # Skip slots the autopost workflow isn't actually scheduled for. Empty set
+    # means "couldn't parse" -> fall through and behave as before.
+    real_hours = _scheduled_slot_hours(workflow)
+    if real_hours and args.slot_utc not in real_hours:
+        print(f"⏭️  {cfg['label']} {args.post_type}: slot {args.slot_utc:02d}:00 UTC is not "
+              f"scheduled in {workflow} (real slots: "
+              f"{', '.join(f'{h:02d}:00' for h in sorted(real_hours))} UTC).")
+        print(f"    Nothing can have run for it — skipping instead of alerting.")
+        sys.exit(0)
+
     elapsed_min = (now - slot_start).total_seconds() / 60
     print(f"╔═════════════════════════════════════════════════════")
     print(f"║  Unified Watchdog — {cfg['label']} {args.post_type.title()}")
@@ -451,6 +561,14 @@ def main():
 
     # ── Not found ─────────────────────────────────────────────────────────────
     if args.check_type == "retry":
+        # Don't dispatch a duplicate while the scheduled run is still working.
+        if gh_token:
+            running, run_url = _run_still_in_progress(workflow, slot_start, gh_token)
+            if running:
+                print(f"⏳ {cfg['label']} {args.post_type} run is still in progress "
+                      f"— skipping retry to avoid a duplicate post. {run_url}")
+                sys.exit(0)
+
         print(f"⚠️  No video found — triggering automatic retry of {workflow}")
         if gh_token:
             ok = trigger_retry(workflow, gh_token)
@@ -468,6 +586,11 @@ def main():
         print(f"  Diagnosis: {diagnosis}")
 
         diag_type = diagnosis.split("|")[0]
+        if diag_type == "still_running":
+            print(f"⏳ Not a failure — {cfg['label']} {args.post_type} run is still in "
+                  f"progress. Suppressing alert.")
+            sys.exit(0)
+
         if diag_type == "burst_guard_skip":
             print(f"✅ Not a real failure — {cfg['label']} already posted earlier today (burst guard). Suppressing alert.")
             sys.exit(0)
