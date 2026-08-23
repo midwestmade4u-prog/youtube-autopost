@@ -535,6 +535,14 @@
       "title": "The Tweet That Killed Vine",
       "url": "https://youtu.be/MpFonZfHATs",
       "posted_at": "2026-08-22 14:28:30"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "MF Global \u2014 Oct 2011 \u2014 Jon Corzine's Euro bond doubling-down call",
+      "title": "The Bet That Killed MF Global",
+      "url": "https://youtu.be/mOP5Jupp5Lw",
+      "posted_at": "2026-08-23 14:29:38"
     }
   ],
   "mz": [],
@@ -603,6 +611,7 @@
     "Quibi \u2014 Apr 6, 2020 \u2014 launches with $1.75B raised and announces its shutdown Oct 21, 2020, about six months later",
     "Webvan \u2014 Jul 9, 2001 \u2014 bankruptcy after losing over $800M, including a $1B warehouse order placed with Bechtel",
     "Smith Corona \u2014 Jul 5, 1995 \u2014 Chapter 11; the typewriter company that watched the PC arrive",
-    "Vine \u2014 Oct 27, 2016 \u2014 Twitter announces it is shutting down Vine"
+    "Vine \u2014 Oct 27, 2016 \u2014 Twitter announces it is shutting down Vine",
+    "MF Global \u2014 Oct 2011 \u2014 Jon Corzine's Euro bond doubling-down call"
   ]
 }
