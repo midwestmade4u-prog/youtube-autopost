@@ -47,7 +47,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install edge-tts Pillow openai anthropic requests \
+          pip install "edge-tts==7.2.8" Pillow openai anthropic requests \
             google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib
 
       - name: Create YouTube token file
