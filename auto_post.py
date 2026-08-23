@@ -1711,6 +1711,23 @@ def run_via_server(channel: str, topic: str, script: dict) -> str:
         sys.exit(1)
 
     filename = Path(video_path).name
+
+    # ---- Pre-upload QC gate (added Aug 23 2026) -------------------------
+    # Blocks unambiguously broken renders (silent audio, A/V drift, dead
+    # final frame, truncated file). Odd-but-plausible files only warn.
+    # See render_qc.py for the failures that motivated this.
+    try:
+        from render_qc import enforce as _qc_enforce, QCError as _QCError
+    except ImportError as _qc_imp_err:
+        print(f"  [QC] gate unavailable ({_qc_imp_err}) -- uploading unchecked")
+    else:
+        try:
+            _qc_enforce(video_path, channel=channel, kind="short")
+        except _QCError as _qc_err:
+            print(f"\n{_qc_err}")
+            print("   Not uploading. Re-render and try again.")
+            sys.exit(1)
+
     print(f"  ÃÂ¢ÃÂÃÂ Video ready: {filename}")
 
     # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Step: Upload to YouTube ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ

@@ -1292,6 +1292,23 @@ def main() -> int:
         f"\U0001f4c9 A new business collapse every day — subscribe to Minute Zero.\n\n"
         f"{hashtags}"
     ).strip()
+
+    # ---- Pre-upload QC gate (added Aug 23 2026) -------------------------
+    # Blocks unambiguously broken renders. "The Tweet That Killed Vine"
+    # (470 views @ 4% retention) and the 40s Western Union render are the
+    # two that motivated this. See render_qc.py.
+    try:
+        from render_qc import enforce as _qc_enforce, QCError as _QCError
+    except ImportError as _qc_imp_err:
+        print(f"  [QC] gate unavailable ({_qc_imp_err}) -- uploading unchecked")
+    else:
+        try:
+            _qc_enforce(Path(result["yt_path"]), channel="mz", kind="short")
+        except _QCError as _qc_err:
+            print(f"\n{_qc_err}")
+            print("   Not uploading. Re-render and try again.")
+            sys.exit(1)
+
     video_url = upload_to_youtube(
         Path(result["yt_path"]),
         title=script_data["title"],
