@@ -110,6 +110,41 @@ BSG_TOPICS = [
     "Elijah Fed by Ravens ÃÂ¢ÃÂÃÂ God Provided in the Most IMPOSSIBLE Way",
     "Jesus Clears the Temple ÃÂ¢ÃÂÃÂ He Was FURIOUS and Flipped EVERYTHING",
     "Joshua Stops the Sun ÃÂ¢ÃÂÃÂ God Made Time STAND STILL for One Battle",
+    # ---- Bank refill, Aug 23 2026 ----------------------------------
+    # The bank hit ZERO eligible topics on Aug 2 2026 and stayed there.
+    # Every run since drew from the full bank with dedup bypassed, which
+    # is how 'The Birth of Jesus' published 3x in five days. None of the
+    # stories below resolve to an already-published slug.
+    "Cain and Abel ÃÂ¢ÃÂÃÂ The First Murder and the Question God Asked",
+    "Jacob's Ladder ÃÂ¢ÃÂÃÂ A Stairway to Heaven in the Middle of Nowhere",
+    "Joseph Interprets Pharaoh's Dreams ÃÂ¢ÃÂÃÂ A Prisoner Who Saved an EMPIRE",
+    "Joseph Forgives His Brothers ÃÂ¢ÃÂÃÂ They Sold Him. He Saved Them Anyway",
+    "Baby Moses in the Basket ÃÂ¢ÃÂÃÂ Hidden in a River to Escape a KING",
+    "The Burning Bush ÃÂ¢ÃÂÃÂ A Fire That Would Not Burn Out",
+    "Manna From Heaven ÃÂ¢ÃÂÃÂ Bread That Fell From the Sky Every Morning",
+    "Water From the Rock ÃÂ¢ÃÂÃÂ Moses Struck a Stone and a River Came Out",
+    "The Twelve Spies ÃÂ¢ÃÂÃÂ Ten Saw Giants. Two Saw God",
+    "Rahab and the Scarlet Cord ÃÂ¢ÃÂÃÂ The Outsider Who Saved Two Spies",
+    "Hannah's Prayer ÃÂ¢ÃÂÃÂ She Begged God for a Son and Gave Him Back",
+    "David and Jonathan ÃÂ¢ÃÂÃÂ The Friendship That Defied a KING",
+    "David Spares Saul in the Cave ÃÂ¢ÃÂÃÂ He Had One Chance to Kill His Enemy",
+    "Naaman Washes in the River ÃÂ¢ÃÂÃÂ A General Too PROUD to Be Healed",
+    "The Widow's Oil ÃÂ¢ÃÂÃÂ One Jar That Would Not Run Empty",
+    "The Floating Axe Head ÃÂ¢ÃÂÃÂ Iron That Rose Out of the Water",
+    "Hezekiah and the Sundial ÃÂ¢ÃÂÃÂ The King Who Made a Shadow Go BACKWARD",
+    "Job ÃÂ¢ÃÂÃÂ He Lost Everything and Still Would Not Curse God",
+    "The Valley of Dry Bones ÃÂ¢ÃÂÃÂ A Field of Skeletons That Stood Back Up",
+    "The Writing on the Wall ÃÂ¢ÃÂÃÂ A Hand Appeared and Wrote a King's DOOM",
+    "The Woman at the Well ÃÂ¢ÃÂÃÂ A Stranger Who Knew Her Entire Life",
+    "Nicodemus ÃÂ¢ÃÂÃÂ The Leader Who Came to Jesus in the DARK",
+    "The Man Lowered Through the Roof ÃÂ¢ÃÂÃÂ Four Friends Who Tore Open a House",
+    "Jairus' Daughter ÃÂ¢ÃÂÃÂ She Was Already Dead When Jesus Arrived",
+    "The Ten Lepers ÃÂ¢ÃÂÃÂ Ten Were Healed. Only ONE Came Back",
+    "Blind Bartimaeus ÃÂ¢ÃÂÃÂ They Told Him to Be Quiet. He Shouted LOUDER",
+    "The Widow's Mite ÃÂ¢ÃÂÃÂ The Smallest Gift That Meant the MOST",
+    "The Rich Young Ruler ÃÂ¢ÃÂÃÂ He Had Everything and Walked Away SAD",
+    "Philip and the Ethiopian ÃÂ¢ÃÂÃÂ A Chariot Stopped in the Middle of the Desert",
+    "Peter's Escape From Prison ÃÂ¢ÃÂÃÂ Chains Fell Off While the Guards SLEPT",
 ]
 
 # Topic mix is intentionally weighted:
@@ -242,6 +277,15 @@ _BSG_NAME_SPLIT_RE = _re_imports.compile(
 # cleanly-encoded (normal) topic strings, breaking dedup for fresh topics.
 
 
+class TopicBankExhausted(RuntimeError):
+    """Every topic in a channel's bank has already been published.
+
+    Raised instead of silently recycling the bank. Callers should treat this as
+    a clean skip (exit 0), not a failure -- posting nothing is the correct
+    outcome when the only alternative is posting a duplicate.
+    """
+
+
 def _bsg_story_name(topic: str) -> str:
     """Extract core story name for dedup (text before the first dash separator)."""
     return _BSG_NAME_SPLIT_RE.split(topic, maxsplit=1)[0].strip().lower()
@@ -286,8 +330,9 @@ _BSG_STORY_SLUGS: dict[str, list[str]] = {
     "ten-plagues":         ["ten plagues", "the plagues of egypt", "plagues of egypt",
                             "ten plagues of egypt", "god's devastating", "plague of frogs",
                             "plague of locusts", "plague of darkness"],
-    "birth-of-jesus":      ["birth of jesus", "christmas bible story", "christmas story"],
-    "easter-story":        ["easter story", "resurrection of jesus"],
+    "birth-of-jesus":      ["birth of jesus", "jesus is born", "christmas bible story",
+                            "christmas story"],
+    "easter-story":        ["easter story", "resurrection of jesus", "the resurrection"],
     "jonah-whale":         ["jonah and the whale", "jonah swallowed", "jonah in the whale",
                             "jonah whale", "swallowed by the whale"],
     "shadrach-furnace":    ["shadrach in the fiery furnace", "shadrach meshach abednego",
@@ -303,6 +348,43 @@ _BSG_STORY_SLUGS: dict[str, list[str]] = {
                             "lazarus dead 4 days"],
     "gideon":              ["gideon's 300", "gideon and his", "gideon's army"],
     "joshua-stops-sun":    ["joshua stops the sun", "sun stood still", "god made time stand still"],
+    # ---- Added Aug 23 2026 with the bank refill -------------------------
+    "cain-abel":           ["cain and abel"],
+    "jacobs-ladder":       ["jacob's ladder", "stairway to heaven"],
+    "joseph-pharaoh":      ["joseph interprets", "pharaoh's dreams"],
+    "joseph-forgives":     ["joseph forgives"],
+    "baby-moses":          ["baby moses", "moses in the basket"],
+    "burning-bush":        ["burning bush"],
+    "manna":               ["manna from heaven", "bread from heaven"],
+    "water-from-rock":     ["water from the rock"],
+    "twelve-spies":        ["twelve spies", "12 spies"],
+    "rahab":               ["rahab"],
+    "hannah-prayer":       ["hannah's prayer"],
+    "david-jonathan":      ["david and jonathan"],
+    "david-spares-saul":   ["david spares saul", "saul in the cave"],
+    "naaman":              ["naaman"],
+    "elisha-oil":          ["elisha's oil", "elisha's impossible oil", "the widow's oil"],
+    "floating-axe":        ["floating axe", "axe head"],
+    "hezekiah-sundial":    ["hezekiah and the sundial", "hezekiah"],
+    "job":                 ["job"],
+    "dry-bones":           ["valley of dry bones", "dry bones"],
+    "writing-on-wall":     ["writing on the wall", "belshazzar"],
+    "woman-at-well":       ["woman at the well"],
+    "nicodemus":           ["nicodemus"],
+    "paralytic-roof":      ["lowered through the roof", "through the roof"],
+    "jairus-daughter":     ["jairus"],
+    "ten-lepers":          ["ten lepers", "10 lepers"],
+    "bartimaeus":          ["bartimaeus"],
+    "widows-mite":         ["widow's mite"],
+    "rich-young-ruler":    ["rich young ruler"],
+    "philip-ethiopian":    ["philip and the ethiopian", "ethiopian eunuch"],
+    "peter-prison-escape": ["peter's escape", "peter in prison"],
+    # ---- Gaps that let real duplicates through (Aug 23 2026 audit) -------
+    # These stories published 2-4x each because no slug mapped them together.
+    "paul-damascus":       ["paul on the road to damascus", "road to damascus",
+                            "saul's conversion", "saul of tarsus"],
+    "last-supper":         ["the last supper", "last supper"],
+    "crucifixion":         ["the crucifixion", "crucifixion"],
 }
 
 
@@ -536,6 +618,10 @@ def pick_topic(channel: str) -> str:
         available = [t for t in topics if t not in used]
 
     # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Cycle reset: all topics used (or all exhausted by strict dedup) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
+    if 0 < len(available) <= 5:
+        print(f"  [!] BSG TOPIC BANK LOW -- only {len(available)} unpublished "
+              f"story/stories left. Add more to BSG_TOPICS before it hits zero.")
+
     if not available:
         print(f"  ÃÂ°ÃÂÃÂÃÂ All {len(topics)} topics used (or filtered by dedup) ÃÂ¢ÃÂÃÂ starting new cycle!")
         log[channel] = []
@@ -549,7 +635,24 @@ def pick_topic(channel: str) -> str:
         elif channel == "mz":
             available = [t for t in topics if not _mz_company_posted_recently(t, days=30)]
         if not available:
-            available = topics[:]  # Last resort: pick from full bank
+            # Aug 23 2026 -- this used to be:
+            #     available = topics[:]  # Last resort: pick from full bank
+            # which silently disabled dedup once the bank ran dry. BSG hit zero
+            # eligible topics on Aug 2 2026 and every run since drew uniformly
+            # from all 46 topics with the ever-block discarded. That is how
+            # "The Birth of Jesus" published three times in five days and why
+            # 22% of BSG's catalog is duplicates (TMF 5%, MZ 4%).
+            # MZ deleted this same anti-pattern on Aug 2 (TopicBankExhausted).
+            # Publishing nothing beats publishing a duplicate -- repetitive
+            # uploads are a live termination risk under YouTube's "Generic or
+            # Repetitive Content" policy.
+            if channel == "bsg":
+                raise TopicBankExhausted(
+                    f"BSG: all {len(topics)} stories have already been published. "
+                    f"Add new entries to BSG_TOPICS (and a slug to _BSG_STORY_SLUGS) "
+                    f"-- refusing to post a duplicate."
+                )
+            available = topics[:]  # TMF/MZ use rolling windows; recycling is safe
 
     # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ BSG: Tier 1 weighted selection ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
     if channel == "bsg":
@@ -1952,7 +2055,15 @@ def main():
         print(f"\n{'ÃÂ¢ÃÂÃÂ' * 60}")
         print(f"  ÃÂ°ÃÂÃÂÃÂ¬ Auto-Post  |  {label}  |  {time.strftime('%Y-%m-%d %H:%M')}")
         print(f"{'ÃÂ¢ÃÂÃÂ' * 60}")
-        topic = pick_topic(channel)
+        try:
+            topic = pick_topic(channel)
+        except TopicBankExhausted as te:
+            # Clean skip, exit 0 -- green in Actions. Same convention as the
+            # title-validation skip above: a bad post is worse than no post.
+            print(f"\n[SKIPPED] {te}")
+            append_to_google_sheets(channel, f"[SKIPPED] {str(te)[:100]}", "",
+                                    status="Skipped - Topic Bank Exhausted")
+            sys.exit(0)
         print(f"\nÃÂ°ÃÂÃÂÃÂ Topic: {topic}")
 
     # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Ensure dependencies installed ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
