@@ -1043,7 +1043,13 @@ def concatenate_clips(clip_paths, out_path):
     if not valid_clips:
         raise Exception("No valid scene clips were produced. Check progress log for errors.")
     if len(valid_clips) < len(clip_paths):
-        emit(f"  â ï¸ {len(clip_paths) - len(valid_clips)} scene(s) failed â continuing with {len(valid_clips)} clips")
+        # Dropping scenes silently shortens the video and desyncs it from
+        # the script that was written, uploaded and logged. Stop instead.
+        raise Exception(
+            f"{len(clip_paths) - len(valid_clips)} of {len(clip_paths)} scene "
+            "clips failed to render. Refusing to build a truncated video "
+            "-- check the progress log for the failing scene."
+        )
 
     with open(list_file, "w") as f:
         for c in valid_clips:
@@ -1130,7 +1136,16 @@ def run_video_job(title, scenes, voice, fmt="vertical", channel="bsg"):
             audio     = TEMP_DIR / f"scene_{i:02d}_audio.mp3"
             clip      = TEMP_DIR / f"scene_{i:02d}_clip.mp4"
 
-            generate_image(scene["image_prompt"], raw_img, i, width=vid_w, height=vid_h, channel=channel, topic=title)
+            _img_ok = generate_image(scene["image_prompt"], raw_img, i, width=vid_w, height=vid_h, channel=channel, topic=title)
+            if not _img_ok:
+                # generate_image returns False only after fal.ai, DALL-E and
+                # every Pollinations retry failed -- it then writes a grey
+                # "SCENE n" placeholder card, which used to ship as-is.
+                raise Exception(
+                    f"Scene {i+1}: every image provider failed and a "
+                    "placeholder card was written. Refusing to build the "
+                    "video. Check FAL_KEY / OPENAI_API_KEY / Pollinations."
+                )
             emit(f"  â Image {i+1} saved")
 
             emit(f"  ðï¸ Generating narration...")

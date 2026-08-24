@@ -534,14 +534,15 @@ def render_longform_video(script_data: dict, out_dir: Path) -> dict:
             str(backdrop)
         ], capture_output=True)
     else:
-        # Fallback: very dark almost-black background (fits TMF aesthetic)
-        backdrop = out_dir / "backdrop.mp4"
-        subprocess.run([
-            "ffmpeg", "-y", "-f", "lavfi",
-            "-i", f"color=c=0x080810:size=1920x1080:duration={duration_sec}:rate=30",
-            "-c:v", "libx264", "-preset", "ultrafast",
-            str(backdrop)
-        ], capture_output=True)
+        # A flat-colour backdrop is not a video -- it is a still frame held
+        # for eight minutes, and it used to upload without anyone noticing.
+        # Zero usable clips means the Pexels fetch failed outright, so stop
+        # here rather than ship it. (Aug 24 2026)
+        raise RuntimeError(
+            "TMF long-form: no usable stock clips for "
+            f"'{title}' -- refusing to render a flat-colour backdrop. "
+            "Check the Pexels API key and quota, then re-run."
+        )
 
     subprocess.run([
         "ffmpeg", "-y",
@@ -1089,6 +1090,19 @@ def main() -> int:
     description = _format_description(description)
     description += _build_affiliate_footer(script_data)
     tags        = script_data.get("tags", ["psychology", "dark psychology", "human behavior"])
+    # ---- Pre-upload QC gate (long-form, added Aug 24 2026) -------------
+    # Long-form never ran the gate the Shorts path has had since Aug 23.
+    # Catches silent audio, A/V drift, a truncated encode, and a dead or
+    # solid-colour final frame. The import is deliberately unguarded: a
+    # missing gate is itself a failure, not a reason to upload unchecked.
+    from render_qc import enforce as _qc_enforce, QCError as _QCError
+    try:
+        _qc_enforce(Path(render_result["video_path"]), channel="tmf", kind="long")
+    except _QCError as _qc_err:
+        print(f"\n{_qc_err}")
+        print("   Not uploading. Re-render and try again.")
+        return 1
+
     video_url, studio_url = upload_to_youtube(
         render_result["video_path"], title, description, tags,
         render_result.get("thumb_path")
