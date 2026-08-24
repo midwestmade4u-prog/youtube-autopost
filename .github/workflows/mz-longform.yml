@@ -77,13 +77,34 @@ jobs:
           eval "python3 auto_post_mz_longform.py $ARGS"
 
       - name: Commit dedup log + post log
+        if: always()
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config --local user.email "automation@youtube.local"
           git config --local user.name "YouTube AutoPost Bot"
-          git pull --rebase origin main || true
-          git add auto_post_log.json pexels_used_mz_longform.json mz_longform_playlist_id.txt 2>/dev/null || true
-          git commit -m "MZ long-form post - $(date)" || true
-          git push || true
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/midwestmade4u-prog/youtube-autopost.git
+          git add auto_post_log.json mz_longform_queue.json mz_longform_playlist_id.txt pexels_used_mz_longform.json 2>/dev/null || true
+          git diff --cached --quiet && echo "Nothing to commit, skipping" && exit 0
+          # Aug 24 2026: this step previously ended in a bare `git push || true`
+          # with no credentials, so the MZ long-form dedup ledger NEVER
+          # reached origin -- `git log --grep="long-form post"` returned zero
+          # commits, and every run reloaded an empty ledger. That is why the
+          # same story could publish repeatedly. Mirrors the hardened pattern
+          # already used by mz-autopost.yml: commit locally FIRST so a
+          # rebase has something to replay, then retry pull+push, then fail LOUD.
+          git commit -m "MZ long-form post - $(date)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push; then
+              echo "Pushed MZ long-form dedup-log commit on attempt $i"
+              exit 0
+            fi
+            echo "Push attempt $i failed (likely concurrent run) -- retrying"
+            git rebase --abort 2>/dev/null || true
+            sleep $(( (RANDOM % 15) + 5 ))
+          done
+          echo "::error::MZ long-form dedup-log commit FAILED to push after 5 attempts -- this post will NOT be recorded and the topic may repeat."
+          exit 1
 
       - name: Upload logs to artifacts
         if: always()
