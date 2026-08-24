@@ -1300,7 +1300,9 @@ def main() -> int:
     try:
         from render_qc import enforce as _qc_enforce, QCError as _QCError
     except ImportError as _qc_imp_err:
-        print(f"  [QC] gate unavailable ({_qc_imp_err}) -- uploading unchecked")
+        print(f"::error::QC gate unavailable ({_qc_imp_err}) -- refusing to upload unchecked.")
+        print("   Set QC_DISABLE=1 to bypass deliberately.")
+        sys.exit(1)
     else:
         try:
             _qc_enforce(Path(result["yt_path"]), channel="mz", kind="short")

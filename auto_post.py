@@ -1826,7 +1826,9 @@ def run_via_server(channel: str, topic: str, script: dict) -> str:
         _fail = _cap.get("render_failures", 0)
         print(f"  [CAPTIONS] {_ok}/{_tot} scenes captioned, {_fail} render failure(s)")
         if _tot and _ok < _tot:
-            print(f"::warning::CAPTIONS DEGRADED -- only {_ok} of {_tot} scenes had word timings")
+            print(f"::error::CAPTIONS DEGRADED -- only {_ok} of {_tot} scenes had word timings")
+            print("   Refusing to upload a caption-less Short. This is the May-Aug 2026 outage.")
+            sys.exit(1)
         if _fail:
             print(f"::warning::CAPTION RENDER FAILED on {_fail} clip(s) -- libass fell back to no captions")
     else:
@@ -1839,7 +1841,9 @@ def run_via_server(channel: str, topic: str, script: dict) -> str:
     try:
         from render_qc import enforce as _qc_enforce, QCError as _QCError
     except ImportError as _qc_imp_err:
-        print(f"  [QC] gate unavailable ({_qc_imp_err}) -- uploading unchecked")
+        print(f"::error::QC gate unavailable ({_qc_imp_err}) -- refusing to upload unchecked.")
+        print("   Set QC_DISABLE=1 to bypass deliberately.")
+        sys.exit(1)
     else:
         try:
             _qc_enforce(video_path, channel=channel, kind="short")
