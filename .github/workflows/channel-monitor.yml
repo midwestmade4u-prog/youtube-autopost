@@ -3,7 +3,7 @@ name: Channel Monitor — Daily Health Check
 on:
   schedule:
     # 2 AM CT = 7:00 UTC (CDT)
-    - cron: '0 7 * * *'
+    - cron: '0 11 * * *'
   workflow_dispatch:
     inputs:
       dry_run:

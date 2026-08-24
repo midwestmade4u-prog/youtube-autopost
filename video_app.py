@@ -958,6 +958,7 @@ def create_scene_clip(img_path, audio_path, out_path, scene_num=0,
 
     # If FFmpeg failed (e.g. libass issue), retry without captions
     if result.returncode != 0 and ass_tmp is not None:
+        current_job["caption_render_failures"] = current_job.get("caption_render_failures", 0) + 1
         err_snippet = result.stderr[-300:].decode("utf-8", errors="replace") if result.stderr else ""
         emit(f"  â ï¸ Caption render failed â retrying without captions")
         if "subtitles" in err_snippet or "ass" in err_snippet.lower():
@@ -1105,6 +1106,9 @@ def run_video_job(title, scenes, voice, fmt="vertical", channel="bsg"):
     try:
         current_job["running"] = True
         current_job["output"]  = None
+        current_job["captions"] = None
+        current_job["caption_render_failures"] = 0
+        _cap_ok = 0
         current_job["error"]   = None
 
         # Always Shorts/Reels â landscape removed
@@ -1133,6 +1137,7 @@ def run_video_job(title, scenes, voice, fmt="vertical", channel="bsg"):
             narration    = _sanitize_text(scene["narration"])
             word_timings = generate_audio(narration, audio, voice)
             has_captions = bool(word_timings)
+            _cap_ok += 1 if has_captions else 0
             if has_captions:
                 emit(f"  â¨ Word timing captured â animated captions active")
 
@@ -1156,6 +1161,11 @@ def run_video_job(title, scenes, voice, fmt="vertical", channel="bsg"):
         out        = output_dir / f"{safe}.mp4"
         concatenate_clips(clip_paths, out)
 
+        current_job["captions"] = {
+            "captioned_scenes": _cap_ok,
+            "total_scenes": len(scenes),
+            "render_failures": current_job.get("caption_render_failures", 0),
+        }
         current_job["output"] = str(out)
         emit_done(out)
 
@@ -1438,6 +1448,7 @@ def job_status():
         "running": current_job.get("running", False),
         "output":  current_job.get("output"),
         "error":   current_job.get("error"),
+        "captions": current_job.get("captions"),
     })
 
 

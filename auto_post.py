@@ -1021,18 +1021,18 @@ CLIFFHANGER RULE — SHORT→LONGFORM HOOK (deployed Jun 28 2026):
     else:
         channel_rules = """
 TITLE RULES (strict ÃÂ¢ÃÂÃÂ must match EXACTLY this format):
-- FORMAT: [Story Name] [single emoji] | Bible Story for Kids | Bible Story Garden
+- FORMAT: [Story tension phrase] [single emoji], no channel name, no pipes
 - The emoji must signal the DRAMATIC BEAT of the story ÃÂ¢ÃÂÃÂ not a generic symbol:
     ÃÂ°ÃÂÃÂÃÂ whale/sea creature  ÃÂ°ÃÂÃÂÃÂ¥ fire/furnace  ÃÂ°ÃÂÃÂÃÂº trumpet/walls  ÃÂ°ÃÂÃÂÃÂª strength/chains
     ÃÂ¢ÃÂÃÂÃÂ¯ÃÂ¸ÃÂ battle/giant  ÃÂ°ÃÂÃÂÃÂ sea/flood/storm  ÃÂ°ÃÂÃÂÃÂ´ talking animal  ÃÂ°ÃÂÃÂ¦ÃÂ lion  ÃÂ°ÃÂÃÂÃÂ¸ plague/animals
 - Story name = most action/drama-forward phrasing possible. Under 40 chars before the pipe.
 - GOOD examples (data-backed top performers):
-  ÃÂ¢ÃÂÃÂ¢ "Balaam's Donkey ÃÂ°ÃÂÃÂÃÂ´ | Bible Story for Kids | Bible Story Garden"
-  ÃÂ¢ÃÂÃÂ¢ "Daniel in the Lion's Den ÃÂ°ÃÂÃÂ¦ÃÂ | Bible Story for Kids | Bible Story Garden"
-  ÃÂ¢ÃÂÃÂ¢ "Elijah Calls Down Fire ÃÂ°ÃÂÃÂÃÂ¥ | Bible Story for Kids | Bible Story Garden"
-  ÃÂ¢ÃÂÃÂ¢ "Jonah Swallowed by the Whale ÃÂ°ÃÂÃÂÃÂ | Bible Story for Kids | Bible Story Garden"
-  ÃÂ¢ÃÂÃÂ¢ "Noah's Ark ÃÂ°ÃÂÃÂÃÂ | Bible Story for Kids | Bible Story Garden"
-  ÃÂ¢ÃÂÃÂ¢ "David vs Goliath ÃÂ¢ÃÂÃÂÃÂ¯ÃÂ¸ÃÂ | Bible Story for Kids | Bible Story Garden"
+  ÃÂ¢ÃÂÃÂ¢ "Balaam's Donkey ÃÂ°ÃÂÃÂÃÂ´"
+  ÃÂ¢ÃÂÃÂ¢ "Daniel in the Lion's Den ÃÂ°ÃÂÃÂ¦ÃÂ"
+  ÃÂ¢ÃÂÃÂ¢ "Elijah Calls Down Fire ÃÂ°ÃÂÃÂÃÂ¥"
+  ÃÂ¢ÃÂÃÂ¢ "Jonah Swallowed by the Whale ÃÂ°ÃÂÃÂÃÂ"
+  ÃÂ¢ÃÂÃÂ¢ "Noah's Ark ÃÂ°ÃÂÃÂÃÂ"
+  ÃÂ¢ÃÂÃÂ¢ "David vs Goliath ÃÂ¢ÃÂÃÂÃÂ¯ÃÂ¸ÃÂ"
 - BAD examples (confirmed 0-view format breaks ÃÂ¢ÃÂÃÂ never reproduce these):
   ÃÂ¢ÃÂÃÂ¢ "Jonah and the Whale: The Prophet Who Ran from God" ÃÂ¢ÃÂÃÂ colon/subtitle format, BANNED
   ÃÂ¢ÃÂÃÂ¢ "Paul on the Road to Damascus: The Most Dramatic Conversion" ÃÂ¢ÃÂÃÂ colon, BANNED
@@ -1297,7 +1297,7 @@ PROSE QUALITY ÃÂ¢ÃÂÃÂ NO AI TELLS (applies to every narration f
                       "TTS speaks at ~3.3 words/sec ÃÂ¢ÃÂÃÂ 140w = 42s, 180w = 55s. Keep scripts tight."
                 )
             else:
-                # BSG title validator ÃÂ¢ÃÂÃÂ enforce "X emoji | Bible Story for Kids | Bible Story Garden" format
+                # BSG title validator ÃÂ¢ÃÂÃÂ enforce "X emoji" format
                 title = (script.get("title") or "").strip()
                 # Fixed Jul 19 2026: this check only verified the suffix was PRESENT,
                 # not that the whole title fit YouTube's real 100-char limit. The
@@ -1308,22 +1308,22 @@ PROSE QUALITY ÃÂ¢ÃÂÃÂ NO AI TELLS (applies to every narration f
                 # validator (weekly review Jul 19 2026). Now also reject
                 # anything over 100 chars so it never reaches upload.
                 bsg_format_ok = (
-                    "| Bible Story for Kids | Bible Story Garden" in title
-                    and len(title) <= 100
+                    "|" not in title
+                    and 0 < len(title) <= 60
                 )
                 if not bsg_format_ok:
                     print(f"    ÃÂ¢ÃÂÃÂ ÃÂ¯ÃÂ¸ÃÂ  BSG title format FAIL on attempt {attempt}: \"{title}\"")
                     extra_constraints = (
                         f"\n\nIMPORTANT ÃÂ¢ÃÂÃÂ your previous draft was REJECTED. "
                         f"Title was: \"{title}\" ({len(title)} chars)\n"
-                        f"The BSG title MUST follow this EXACT format AND fit in 100 "
+                        f"The BSG title MUST follow this EXACT format AND fit in 60 "
                         f"characters total (YouTube's real limit -- longer titles get "
                         f"silently truncated at upload and lose the required suffix): "
-                        f"[Story Name] [single emoji] | Bible Story for Kids | Bible Story Garden\n"
-                        f"Examples: \"Noah's Ark ÃÂ°ÃÂÃÂÃÂ | Bible Story for Kids | Bible Story Garden\"\n"
-                        f"          \"David vs Goliath ÃÂ¢ÃÂÃÂÃÂ¯ÃÂ¸ÃÂ | Bible Story for Kids | Bible Story Garden\"\n"
+                        f"[Story tension phrase] [single emoji], no channel name, no pipes\n"
+                        f"Examples: \"Noah's Ark ÃÂ°ÃÂÃÂÃÂ\"\n"
+                        f"          \"David vs Goliath ÃÂ¢ÃÂÃÂÃÂ¯ÃÂ¸ÃÂ\"\n"
                         f"Keep the story name SHORT (no subtitle/colon clause) so the "
-                        f"full title plus the required suffix stays under 100 characters. "
+                        f"full title plus the required suffix stays under 60 characters. "
                         f"Rewrite the title to match this format exactly. No exceptions."
                     )
                     continue
@@ -1814,6 +1814,23 @@ def run_via_server(channel: str, topic: str, script: dict) -> str:
         sys.exit(1)
 
     filename = Path(video_path).name
+
+    # ---- Caption verification (added Aug 24 2026) ----------------------
+    # video_app.py logged caption status only to video_server.log, which never
+    # reaches the Actions output. That is why TMF + BSG shipped ~100 days of
+    # Shorts with no captions and nothing flagged it. Surface it here.
+    _cap = status.get("captions") or {}
+    if _cap:
+        _ok   = _cap.get("captioned_scenes", 0)
+        _tot  = _cap.get("total_scenes", 0)
+        _fail = _cap.get("render_failures", 0)
+        print(f"  [CAPTIONS] {_ok}/{_tot} scenes captioned, {_fail} render failure(s)")
+        if _tot and _ok < _tot:
+            print(f"::warning::CAPTIONS DEGRADED -- only {_ok} of {_tot} scenes had word timings")
+        if _fail:
+            print(f"::warning::CAPTION RENDER FAILED on {_fail} clip(s) -- libass fell back to no captions")
+    else:
+        print("  [CAPTIONS] status unavailable from video server")
 
     # ---- Pre-upload QC gate (added Aug 23 2026) -------------------------
     # Blocks unambiguously broken renders (silent audio, A/V drift, dead
