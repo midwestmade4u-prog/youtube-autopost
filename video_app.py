@@ -605,7 +605,11 @@ async def _gen_audio_with_timing_async(text, path, voice):
     import edge_tts
 
     async def _stream():
-        communicate  = edge_tts.Communicate(text, voice)
+        # edge-tts >= 7.0 defaults to SentenceBoundary (one event per
+        # sentence). Without this, WordBoundary events never arrive,
+        # word_timings comes back empty, this returns None, and captions
+        # silently switch off in favour of a static text card.
+        communicate  = edge_tts.Communicate(text, voice, boundary="WordBoundary")
         word_timings = []
         with open(path, "wb") as audio_file:
             async for chunk in communicate.stream():
