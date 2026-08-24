@@ -274,7 +274,38 @@ def analyze_with_claude(channel_info: dict, this_week: list[dict], last_week: li
         last_views  = sum(v["views"] for v in last_week if "error" not in v)
         delta_pct   = ((this_views - last_views) / max(last_views, 1)) * 100
 
-        prompt = f"""You are a YouTube growth analyst. Analyze this channel's weekly performance and give actionable suggestions.
+        import subprocess as _sp
+        try:
+            _commits = _sp.run(["git", "log", "--oneline", "--since=7.days"],
+                               capture_output=True, text=True, timeout=20).stdout.strip()
+        except Exception:
+            _commits = ""
+        _commits = _commits or "(no commits in the last 7 days)"
+
+        _tw = sorted(v["views"] for v in this_week if "error" not in v)
+        _lw = sorted(v["views"] for v in last_week if "error" not in v)
+        _med = lambda a: (a[len(a)//2] if len(a) % 2 else (a[len(a)//2 - 1] + a[len(a)//2]) / 2) if a else 0
+
+        prompt = f"""You are a YouTube performance REPORTER. Report what the numbers show. Do not invent explanations.
+
+WHAT YOU CANNOT KNOW FROM THIS DATA:
+You are given titles and view counts only. You do NOT have retention, watch time,
+impressions, click-through rate, traffic source, or subscriber counts per video.
+You therefore CANNOT know why any video performed as it did. Never claim a title
+pattern, topic, or format caused a result. On Aug 23 2026 this digest told the
+creator to abandon "The Meeting That..." titles; that exact pattern had produced
+the channel's best video of the month (1,020 views, 62% retention). The digest
+could not see retention and guessed. Do not guess.
+
+CODE CHANGED IN THE LAST 7 DAYS (check this before attributing anything to content):
+{_commits}
+
+MEDIANS (use these for "typical video", not the totals):
+  This week median: {_med(_tw):,.0f} views across {len(_tw)} videos
+  Last week median: {_med(_lw):,.0f} views across {len(_lw)} videos
+A weekly total can double on one lucky video while the typical video is unchanged.
+
+Analyze this channel's weekly performance.
 
 Channel: {channel_info['label']}
 Niche: {channel_info['niche']}
@@ -292,10 +323,22 @@ ALL-TIME TOP 5 VIDEOS (benchmark — emulate these):
 
 Channel totals: {channel_stats.get('subscribers', '?'):,} subscribers, {channel_stats.get('total_views', '?'):,} total views
 
-Respond with EXACTLY 3-5 bullet points. Each bullet must be a specific, actionable recommendation.
-Compare recent videos to the all-time top performers and identify what patterns to replicate or avoid.
-Focus on: title patterns, topic selection, what's working vs not working.
-Be direct. No fluff. Write as if giving advice to a creator who will read this Sunday morning and act on it."""
+Respond with EXACTLY 3-5 bullet points, in this order of preference:
+
+1. OBSERVATIONS the data actually supports. State absolute counts, never a bare
+   percentage. "Median fell 41 -> 12 views (n=7 vs n=6)" not "views down 70%".
+2. If a code commit above could plausibly explain a change, say so and stop there.
+   A pipeline change is a far likelier cause than a title choice.
+3. QUESTIONS worth checking in Studio, phrased as questions.
+4. Only if a pattern holds across MANY videos, a tentative suggestion, explicitly
+   flagged as a guess.
+
+Hard rules:
+- Never assert that a title or topic caused a view count. You cannot see retention.
+- Never recommend abandoning a format on fewer than 5 videos of evidence.
+- If nothing meaningful changed, say "no significant change this week" and stop.
+- Small numbers are noise. Under ~30 views a swing means nothing.
+Be direct and calibrated. The creator acts on this Sunday morning."""
 
         r = client.messages.create(
             model="claude-haiku-4-5-20251001",

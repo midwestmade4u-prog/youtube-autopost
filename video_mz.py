@@ -1000,7 +1000,12 @@ def render_video(script_data: dict[str, Any], out_dir: str | Path) -> dict[str, 
         captioned = work / "captioned.mp4"
         apply_cue_overlays(av_mixed, overlays, captioned)
     else:
-        captioned = av_mixed
+        # Aug 24 2026: same defect class that shipped ~100 days of caption-less
+        # TMF/BSG Shorts. Fail instead of publishing one.
+        raise RuntimeError(
+            f"No caption chunks from {len(word_timings)} word timings -- refusing to "
+            f"render an un-captioned Short. Check edge-tts WordBoundary events."
+        )
 
     # 7. Watermark (MZ corner) → clean master
     master = out_dir / f"{vid_id}_master.mp4"
