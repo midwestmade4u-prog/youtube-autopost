@@ -1555,11 +1555,15 @@ def api_post(path: str, data: dict, timeout: int = 600) -> dict:
     except urllib.error.HTTPError as e:
         # Show the actual error response from Flask
         error_body = e.read().decode()
+        # Aug 25 2026: the raise used to sit INSIDE this try with a bare `except:`
+        # after it, so it caught its own RuntimeError and re-raised the generic
+        # form. That destroyed the "TITLE_VALIDATION_SKIP" prefix the caller
+        # matches on, turning an intentional skip into a red exit-1 run.
         try:
-            error_json = json.loads(error_body)
-            raise RuntimeError(f"Flask error: {error_json.get('error', error_body)}")
-        except:
-            raise RuntimeError(f"Flask error (HTTP {e.code}): {error_body[:200]}")
+            detail = json.loads(error_body).get("error", error_body)
+        except (ValueError, TypeError, AttributeError):
+            detail = f"(HTTP {e.code}) {error_body[:200]}"
+        raise RuntimeError(f"Flask error: {detail}")
 
 
 def api_get(path: str, timeout: int = 30) -> dict:
@@ -2150,14 +2154,17 @@ def main():
                 if "error" in script_resp:
                     raise ValueError(script_resp["error"])
                 script = script_resp["script"]
-            except ValueError as e:
+            except (ValueError, RuntimeError) as e:
+                # api_post raises RuntimeError, not ValueError -- this branch was
+                # unreachable for every Flask error. And the marker is no longer a
+                # prefix once api_post wraps it, so match anywhere.
                 err = str(e)
-                if err.startswith("TITLE_VALIDATION_SKIP"):
+                if "TITLE_VALIDATION_SKIP" in err:
                     # Intentional skip ÃÂ¢ÃÂÃÂ title validator rejected all 3 attempts.
                     # This is EXPECTED behavior, not a code error. Exit 0 (green in GH Actions).
                     print(f"\nÃÂ¢ÃÂÃÂ­ÃÂ¯ÃÂ¸ÃÂ  SKIPPED (title validation): {err}")
                     print("   No video posted this run. This is intentional ÃÂ¢ÃÂÃÂ a bad title is worse than no post.")
-                    append_to_google_sheets(channel, f"[SKIPPED] {err[22:100]}", "", status="Skipped - Title Validation")
+                    append_to_google_sheets(channel, f"[SKIPPED] {err[err.index('TITLE_VALIDATION_SKIP'):][:100]}", "", status="Skipped - Title Validation")
                     sys.exit(0)
                 print(f"ÃÂ¢ÃÂÃÂ Script generation failed: {e}")
                 sys.exit(1)

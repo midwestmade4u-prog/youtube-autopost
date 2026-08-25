@@ -1311,6 +1311,10 @@ def generate_script():
             "Paul's road to Damascus) as a lesson about doctrine or inclusion -- tell it as a scene "
             "with a specific person, place, and physical turning point. A vision or instruction alone "
             "is NOT a story; it needs a concrete physical moment paired with it. ***"
+            "\n*** TITLE FORMAT (changed Aug 2026): the title is the story's tension "
+            "in plain words, 60 characters or fewer, NO pipe (|) characters, no "
+            "channel branding. The old '| Bible Story for Kids | Bible Story Garden' "
+            "suffix is retired. Example: \"A Hand Wrote His Doom on the Wall\" ***"
         )
         cta_instruction = ""
     system_prompt = f"""You are a short-form video script writer optimized for YouTube Shorts (60 seconds).
@@ -1419,20 +1423,23 @@ Rules:
                 # likely actual route for the 3 format-breaking titles confirmed
                 # in the Jul 19 2026 weekly review (none of them match any entry
                 # in the automated BSG_TOPICS pool).
-                title_ok = (
-                    "| Bible Story for Kids | Bible Story Garden" in title
-                    and len(title) <= 100
-                )
+                # Aug 25 2026: the branding suffix is retired (PR#6). It ate 44 of
+                # 73 characters and never rendered in the Shorts feed. PR#6 only
+                # updated auto_post.py's copy of this rule, which the live path
+                # never calls -- so this gate kept rejecting correct titles and
+                # BSG run #93 failed all 3 attempts. Same rule as auto_post.py now.
+                title_ok = ("|" not in title and 0 < len(title) <= 60)
                 if title_ok:
                     break
                 extra_constraints = (
-                    f"\n\nIMPORTANT â your previous draft was REJECTED. "
+                    f"\n\nIMPORTANT -- your previous draft was REJECTED. "
                     f"Title was: \"{title}\"\n"
-                    f"The BSG title MUST follow this EXACT format: "
-                    f"[Story Name] [single emoji] | Bible Story for Kids | Bible Story Garden\n"
-                    f"Examples: \"Noah's Ark ð | Bible Story for Kids | Bible Story Garden\"\n"
-                    f"          \"David vs Goliath âï¸ | Bible Story for Kids | Bible Story Garden\"\n"
-                    f"Rewrite the title to match this format exactly."
+                    f"The BSG title must be the story's tension in plain words, "
+                    f"60 characters or fewer, with NO pipe (|) characters and no "
+                    f"channel branding of any kind.\n"
+                    f"Examples: \"A Hand Wrote His Doom on the Wall\"\n"
+                    f"          \"He Spent the Night in a Den of Lions\"\n"
+                    f"Rewrite the title to match."
                 )
             else:
                 break  # other channels accept first valid JSON
@@ -1444,10 +1451,7 @@ Rules:
             if channel == "tmf":
                 final_ok = final_title.lower().startswith("why you") or final_title.lower().startswith("why your")
             else:
-                final_ok = (
-                    "| Bible Story for Kids | Bible Story Garden" in final_title
-                    and len(final_title) <= 100
-                )
+                final_ok = ("|" not in final_title and 0 < len(final_title) <= 60)
             if not final_ok:
                 return jsonify({"error": f"TITLE_VALIDATION_SKIP: all {max_attempts} attempts failed â last title: \"{final_title}\""}), 422
 
