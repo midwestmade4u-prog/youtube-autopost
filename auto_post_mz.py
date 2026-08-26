@@ -126,6 +126,55 @@ ONE_BAD_DAY_TOPICS = [
     "Smith Corona — Jul 5, 1995 — Chapter 11; the typewriter company that watched the PC arrive",
     "Peloton — May 5, 2021 — recalls the Tread+ after one child's death and 70+ injuries, three weeks after publicly calling the CPSC's urgent warning inaccurate and misleading",
     "Tower Records — Aug 20, 2006 — Chapter 11 filing; a court-ordered liquidation follows in October",
+
+    # Added Aug 26 2026 — the 47-topic bank hit zero and the run failed with
+    # TopicBankExhausted. That guard was right; the bank was just empty. One
+    # topic is consumed permanently per day, so this is roughly six weeks.
+    "Nokia — Feb 11, 2011 — the 'burning platform' memo, then betting the whole company on Windows Phone",
+    "BlackBerry — Jan 9, 2007 — RIM's engineers watch the iPhone keynote and conclude the battery math is impossible",
+    "Netscape — Nov 24, 1998 — sold to AOL after deciding to rewrite the browser from scratch",
+    "Excite — 1999 — passing on the chance to buy Google for $750,000",
+    "Friendster — 2003 — turning down Google's offer while the site took 40 seconds to load",
+    "Digg — Aug 19, 2010 — the v4 redesign ships and the users leave for Reddit inside a week",
+    "Barings Bank — Feb 26, 1995 — a 233-year-old bank discovers what one trader in Singapore had hidden",
+    "WorldCom — Jun 25, 2002 — announcing $3.8B of ordinary expenses booked as capital",
+    "Wirecard — Jun 18, 2020 — the auditors report that €1.9B in escrow does not exist",
+    "Nikola — Sep 10, 2020 — the short-seller report, and the truck that was rolling downhill",
+    "Swissair — Oct 2, 2001 — the Grounding: the national airline's fleet stops where it stands",
+    "Nortel — Jan 14, 2009 — bankruptcy for a company that had been a third of Canada's stock index",
+    "HP — Aug 18, 2011 — one day: killing the TouchPad after 49 days and agreeing to buy Autonomy for $11B",
+    "Polaroid — Oct 12, 2001 — Chapter 11 for the company that invented instant photography",
+    "Atari — Dec 7, 1982 — the earnings warning that ended the first video game boom",
+    "Commodore — Apr 29, 1994 — liquidation, a few years after the Amiga outsold everything",
+    "DeLorean Motor Company — Oct 19, 1982 — the founder's arrest, with the factory already failing",
+    "Sega — Jan 31, 2001 — leaving the hardware business after the Dreamcast",
+    "Sun Microsystems — Apr 20, 2009 — sold to Oracle for less than it once earned in a quarter",
+    "Toshiba — 2006 — buying Westinghouse, the deal that nearly ended the company a decade later",
+    "Silicon Valley Bank — Mar 8, 2023 — announcing a $1.8B loss and a capital raise in the same press release",
+    "Signature Bank — Mar 12, 2023 — closed by regulators two days after SVB",
+    "First Republic — May 1, 2023 — seized and sold to JPMorgan before the market opened",
+    "Washington Mutual — Sep 25, 2008 — the largest bank failure in US history",
+    "AIG — Sep 16, 2008 — the $85B emergency loan against 79.9% of the company",
+    "Northern Rock — Sep 14, 2007 — the first run on a British bank in 140 years",
+    "Merrill Lynch — Sep 14, 2008 — sold to Bank of America over a single weekend",
+    "Countrywide — Jan 11, 2008 — the fire sale that made Bank of America own the subprime crisis",
+    "Archegos Capital — Mar 26, 2021 — the margin calls that cost the banks over $10B",
+    "Credit Suisse — Mar 19, 2023 — a 167-year-old bank sold to its rival in a weekend",
+    "Mt. Gox — Feb 24, 2014 — the exchange goes dark with 850,000 bitcoin unaccounted for",
+    "Terra and Luna — May 9, 2022 — the stablecoin that stopped being stable",
+    "Celsius Network — Jun 12, 2022 — freezing withdrawals for 1.7 million customers",
+    "Three Arrows Capital — Jun 27, 2022 — the default notice that took the lenders with it",
+    "Volkswagen — Sep 18, 2015 — the EPA notice that named the defeat device",
+    "Equifax — Sep 7, 2017 — disclosing a breach that came through a patch skipped in March",
+    "Target — Dec 19, 2013 — 40 million cards taken through an air-conditioning vendor's login",
+    "Robinhood — Jan 28, 2021 — restricting buys on GameStop, on the app built for buying",
+    "Better.com — Dec 1, 2021 — firing 900 people on one Zoom call",
+    "Juicero — Apr 19, 2017 — the video of two hands squeezing the packet",
+    "Zenefits — Feb 2016 — the browser macro built to skip the insurance licensing hours",
+    "Tumblr — Dec 3, 2018 — banning adult content and losing a third of its traffic",
+    "Netflix — Sep 18, 2011 — the Qwikster announcement, three months after the price split",
+    "Tropicana — Jan 2009 — the new carton that dropped sales 20% in two months",
+    "Gap — Oct 4, 2010 — the new logo, withdrawn six days later",
 ]
 # Removed from ONE_BAD_DAY (Apr 30 2026 cleanup):
 # - Barings Bank (UK), Société Générale (France), Swissair (Switzerland),
@@ -497,8 +546,12 @@ def pick_topic(format_letter: str) -> tuple[str, str]:
     # With a hard ever-block the bank drains permanently, so warn BEFORE the
     # exhaustion path forces a compromise.
     if 0 < len(available) <= MZ_LOW_POOL_THRESHOLD:
-        print(f"  🟡 TOPIC BANK LOW — only {len(available)} unused, never-posted "
-              f"topic(s) left for Format {format_letter}. Add new topics soon.")
+        # ::warning:: so this lands as an annotation on the Actions run summary.
+        # Aug 26 2026: the bank drained to zero and nobody saw this line, because
+        # a plain print only exists inside a log nobody opens on a green run.
+        print(f"::warning::MZ TOPIC BANK LOW -- only {len(available)} unused, "
+              f"never-posted topic(s) left for Format {format_letter}. "
+              f"Format A burns one per day. Add new topics now.")
 
     if not available:
         # Clear this format's used-set — a topic may be marked used without ever
