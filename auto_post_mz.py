@@ -214,6 +214,19 @@ UNKNOWN_FAILURE_TOPICS_TIER1 = [
     # Corrected: the causal order is the reverse of how this is usually told.
     # Drexel went bankrupt Feb 13 1990, ten weeks BEFORE Milken's guilty plea.
     "Drexel Burnham Lambert — Feb 13, 1990 — Wall Street's most profitable firm files for bankruptcy; ten weeks later junk bond king Michael Milken pleads guilty to six felonies",
+
+    # Added Aug 26 2026. Checked against all four MZ pools -- the ever-block
+    # is global, so a company used by one format is gone for the others.
+    "Olympus / Michael Woodford — Oct 14, 2011 — the new CEO asks about $1.7B in advisory fees and is fired two weeks in",
+    "Valeant — Oct 21, 2015 — a short-seller names the mail-order pharmacy Valeant secretly controlled",
+    "Freddie Mac — Jun 9, 2003 — the CEO, CFO and COO all leave over earnings that were smoothed, not inflated",
+    "Computer Associates / Sanjay Kumar — 2004 — the '35-day month' that held quarters open until the numbers arrived",
+    "Société Générale / Jérôme Kerviel — Jan 24, 2008 — €4.9B unwound in three days from one trader's hidden positions",
+    "JPMorgan / the London Whale — May 10, 2012 — a hedge meant to reduce risk loses $6.2B instead",
+    "Kobe Steel — Oct 8, 2017 — admitting it had falsified strength data on metal sold for a decade",
+    "Takata — Jan 13, 2017 — pleading guilty over airbag inflators the company knew could fire shrapnel",
+    "Turing Pharmaceuticals / Martin Shkreli — Sep 2015 — a 62-year-old drug goes from $13.50 to $750 overnight",
+    "Qwest / Joe Nacchio — 2002 — booking one-time capacity swaps as recurring revenue while selling his own shares",
 ]
 
 # Tier 2 — lesser-known names, stories are insane; hook must lead with the unbelievable fact
@@ -247,6 +260,16 @@ UNKNOWN_FAILURE_TOPICS_TIER2 = [
     "Waste Management — 1998 — a $1.7B restatement, the largest in US history at the time",
     "Stanford Financial / Allen Stanford — Feb 17, 2009 — SEC charges a $7B Ponzi built on certificates of deposit from his Antiguan bank",
     "DHB Industries / David Brooks — Oct 2007 — the body armor maker's CEO is arrested for looting the company; he had thrown a $10M bat mitzvah",
+
+    # Added Aug 26 2026. Checked against all four MZ pools -- the ever-block
+    # is global, so a company used by one format is gone for the others.
+    "Livent / Garth Drabinsky — Aug 1998 — the new owners open the books and find a second set",
+    "Petters Group / Tom Petters — Sep 24, 2008 — an executive wears a wire and a $3.65B Ponzi unwinds",
+    "Scott Rothstein — Oct 2009 — a $1.2B Ponzi built on legal settlements that did not exist",
+    "Sino-Forest — Jun 2, 2011 — a short-seller reports that the timber it owns cannot be found",
+    "Longtop Financial — May 2011 — the auditor resigns and says staff seized its working papers",
+    "Diamond Foods — Feb 2012 — walnut payments booked into whichever year needed them",
+    "Bayou Hedge Fund — 2005 — the accounting firm that signed the audits was invented by the founders",
 ]
 
 NEAR_DEATH_TOPICS = [
@@ -297,6 +320,21 @@ NEAR_DEATH_TOPICS = [
     "Uber — 2017 — a year of scandals ends with Travis Kalanick out in June and Dara Khosrowshahi in by August",
     "Papa John's — Jul 11, 2018 — founder John Schnatter resigns as chairman after Forbes reports he used a racial slur on a conference call; the brand rebuild follows",
     "Dell — Oct 29, 2013 — Michael Dell and Silver Lake complete a $24.9B buyout to take the company private and fix it away from public markets",
+
+    # Added Aug 26 2026. Checked against all four MZ pools -- the ever-block
+    # is global, so a company used by one format is gone for the others.
+    "Lego — 2004 — a 35-year-old outsider takes over a company losing money on nearly every set it sells",
+    "Nintendo — 2014 — the Wii U stalls and Nintendo posts its first operating loss in three decades",
+    "Nvidia — 1996 — the NV1 fails and there is money in the bank for exactly one more chip",
+    "Pixar — 1991 — weeks from shutdown when Disney signs a three-picture deal",
+    "Fujifilm — 2000 — film revenue starts falling off a cliff and the company bets on chemicals and cosmetics",
+    "Sony — 2012 — a $6.4B annual loss, credit downgraded to near junk, and a new CEO selling the buildings",
+    "Gucci — 1993 — the last family shareholder sells out with the brand sitting on discount racks",
+    "Hertz — May 22, 2020 — Chapter 11 with the fleet parked, then a share rally nobody could explain",
+    "GameStop — Jan 2021 — days from a restructuring conversation when the share price went vertical",
+    "Burberry — 2006 — the check had become a liability and the brand had to buy back its own licences",
+    "Aston Martin — 1992 — production falls below 50 cars for the year",
+    "Porsche — 1992 — down to weeks of cash before the factory was rebuilt around Toyota's methods",
 ]
 # Removed from NEAR_DEATH (Apr 30 2026 cleanup):
 # - Marvel → already posted Apr 28, removed to prevent duplicate
