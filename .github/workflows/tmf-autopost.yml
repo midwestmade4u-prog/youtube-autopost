@@ -5,7 +5,7 @@ on:
     # Jul 5 2026: 1x/day, every day (7/wk) -- Matt wants a daily-minimum floor
     # per channel. Dropped the 2nd/evening slot (was 14/wk) but kept full 7-day
     # coverage rather than the analytics-review's suggested Mon-Sat/6-wk cut.
-    - cron: '0 13 * * *'
+    - cron: '17 13 * * *'
   workflow_dispatch:
 
 jobs:

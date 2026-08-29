@@ -76,14 +76,33 @@ jobs:
 
       - name: Commit dedup log + post log
         if: always()
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config --local user.email "automation@youtube.local"
           git config --local user.name "YouTube AutoPost Bot"
-          git pull --rebase "https://x-access-token:${{ secrets.GH_PAT }}@github.com/midwestmade4u-prog/youtube-autopost.git" main || true
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/midwestmade4u-prog/youtube-autopost.git
           git add auto_post_log.json tmf_longform_queue.json tmf_longform_posted.json \
             pexels_used_tmf_longform.json 2>/dev/null || true
-          git commit -m "TMF long-form post - $(date)" || true
-          git push "https://x-access-token:${{ secrets.GH_PAT }}@github.com/midwestmade4u-prog/youtube-autopost.git" HEAD:main || true
+          git diff --cached --quiet && echo "Nothing to commit, skipping" && exit 0
+          # Aug 29 2026: this step ended in `git pull || true`, `git commit || true`
+          # and `git push || true`, so a failure at any stage was swallowed and the
+          # TMF long-form dedup ledger never reached origin -- the same defect
+          # fixed for BSG and MZ on Aug 24. TMF was the untouched third twin, so
+          # its long-form topics could repeat. Commit locally FIRST so a rebase
+          # has something to replay, then retry pull+push, then fail LOUD.
+          git commit -m "TMF long-form post - $(date)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push; then
+              echo "Pushed TMF long-form dedup-log commit on attempt $i"
+              exit 0
+            fi
+            echo "Push attempt $i failed (likely concurrent run) -- retrying"
+            git rebase --abort 2>/dev/null || true
+            sleep $(( (RANDOM % 15) + 5 ))
+          done
+          echo "::error::TMF long-form dedup-log commit FAILED to push after 5 attempts -- this post will NOT be recorded and the topic may repeat."
+          exit 1
 
       - name: Upload logs to artifacts
         if: always()

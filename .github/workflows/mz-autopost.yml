@@ -5,7 +5,7 @@ on:
     # Jul 5 2026: 1x/day, every day (7/wk) -- Matt wants a daily-minimum floor
     # per channel. Dropped the evening slot (was 14/wk) but kept full 7-day
     # coverage rather than the analytics-review's suggested Mon/Wed/Fri/Sun cut.
-    - cron: '0 14 * * *'
+    - cron: '23 14 * * *'
   workflow_dispatch:
     inputs:
       format:
@@ -62,6 +62,15 @@ jobs:
           MZ_VOICE:         ${{ vars.MZ_VOICE || 'en-US-ChristopherNeural' }}
         run: |
           ARGS=""
+          # Aug 29 2026: format used to be derived from the runner's wall clock.
+          # Actions began firing 6-10h late on Aug 27, pushing this run past noon
+          # CT, and pick_format_for_slot() then silently chose Format B/C. Three
+          # consecutive MZ posts consumed B/C while the 92-topic Format A bank
+          # sat idle. A scheduled run must use the slot its cron names: MZ has
+          # exactly one cron, 14:00 UTC = 09:00 CT, which is the Format A slot.
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            ARGS="--format A"
+          fi
           [ -n "${{ github.event.inputs.format }}" ] && ARGS="--format ${{ github.event.inputs.format }}"
           [ -n "${{ github.event.inputs.topic }}" ]  && ARGS="$ARGS --topic \"${{ github.event.inputs.topic }}\""
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && ARGS="$ARGS --dry-run"
