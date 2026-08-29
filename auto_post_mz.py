@@ -693,29 +693,67 @@ def append_to_google_sheets(title: str, url: str, format_tag: str) -> None:
         print(f"  ⚠️  Sheets logging failed: {str(e)[:100]}")
 
 
-def mark_mz_posted(topic: str, title: str, video_url: str, format_tag: str) -> None:
+def mark_mz_posted(topic: str, title: str, video_url: str, format_tag: str,
+                   narration_sec: float | None = None,
+                   narration_words: int | None = None) -> None:
     log = _load_log()
     log.setdefault("mz_topics_used", []).append(topic)
-    log.setdefault("posts", []).append({
+    entry = {
         "channel":    "mz",
         "format":     format_tag,
         "topic":      topic,
         "title":      title,
         "url":        video_url,
         "posted_at":  time.strftime("%Y-%m-%d %H:%M:%S"),
-    })
+    }
+    # Aug 29 2026: record the MEASURED narration length. Optional so older
+    # callers and the long-form path keep working unchanged. Within two weeks
+    # this gives a real distribution to retune MZ_WORD_TARGETS against, instead
+    # of the single log-scraped sample this patch had to use.
+    if narration_sec is not None:
+        entry["narration_sec"] = round(float(narration_sec), 2)
+    if narration_words is not None:
+        entry["narration_words"] = int(narration_words)
+    log.setdefault("posts", []).append(entry)
     _save_log(log)
 
 
 # ─── MZ Script validators ────────────────────────────────────────────────────
 
-# edge-tts ChristopherNeural speaks at ~2.5 words/sec.
-# Calibrated May 6 2026 from Washington Mutual video (106w → 54.5s = 1.95 wps observed,
-# but script was underfilled; 2.5 wps is the correct target for a properly-filled script).
+# How fast en-US-ChristopherNeural actually speaks an MZ script.
+#
+# MEASURED, three renders:
+#     May  6 2026  Washington Mutual   106 w ->  54.5 s  = 1.945 w/s
+#     Aug 27 2026  Format B render    ~199 w -> 110.4 s  = 1.80  w/s
+#     Aug 29 2026  Sega, Format A      157 w ->  85.58 s = 1.835 w/s
+#
+# The old value here was 2.5 w/s. The old comment recorded the May 6 measurement
+# of 1.95 and then dismissed it ("script was underfilled"). It was not wrong --
+# every render since has confirmed it. MZ house style is short declarative
+# sentences, and each full stop buys a pause, which is why this voice runs well
+# under a conversational 150 wpm. 1.85 w/s = 111 wpm.
+#
+# If you change the voice or add an edge-tts `rate=`, RE-MEASURE. Do not guess:
+# guessing here is what made every duration figure in this file fiction for
+# four months. `narration_sec` in auto_post_log.json is the running record.
+MZ_WORDS_PER_SEC = 1.85
+
+
+def mz_est_seconds(words: int) -> float:
+    """Estimated spoken length of `words` words. Single source of truth."""
+    return words / MZ_WORDS_PER_SEC
+
+
+# Word bands, with their REAL durations at 1.85 w/s.
+# render_qc warns outside 65-115s for (mz, short) -- a band measured from actual
+# Jul 26-Aug 23 exports. Ceilings for B and C were 215 w = 116 s, i.e. the band
+# asked for a video QC would flag. Trimmed to 205 w = 111 s so the top of every
+# band lands inside QC. Floors and Format A are unchanged: current output is
+# mid-band and there is no evidence it should be shorter.
 MZ_WORD_TARGETS = {
-    "one_bad_day":     (130, 165),   # Format A: target 52–66s (floor lowered 140→130 Jun 30 — DeepSeek lands ~137)
-    "unknown_failure": (170, 215),   # Format B: target 68–86s (floor lowered 180→170 Jun 30 — DeepSeek lands ~178)
-    "near_death":      (155, 215),   # Format C: target 62–86s (floor lowered 165→155 Jun 30 to match)
+    "one_bad_day":     (130, 165),   # Format A: 70–89s   (floor lowered 140→130 Jun 30 — DeepSeek lands ~137)
+    "unknown_failure": (170, 205),   # Format B: 92–111s  (ceiling 215→205 Aug 29 — 215w = 116s, over QC's 115s)
+    "near_death":      (155, 205),   # Format C: 84–111s  (ceiling 215→205 Aug 29, same reason)
 }
 
 def mz_script_word_count_ok(script: dict, format_tag: str) -> tuple[bool, int, tuple[int, int]]:
@@ -990,11 +1028,11 @@ def generate_script(topic: str, format_tag: str) -> dict:
 
         problems = []
         if not wc_ok:
-            est_sec = int(word_count / 2.5)
+            est_sec = int(mz_est_seconds(word_count))
             direction = "too long" if word_count > hi else "too short"
             problems.append(
                 f"LENGTH FAIL ({direction}): narration is {word_count} words (~{est_sec}s at edge-tts rate). "
-                f"Must be {lo}–{hi} words (target {int(lo/2.5)}–{int(hi/2.5)}s)."
+                f"Must be {lo}–{hi} words (target {int(mz_est_seconds(lo))}–{int(mz_est_seconds(hi))}s)."
             )
         if not title_ok:
             problems.append(f"TITLE FAIL: {title_reason}")
@@ -1045,7 +1083,8 @@ def generate_script(topic: str, format_tag: str) -> dict:
             "\n\nIMPORTANT — your previous draft was REJECTED:\n- "
             + "\n- ".join(problems)
             + f"\n\nFix ALL issues. The narration (script field) MUST be {lo}–{hi} words. "
-              f"edge-tts speaks at ~2.5 words/sec — {lo}w = ~{int(lo/2.5)}s, {hi}w = ~{int(hi/2.5)}s. "
+              f"edge-tts speaks at ~{MZ_WORDS_PER_SEC} words/sec — {lo}w = ~{int(mz_est_seconds(lo))}s, "
+              f"{hi}w = ~{int(mz_est_seconds(hi))}s. "
             + trim_or_expand
             + length_hint
         )
@@ -1102,7 +1141,7 @@ def append_sub_cta(script_data: dict, topic: str) -> tuple[dict, str | None]:
     script_data["script"] = f"{narration} {cta}"
 
     added = len(cta.split())
-    print(f"  📣 Subscribe CTA appended (+{added}w, ~+{added / 2.5:.1f}s): \"{cta}\"")
+    print(f"  📣 Subscribe CTA appended (+{added}w, ~+{mz_est_seconds(added):.1f}s): \"{cta}\"")
     return script_data, cta
 
 
@@ -1353,7 +1392,13 @@ def main() -> int:
             append_to_google_sheets(f"[SKIPPED] {err[22:100]}", "", format_tag)
             return 0
     print(f"  ✅ Title: {script_data['title']}")
-    print(f"  ✅ Duration target: {script_data.get('target_duration_sec', '?')}s")
+    # `target_duration_sec` arrives from the LLM and nothing has ever validated
+    # it -- video_mz.py measured the real duration, printed it next to this
+    # number, and ignored the gap. Overwrite it with our own estimate so the
+    # comparison downstream is against something we actually believe.
+    _est = mz_est_seconds(len((script_data.get("script") or "").split()))
+    script_data["target_duration_sec"] = round(_est, 1)
+    print(f"  ✅ Duration target: {_est:.0f}s (estimated at {MZ_WORDS_PER_SEC} w/s)")
     # Hook rotation telemetry (v3 → v4): log each variant's style + validity.
     # A variant's `hook` may legitimately be null if the LLM couldn't generate
     # that style; we surface those so v4 weighting can trust the data.
@@ -1428,7 +1473,9 @@ def main() -> int:
     post_mz_channel_comment(video_url.split("/")[-1], topic)
 
     # 5. Log
-    mark_mz_posted(topic, script_data["title"], video_url, format_tag)
+    mark_mz_posted(topic, script_data["title"], video_url, format_tag,
+                   narration_sec=result.get("narration_sec"),
+                   narration_words=result.get("narration_words"))
     append_to_google_sheets(script_data["title"], video_url, format_tag)
 
     # 6. Post TikTok variant (if TIKTOK_ACCESS_TOKEN is set)

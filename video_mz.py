@@ -932,7 +932,18 @@ def render_video(script_data: dict[str, Any], out_dir: str | Path) -> dict[str, 
     _log("generating narration ...")
     narration, word_timings = generate_narration(script, narration)
     actual_dur = _ffprobe_duration(narration)
+    n_words = len(script.split())
     _log(f"narration duration: {actual_dur:.1f}s (target {target_dur:.0f}s), {len(word_timings)} words timed")
+    _log(f"measured rate: {n_words / actual_dur:.3f} words/sec over {n_words} words")
+    # Aug 29 2026: this comparison existed and did nothing. The estimate was
+    # 35% fast for four months and no run ever said so. Anything past 25% means
+    # the words-per-second constant in auto_post_mz.py needs re-measuring.
+    if target_dur > 0 and abs(actual_dur - target_dur) / target_dur > 0.25:
+        msg = (f"MZ narration is {actual_dur:.1f}s against a {target_dur:.0f}s estimate "
+               f"({(actual_dur - target_dur) / target_dur:+.0%}). Measured "
+               f"{n_words / actual_dur:.2f} w/s vs the assumed rate. Re-measure "
+               f"MZ_WORDS_PER_SEC in auto_post_mz.py.")
+        print(f"::warning::{msg}" if os.getenv("GITHUB_ACTIONS") == "true" else f"WARNING: {msg}")
 
     # 2. Carve beats + distribute queries
     windows = carve_beat_windows(actual_dur)
@@ -1048,6 +1059,11 @@ def render_video(script_data: dict[str, Any], out_dir: str | Path) -> dict[str, 
         "ig_path":        str(ig_path),
         "thumb_path":     str(thumb_path),
         "narration_path": str(narration),
+        # Aug 29 2026: surfaced so auto_post_mz can record it. Nothing has ever
+        # persisted a duration, which is why retuning had to rely on one sample
+        # scraped out of a run log.
+        "narration_sec":   round(actual_dur, 2),
+        "narration_words": n_words,
     }
 
 
