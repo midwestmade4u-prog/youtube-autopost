@@ -1283,6 +1283,14 @@ def main() -> int:
             # Central Time is UTC-5 (CDT) or -6 (CST). Use -5 as conservative default for daylight savings.
             ct = now - dt.timedelta(hours=5)
             fmt = pick_format_for_slot(ct.weekday(), ct.hour)
+            # Aug 29 2026: this fallback reads the clock at EXECUTION time, which
+            # is only the intended slot if the runner started on time. It did not
+            # between Aug 27-29. Scheduled runs now pass --format explicitly; if
+            # we still land here on CI, say so instead of silently guessing.
+            if os.getenv("GITHUB_ACTIONS") == "true":
+                print(f"::warning::MZ format {fmt} was derived from the wall clock "
+                      f"({ct:%Y-%m-%d %H:%M} CT), not from an explicit slot. If this "
+                      f"run started late, the format may not match its cron.")
         topic, format_tag = pick_topic(fmt)
 
     print(f"\n📖 Format: {format_tag}")

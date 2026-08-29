@@ -55,6 +55,8 @@ jobs:
 
       - name: Commit longform queues + post logs
         if: always()
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -70,7 +72,20 @@ jobs:
             bsg_longform_posted.json 2>/dev/null || true
           git diff --cached --quiet || \
             git commit -m "chore: channel monitor — update longform queues + logs [skip ci]"
-          git push origin HEAD:main || true
+          # Aug 29 2026: this was a bare `git push origin HEAD:main || true` with
+          # no credentials, so the monitor's queue and log updates silently never
+          # reached main. Authenticate, and fail loudly rather than pretending.
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/midwestmade4u-prog/youtube-autopost.git
+          for i in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              echo "Channel-monitor state pushed on attempt $i"
+              exit 0
+            fi
+            git rebase --abort 2>/dev/null || true
+            sleep $(( (RANDOM % 10) + 5 ))
+          done
+          echo "::error::channel-monitor FAILED to push queue/log updates after 3 attempts."
+          exit 1
 
       - name: Upload monitor log
         if: always()

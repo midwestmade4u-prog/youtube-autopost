@@ -6,7 +6,7 @@ on:
     # Cadence cut Jul 5 2026: dropped 7PM slot -- this workflow is now the ONLY
     # BSG poster (youtube-autopost.yml's BSG job disabled same day -- it was
     # duplicate-posting alongside this file, ~21/wk combined vs 7/wk expected).
-    - cron: '0 17 * * *'
+    - cron: '19 17 * * *'
   workflow_dispatch:
 
 jobs:
