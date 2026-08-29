@@ -133,13 +133,9 @@ ONE_BAD_DAY_TOPICS = [
     "Nokia — Feb 11, 2011 — the 'burning platform' memo, then betting the whole company on Windows Phone",
     "BlackBerry — Jan 9, 2007 — RIM's engineers watch the iPhone keynote and conclude the battery math is impossible",
     "Netscape — Nov 24, 1998 — sold to AOL after deciding to rewrite the browser from scratch",
-    "Excite — 1999 — passing on the chance to buy Google for $750,000",
     "Friendster — 2003 — turning down Google's offer while the site took 40 seconds to load",
     "Digg — Aug 19, 2010 — the v4 redesign ships and the users leave for Reddit inside a week",
-    "Barings Bank — Feb 26, 1995 — a 233-year-old bank discovers what one trader in Singapore had hidden",
     "Wirecard — Jun 18, 2020 — the auditors report that €1.9B in escrow does not exist",
-    "Swissair — Oct 2, 2001 — the Grounding: the national airline's fleet stops where it stands",
-    "Nortel — Jan 14, 2009 — bankruptcy for a company that had been a third of Canada's stock index",
     "HP — Aug 18, 2011 — one day: killing the TouchPad after 49 days and agreeing to buy Autonomy for $11B",
     "Commodore — Apr 29, 1994 — liquidation, a few years after the Amiga outsold everything",
     "DeLorean Motor Company — Oct 19, 1982 — the founder's arrest, with the factory already failing",
@@ -149,21 +145,17 @@ ONE_BAD_DAY_TOPICS = [
     "Silicon Valley Bank — Mar 8, 2023 — announcing a $1.8B loss and a capital raise in the same press release",
     "Signature Bank — Mar 12, 2023 — closed by regulators two days after SVB",
     "First Republic — May 1, 2023 — seized and sold to JPMorgan before the market opened",
-    "Northern Rock — Sep 14, 2007 — the first run on a British bank in 140 years",
     "Merrill Lynch — Sep 14, 2008 — sold to Bank of America over a single weekend",
-    "Archegos Capital — Mar 26, 2021 — the margin calls that cost the banks over $10B",
     "Credit Suisse — Mar 19, 2023 — a 167-year-old bank sold to its rival in a weekend",
     "Mt. Gox — Feb 24, 2014 — the exchange goes dark with 850,000 bitcoin unaccounted for",
     "Terra and Luna — May 9, 2022 — the stablecoin that stopped being stable",
     "Celsius Network — Jun 12, 2022 — freezing withdrawals for 1.7 million customers",
-    "Three Arrows Capital — Jun 27, 2022 — the default notice that took the lenders with it",
     "Volkswagen — Sep 18, 2015 — the EPA notice that named the defeat device",
     "Equifax — Sep 7, 2017 — disclosing a breach that came through a patch skipped in March",
     "Target — Dec 19, 2013 — 40 million cards taken through an air-conditioning vendor's login",
     "Robinhood — Jan 28, 2021 — restricting buys on GameStop, on the app built for buying",
     "Better.com — Dec 1, 2021 — firing 900 people on one Zoom call",
     "Juicero — Apr 19, 2017 — the video of two hands squeezing the packet",
-    "Zenefits — Feb 2016 — the browser macro built to skip the insurance licensing hours",
     "Tumblr — Dec 3, 2018 — banning adult content and losing a third of its traffic",
     "Tropicana — Jan 2009 — the new carton that dropped sales 20% in two months",
     "Gap — Oct 4, 2010 — the new logo, withdrawn six days later",
@@ -171,13 +163,8 @@ ONE_BAD_DAY_TOPICS = [
     # Replacements for 8 topics dropped Aug 26 2026: they named companies
     # already present in the Format B/C pools, and the MZ ever-block is global,
     # so whichever format published first would have killed the other entry.
-    "Parmalat — Dec 19, 2003 — Bank of America says the €3.9B account in its name does not exist",
-    "Satyam — Jan 7, 2009 — the chairman's resignation letter confessing to a fabricated $1B balance",
     "Luckin Coffee — Apr 2, 2020 — disclosing that roughly $310M of its sales were invented",
-    "Steinhoff — Dec 5, 2017 — the CEO resigns overnight and the shares lose 90% in two days",
-    "Bre-X — Mar 19, 1997 — the geologist falls from a helicopter and the gold was never there",
     "Thomas Cook — Sep 23, 2019 — 178 years old, and 150,000 travellers wake up stranded",
-    "Refco — Oct 10, 2005 — disclosing a hidden $430M receivable two months after the IPO",
     "Solyndra — Aug 31, 2011 — shutting down with $535M of federal loan guarantees drawn",
 ]
 # Removed from ONE_BAD_DAY (Apr 30 2026 cleanup):
@@ -1311,11 +1298,24 @@ def main() -> int:
             _save_log(log)
             print(f"   📝 Marked skipped topic as used: {t[:60]}")
 
+    # Aug 29 2026: a topic the generator REFUSES is a recoverable skip, but it
+    # does not arrive as ValueError/TITLE_VALIDATION_SKIP. When both LLM backends
+    # reject the topic itself ("Gate 1 failed; X is not a household name") the
+    # raise is RuntimeError("Both LLM backends failed. ..."), which this handler
+    # did not catch -- so _mark_topic_used() never ran, the topic stayed in the
+    # pool to fail again forever, and the Format B fallback never fired. Match on
+    # the REJECTION MARKER, not the exception class. A real infrastructure
+    # failure (missing key, network down) carries no marker and still raises.
+    _TOPIC_REJECTED = ("TITLE_VALIDATION_SKIP", "topic_rejected", "self-rejected")
+
+    def _is_topic_rejection(msg: str) -> bool:
+        return any(m in msg for m in _TOPIC_REJECTED)
+
     try:
         script_data = generate_script(topic, format_tag)
-    except ValueError as e:
+    except (ValueError, RuntimeError) as e:
         err = str(e)
-        if not err.startswith("TITLE_VALIDATION_SKIP"):
+        if not _is_topic_rejection(err):
             raise
 
         # Primary format failed — mark topic used and try Format B fallback
@@ -1337,9 +1337,9 @@ def main() -> int:
                 format_tag = fb_format_tag
                 topic = fb_topic
                 print(f"   ✅ Fallback succeeded — posting Format B instead")
-            except ValueError as e2:
+            except (ValueError, RuntimeError) as e2:
                 err2 = str(e2)
-                if err2.startswith("TITLE_VALIDATION_SKIP"):
+                if _is_topic_rejection(err2):
                     _mark_topic_used(fb_topic)
                     print(f"\n⏭️  SKIPPED — both primary and fallback failed.")
                     append_to_google_sheets(
