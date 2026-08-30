@@ -587,8 +587,11 @@ def send_digest_email(all_channel_data: list[dict], week_label: str) -> bool:
             {mono_rows}
           </table>
           <p style="font-size:11px;color:#999;margin:10px 0 0 0">
-            Watch hours estimated from view × duration × completion rate. Sub ETA based on this week's view pace.
-            MZ targets Tier-1 (500 subs). TMF + BSG target full YPP (1,000 subs + 4,000 hrs).
+            Long-form watch hours only, estimated from view × duration × assumed completion.
+            Shorts watch time is excluded — it does not count toward this threshold; Shorts have a
+            separate path (3M views/90d for Tier-1, 10M for full YPP). Sub ETA uses the channel's own
+            measured views-per-subscriber. MZ targets Tier-1 (500 subs); TMF targets full YPP (1,000).
+            Bible Story Garden was retired 2026-08-30.
           </p>
         </div>"""
 
@@ -632,6 +635,11 @@ def send_digest_email(all_channel_data: list[dict], week_label: str) -> bool:
 
 # ─── Monetization tracker ─────────────────────────────────────────────────────
 
+# A video of this length or shorter is a Short. Its watch time does not count
+# toward the YPP watch-hour thresholds.
+SHORTS_MAX_SECONDS = 180
+
+
 def estimate_watch_hours(videos_with_duration: list[dict]) -> float:
     """Estimate total watch hours from video list (duration × views × 0.5 completion).
     Requires videos fetched with contentDetails part (duration field).
@@ -652,8 +660,18 @@ def estimate_watch_hours(videos_with_duration: list[dict]) -> float:
         s = int(m.group(3) or 0)
         dur_sec = h * 3600 + mn * 60 + s
         views = v.get("views", 0)
-        # Shorts (<= 90s): ~50% completion; Long-form (> 90s): ~40% completion
-        completion = 0.50 if dur_sec <= 90 else 0.40
+        # Aug 30 2026: SHORTS ARE EXCLUDED. YouTube Help, verbatim: "any qualified
+        # watch hours from Shorts views in the Shorts Feed won't count towards the
+        # 4,000 qualified watch hours threshold." Shorts are a separate path
+        # (3M views/90d for Tier-1, 10M for full YPP), not a contributor.
+        #
+        # Until now this summed ALL watch time and compared it to the watch-hour
+        # bar. MZ is ~99% Shorts, so the email reported it near the threshold when
+        # the qualifying figure is under 1%. Measured Aug 30: 161.5 Shorts hrs vs
+        # 1.95 long-form hrs. Only the 1.95 counts.
+        if dur_sec <= SHORTS_MAX_SECONDS:
+            continue
+        completion = 0.40
         total_seconds += views * dur_sec * completion
     return total_seconds / 3600.0   # convert to hours
 
@@ -705,14 +723,17 @@ def monetization_status_full(ch_cfg: dict, subscribers: int, est_watch_hours: fl
 
     one_liner = (
         f"🎯 {subscribers:,}/{sub_target:,} subs {tier_note} ({sub_pct}%) | "
-        f"~{wh_annual:,.0f}/{wh_target:,} watch hrs/yr ({wh_pct}%) | "
+        f"~{wh_annual:,.0f}/{wh_target:,} LONG-FORM watch hrs/yr ({wh_pct}%) | "
         f"{sub_eta}"
     )
 
     detail_lines = [
         f"Subscribers:   {subscribers:,} / {sub_target:,} {tier_note} — {sub_pct}% — {sub_eta}",
-        f"Watch hours:   ~{wh_annual:,.0f} / {wh_target:,} hrs per year — {wh_pct}%",
-        f"               Basis: {est_watch_hours:.0f} hrs from videos published in the last "
+        f"Watch hours:   ~{wh_annual:,.0f} / {wh_target:,} LONG-FORM hrs per year — {wh_pct}%",
+        f"               Shorts watch time is EXCLUDED — it does not count toward this "
+        f"threshold. Shorts have their own separate path: 3M views/90d (Tier-1) or "
+        f"10M views/90d (full YPP).",
+        f"               Basis: {est_watch_hours:.0f} long-form hrs from videos published in the last "
         f"{window_days} days, projected to 365. Estimated as views × duration × "
         f"assumed completion (50% Shorts / 40% long-form) — NOT measured retention. "
         f"Videos older than {window_days} days are still earning watch time and are "
