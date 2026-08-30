@@ -8,14 +8,15 @@ name: BSG Watchdog — YouTube API Verification + Auto-Retry
 #
 # BSG shorts slots (UTC): 17:00 (noon CDT) + 00:00 (7PM CDT)
 
+# RETIRED 2026-08-30 -- there is nothing left to watch. Removing this matters:
+# left running it would email an alert every single day for a channel that is
+# deliberately not posting. To resume, restore:
+#   schedule:
+#     - cron: '0 18 * * *'    # T+60min  → retry
+#     - cron: '0 19 * * *'    # T+120min → alert
+#     - cron: '0 1 * * *'     # T+60min  → retry
+#     - cron: '0 2 * * *'     # T+120min → alert
 on:
-  schedule:
-    # ── SHORTS: noon CDT slot (17:00 UTC) ─────────────────────────────────
-    - cron: '0 18 * * *'    # T+60min  → retry
-    - cron: '0 19 * * *'    # T+120min → alert
-    # ── SHORTS: 7 PM CDT slot (00:00 UTC) ─────────────────────────────────
-    - cron: '0 1 * * *'     # T+60min  → retry
-    - cron: '0 2 * * *'     # T+120min → alert
   workflow_dispatch:
     inputs:
       check_type:

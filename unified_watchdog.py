@@ -52,6 +52,12 @@ CHANNELS = {
         "refresh_script":   "refresh_token_bsg.py",
     },
 }
+# --- BSG RETIRED 2026-08-30 ------------------------------------------
+# 38 videos in 28 days -> 499 views, median 3/video, 0 subscribers gained.
+# See project doc youtube_28day_MEASURED_and_ypp_correction_aug30.
+# The config above is left intact on purpose. To bring BSG back, delete
+# the single .pop() line below.
+CHANNELS.pop("bsg", None)
 
 # Per-channel post-log filenames (repo root), used by _channel_posted_today()
 # to tell a benign burst-guard skip apart from a real token/upload failure.
@@ -60,6 +66,12 @@ POST_LOG_FILES = {
     "mz":  "mz_post_log.json",
     "bsg": "bsg_post_log.json",
 }
+# --- BSG RETIRED 2026-08-30 ------------------------------------------
+# 38 videos in 28 days -> 499 views, median 3/video, 0 subscribers gained.
+# See project doc youtube_28day_MEASURED_and_ypp_correction_aug30.
+# The config above is left intact on purpose. To bring BSG back, delete
+# the single .pop() line below.
+POST_LOG_FILES.pop("bsg", None)
 
 
 # ── YouTube API check ─────────────────────────────────────────────────────────

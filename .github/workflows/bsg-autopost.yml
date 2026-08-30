@@ -1,12 +1,12 @@
 name: YouTube Auto-Post - Bible Story Garden
 
+# RETIRED 2026-08-30. Schedule removed; this workflow no longer fires on its own.
+# 38 BSG videos in the 28 days to Aug 30 produced 499 views (median 3/video) and
+# ZERO subscribers. workflow_dispatch is kept so it can still be run by hand.
+# To resume: restore the `schedule:` block below.
+#   schedule:
+#     - cron: '19 17 * * *'   # 12 PM CDT
 on:
-  schedule:
-    # 12 PM CDT = 17:00 UTC  (family audience: afternoon scroll window)
-    # Cadence cut Jul 5 2026: dropped 7PM slot -- this workflow is now the ONLY
-    # BSG poster (youtube-autopost.yml's BSG job disabled same day -- it was
-    # duplicate-posting alongside this file, ~21/wk combined vs 7/wk expected).
-    - cron: '19 17 * * *'
   workflow_dispatch:
 
 jobs:
