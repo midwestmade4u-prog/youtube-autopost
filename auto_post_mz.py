@@ -1156,6 +1156,35 @@ MZ_COMMENT_QUESTIONS = [
 ]
 
 
+def _mz_shorts_affiliate_footer(topic: str) -> str:
+    """Affiliate footer for a SHORT's description.
+
+    Aug 30 2026. Measured against YouTube's public comment listing: of 50 recent
+    MZ + TMF uploads, exactly ONE had a visible comment from the channel. Every
+    affiliate and funnel comment the pipeline logged as "posted" is invisible to
+    viewers. Long-form DESCRIPTIONS render on 8/8. So the description is the only
+    affiliate surface on this channel that is known to reach anybody, and Shorts
+    -- ~16,000 views/month -- had no link on any surface at all.
+
+    IMPORTS the long-form builder instead of copying it. The comment removed from
+    the pinned comment on Aug 2 claimed the link "remains in the video
+    description"; it never did, because that was a claim about a copy nobody
+    checked. One builder, one place to fix.
+
+    Returns "" and shouts on CI if the import fails -- the video is worth more
+    than the footer, but a silently linkless post is exactly what we just spent
+    a day proving we cannot detect.
+    """
+    try:
+        from auto_post_mz_longform import _build_mz_affiliate_footer
+        return _build_mz_affiliate_footer(topic)
+    except Exception as e:
+        msg = (f"MZ Shorts affiliate footer unavailable ({type(e).__name__}: {e}). "
+               f"Posting WITHOUT an affiliate link.")
+        print(f"::error::{msg}" if os.getenv("GITHUB_ACTIONS") == "true" else f"ERROR: {msg}")
+        return ""
+
+
 def post_mz_channel_comment(video_id: str, topic: str = "") -> None:
     """Post the pinned comment on every MZ Short. Pin manually in Studio.
 
@@ -1435,11 +1464,23 @@ def main() -> int:
     tags = [h.lstrip("#") for h in hashtags.split() if h.startswith("#")]
     # Subscribe line sits above the hashtags — visible in the collapsed
     # description on mobile, where most Shorts viewers are. Added Aug 2 2026.
+    # Aug 30 2026: affiliate footer added. See _mz_shorts_affiliate_footer --
+    # the pinned comment is not visible to viewers, the description is.
+    _aff = _mz_shorts_affiliate_footer(topic)
     description = (
         f"{script_data.get('description', '')}\n\n"
-        f"\U0001f4c9 A new business collapse every day — subscribe to Minute Zero.\n\n"
+        f"\U0001f4c9 A new business collapse every day — subscribe to Minute Zero."
+        f"{_aff}\n\n"
         f"{hashtags}"
     ).strip()
+    # Verify the thing we just claimed to add is actually in the string that
+    # goes to YouTube. Cheap, and it is the check whose absence let a false
+    # "it remains in the description" comment survive four weeks.
+    if _aff and "tag=" not in description:
+        m = "MZ Shorts description was built WITHOUT the affiliate tag despite a non-empty footer."
+        print(f"::error::{m}" if os.getenv("GITHUB_ACTIONS") == "true" else f"ERROR: {m}")
+    elif _aff:
+        print("  🔗 Affiliate footer added to the Shorts description")
 
     # ---- Pre-upload QC gate (added Aug 23 2026) -------------------------
     # Blocks unambiguously broken renders. "The Tweet That Killed Vine"
