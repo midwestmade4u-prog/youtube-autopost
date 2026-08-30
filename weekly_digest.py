@@ -300,6 +300,11 @@ could not see retention and guessed. Do not guess.
 CODE CHANGED IN THE LAST 7 DAYS (check this before attributing anything to content):
 {_commits}
 
+COHORT AGE -- do not attribute this to content: "this week" is videos 0-7 days old,
+"last week" is videos 7-14 days old. The newer set has had half the time to gather
+views, so a negative delta is the DEFAULT state of this comparison, not a signal.
+Only call out a decline if it is far larger than that bias would explain.
+
 MEDIANS (use these for "typical video", not the totals):
   This week median: {_med(_tw):,.0f} views across {len(_tw)} videos
   Last week median: {_med(_lw):,.0f} views across {len(_lw)} videos
@@ -403,20 +408,34 @@ def write_to_sheets(all_channel_data: list[dict], week_label: str) -> None:
 
 # ─── Email ────────────────────────────────────────────────────────────────────
 
-def send_digest_email(all_channel_data: list[dict], week_label: str) -> None:
-    """Send Sunday morning exec summary email."""
+def send_digest_email(all_channel_data: list[dict], week_label: str) -> bool:
+    """Send Sunday morning exec summary email. Returns True only if it was sent.
+
+    Aug 30 2026: this returned None and swallowed every exception with a print.
+    Combined with `return 0` in main() and `continue-on-error: true` on the
+    workflow step, a digest that failed to send looked EXACTLY like one that
+    succeeded -- green check, no email, no alert. Three swallow layers on the
+    one job whose entire output is an email. The Aug 24 "make silent failures
+    loud" pass never reached this file.
+    """
     password = os.environ.get("GMAIL_APP_PASSWORD", "").strip()
     if not password:
-        print("  ⚠️  GMAIL_APP_PASSWORD not set — skipping email")
-        return
+        print("::error::GMAIL_APP_PASSWORD not set — the weekly digest CANNOT email.")
+        return False
 
     # Build plain text
-    lines = [f"YouTube Weekly Digest — {week_label}", "=" * 50, ""]
+    lines = [f"YouTube Weekly Digest — {week_label}", "=" * 50, "",
+             "* Read the week-over-week deltas with care: 'this week' is videos 0-7 days",
+             "  old and 'last week' is videos 7-14 days old, so the newer cohort has had",
+             "  half as long to accumulate views and will look worse even when nothing",
+             "  changed. The bias is the same every week, so the TREND in the delta is",
+             "  meaningful; a single week's number is not.",
+             ""]
     for ch in all_channel_data:
         delta = ch["this_views"] - ch["last_views"]
         arrow = "📈" if delta >= 0 else "📉"
         lines.append(f"{arrow} {ch['label']}")
-        lines.append(f"   {ch['this_count']} videos | {ch['this_views']:,} views ({delta:+,} vs last week)")
+        lines.append(f"   {ch['this_count']} videos | {ch['this_views']:,} views ({delta:+,} vs last week*)")
         lines.append(f"   Avg: {ch['this_avg']:.0f} views/video | Subs: {ch['subscribers']:,}")
         lines.append(f"   {ch['monetization_status']}")
         lines.append("")
@@ -599,8 +618,10 @@ def send_digest_email(all_channel_data: list[dict], week_label: str) -> None:
             server.login(FROM_EMAIL, password)
             server.sendmail(FROM_EMAIL, ALERT_EMAIL, msg.as_string())
         print(f"  📧 Digest email sent to {ALERT_EMAIL}")
+        return True
     except Exception as e:
-        print(f"  ⚠️  Email failed: {e}")
+        print(f"::error::Weekly digest email FAILED to send to {ALERT_EMAIL}: {e}")
+        return False
 
 
 # ─── Monetization tracker ─────────────────────────────────────────────────────
@@ -631,8 +652,19 @@ def estimate_watch_hours(videos_with_duration: list[dict]) -> float:
     return total_seconds / 3600.0   # convert to hours
 
 
+# YPP thresholds are watch hours across a ROLLING 365 DAYS. est_watch_hours is
+# built from videos PUBLISHED IN THE LAST 14 DAYS only. Aug 30 2026: those two
+# were divided by each other and printed as a percentage, so MZ read "~80/3,000
+# (2.7%)" when the same rate over a year is ~2,000 hrs -- about 65%. Off by ~25x,
+# in the direction that makes a channel look further from monetising than it is.
+# Now projected to a year and LABELLED with what it is and what it omits.
+WATCH_HOURS_WINDOW_DAYS = 14
+
+
 def monetization_status_full(ch_cfg: dict, subscribers: int, est_watch_hours: float,
-                              sub_growth_per_week: float) -> dict:
+                              sub_growth_per_week: float,
+                              window_days: int = WATCH_HOURS_WINDOW_DAYS,
+                              views_per_sub: float | None = None) -> dict:
     """Return structured monetization progress for both email + Sheets.
 
     Returns a dict with:
@@ -645,7 +677,11 @@ def monetization_status_full(ch_cfg: dict, subscribers: int, est_watch_hours: fl
     label      = ch_cfg["label"]
 
     sub_pct = min(100, round(subscribers / sub_target * 100, 1))
-    wh_pct  = min(100, round(est_watch_hours / wh_target * 100, 1))
+    # Project the measured window to the 365-day basis the threshold actually uses.
+    # This counts ONLY videos published inside the window -- the back catalogue is
+    # still earning watch time and is not represented, so treat this as a floor.
+    wh_annual = est_watch_hours * (365.0 / max(window_days, 1))
+    wh_pct  = min(100, round(wh_annual / wh_target * 100, 1))
 
     # Estimate weeks to sub target
     if subscribers >= sub_target:
@@ -663,14 +699,25 @@ def monetization_status_full(ch_cfg: dict, subscribers: int, est_watch_hours: fl
 
     one_liner = (
         f"🎯 {subscribers:,}/{sub_target:,} subs {tier_note} ({sub_pct}%) | "
-        f"~{est_watch_hours:.0f}/{wh_target:,} watch hrs ({wh_pct}%) | "
+        f"~{wh_annual:,.0f}/{wh_target:,} watch hrs/yr ({wh_pct}%) | "
         f"{sub_eta}"
     )
 
     detail_lines = [
         f"Subscribers:   {subscribers:,} / {sub_target:,} {tier_note} — {sub_pct}% — {sub_eta}",
-        f"Watch hours:   ~{est_watch_hours:.0f} / {wh_target:,} hrs — {wh_pct}% (estimated from view × duration × completion rate)",
+        f"Watch hours:   ~{wh_annual:,.0f} / {wh_target:,} hrs per year — {wh_pct}%",
+        f"               Basis: {est_watch_hours:.0f} hrs from videos published in the last "
+        f"{window_days} days, projected to 365. Estimated as views × duration × "
+        f"assumed completion (50% Shorts / 40% long-form) — NOT measured retention. "
+        f"Videos older than {window_days} days are still earning watch time and are "
+        f"not counted here, so this is a floor.",
     ]
+    if views_per_sub:
+        detail_lines.append(
+            f"Sub pace:      1 sub per ~{views_per_sub:,.0f} views, measured from this "
+            f"channel's own lifetime views ÷ lifetime subs. The ETA above uses this "
+            f"rate; it is a lifetime average, so a channel that has improved will beat it."
+        )
     if sub_target == YT_SUB_THRESHOLD_TIER1:
         detail_lines.append(
             f"MZ note:       Tier-1 unlocks fan funding. Full ad revenue needs 1,000 subs + 4,000 watch hrs. "
@@ -704,6 +751,7 @@ def main() -> int:
     print(f"{'═'*60}\n")
 
     all_channel_data = []
+    failed_channels: list[str] = []
 
     for key, ch in CHANNELS.items():
         print(f"\nProcessing {ch['label']} ...")
@@ -759,12 +807,29 @@ def main() -> int:
                                 if "video_id" in v}
             est_wh = estimate_watch_hours(list(all_known_videos.values()))
 
-            # Sub growth rate: subs gained this week vs last week is tricky without historical data.
-            # Use this week's view-to-sub conversion as proxy: assume 1 sub per ~20 views.
-            # Rough but good enough for ETA estimation.
-            sub_growth_est = max(0.1, this_views / 20.0)
+            # Sub growth rate. This used to be `this_views / 20.0` -- an ASSUMED
+            # 1 sub per 20 views, with a comment calling it "good enough". The
+            # channel's own numbers disprove it: on Aug 30 2026 MZ had 116 subs
+            # against ~16,700 views in the previous month alone, i.e. worse than
+            # 1 sub per 144 views even crediting every sub it has ever had to that
+            # month. The constant was ~7x optimistic and it drove the ETA in the
+            # email. Same defect as the MZ speech rate fixed Aug 29: a guessed
+            # constant nobody checked against the data sitting right beside it.
+            #
+            # Derive it instead, from lifetime views / lifetime subs on THIS
+            # channel. Falls back to the old constant only if the API gave us
+            # nothing to divide, and says so.
+            lifetime_views = ch_stats.get("total_views", 0)
+            if lifetime_views and subs:
+                views_per_sub  = lifetime_views / subs
+                sub_growth_est = max(0.01, this_views / views_per_sub)
+            else:
+                views_per_sub  = None
+                sub_growth_est = max(0.1, this_views / 20.0)
+                print("  ⚠️  No lifetime view/sub data — sub ETA falls back to a guessed rate")
 
-            mono = monetization_status_full(ch, subs, est_wh, sub_growth_est)
+            mono = monetization_status_full(ch, subs, est_wh, sub_growth_est,
+                                            views_per_sub=views_per_sub)
 
             print(f"  This week: {len(this_week_clean)} videos, {this_views:,} views")
             print(f"  Last week: {len(last_week_clean)} videos, {last_views:,} views")
@@ -793,7 +858,8 @@ def main() -> int:
             })
 
         except Exception as e:
-            print(f"  ❌ Failed to process {ch['label']}: {e}")
+            print(f"::error::Weekly digest failed to process {ch['label']}: {e}")
+            failed_channels.append(ch["label"])
             all_channel_data.append({
                 "label":             ch["label"],
                 "this_count":        0,
@@ -816,12 +882,21 @@ def main() -> int:
     write_to_sheets(all_channel_data, week_label)
 
     # Send email
-    send_digest_email(all_channel_data, week_label)
+    emailed = send_digest_email(all_channel_data, week_label)
 
     print(f"\n{'═'*60}")
-    print(f"  ✅ Weekly digest complete")
+    if emailed and not failed_channels:
+        print(f"  ✅ Weekly digest complete")
+        print(f"{'═'*60}\n")
+        return 0
+    # Aug 30 2026: `return 0` used to be unconditional. The whole point of this
+    # job is the email; if it did not send, the job did not do its job.
+    if not emailed:
+        print(f"  ❌ Weekly digest did NOT email. Nobody was told anything.")
+    if failed_channels:
+        print(f"  ❌ Channels that failed: {', '.join(failed_channels)}")
     print(f"{'═'*60}\n")
-    return 0
+    return 1
 
 
 if __name__ == "__main__":

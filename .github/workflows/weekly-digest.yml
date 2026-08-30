@@ -2,7 +2,8 @@ name: Weekly Digest — Sunday Performance Report
 
 on:
   schedule:
-    # 3 AM CT Sunday = 8:00 UTC Sunday (CDT)
+    # 11:00 UTC Sunday = 6:00 AM CT (CDT). The old comment here said "3 AM CT =
+    # 8:00 UTC", which matched neither the cron nor each other.
     - cron: '0 11 * * 0'
   workflow_dispatch:
     inputs:
@@ -41,8 +42,11 @@ jobs:
           GOOGLE_SHEETS_KEY:  ${{ secrets.GOOGLE_SHEETS_KEY }}
           ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        # Aug 30 2026: `continue-on-error: true` removed. It was the outermost of
+        # three layers that made a silent digest look like a successful one. The
+        # Aug 24 sweep removed this from the TMF and BSG autopost steps but never
+        # reached weekly-digest.
         run: python3 weekly_digest.py
-        continue-on-error: true
 
       - name: Upload digest log
         if: always()
