@@ -134,8 +134,10 @@ jobs:
           GH_PAT:             ${{ secrets.GH_PAT }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
 
+      # RETIRED 2026-08-30: BSG no longer posts, so this check would alert on
+      # every run. Now only reachable by explicitly dispatching channel=bsg.
       - name: Check BSG longform
-        if: steps.window.outputs.check_type != 'skip' && (github.event.inputs.channel == '' || github.event.inputs.channel == 'bsg')
+        if: steps.window.outputs.check_type != 'skip' && github.event.inputs.channel == 'bsg' 
         run: |
           python3 unified_watchdog.py \
             --channel bsg \

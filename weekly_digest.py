@@ -88,6 +88,12 @@ CHANNELS = {
         "wh_target":      YT_WATCH_HOURS_THRESHOLD_T1,
     },
 }
+# --- BSG RETIRED 2026-08-30 ------------------------------------------
+# 38 videos in 28 days -> 499 views, median 3/video, 0 subscribers gained.
+# See project doc youtube_28day_MEASURED_and_ypp_correction_aug30.
+# The config above is left intact on purpose. To bring BSG back, delete
+# the single .pop() line below.
+CHANNELS.pop("bsg", None)
 
 
 # ─── YouTube Data API ─────────────────────────────────────────────────────────

@@ -89,6 +89,12 @@ CHANNELS = {
         "fb_page_id_env": "FB_PAGE_ID_MZ",
     },
 }
+# --- BSG RETIRED 2026-08-30 ------------------------------------------
+# 38 videos in 28 days -> 499 views, median 3/video, 0 subscribers gained.
+# See project doc youtube_28day_MEASURED_and_ypp_correction_aug30.
+# The config above is left intact on purpose. To bring BSG back, delete
+# the single .pop() line below.
+CHANNELS.pop("bsg", None)
 
 # Issue types that warrant an email alert.
 # fb_missed_post and workflow_failure (when YT still posted) are logged to Sheets only.
@@ -507,6 +513,12 @@ LONGFORM_QUEUES = {
     "mz":  {"file": "mz_longform_queue.json",  "threshold": 300},
     "bsg": {"file": "bsg_longform_queue.json",  "threshold": 50},
 }
+# --- BSG RETIRED 2026-08-30 ------------------------------------------
+# 38 videos in 28 days -> 499 views, median 3/video, 0 subscribers gained.
+# See project doc youtube_28day_MEASURED_and_ypp_correction_aug30.
+# The config above is left intact on purpose. To bring BSG back, delete
+# the single .pop() line below.
+LONGFORM_QUEUES.pop("bsg", None)
 
 
 def update_longform_queue(channel_key: str, channel_id: str, token_file: str) -> int:

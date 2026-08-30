@@ -4,11 +4,13 @@ name: BSG Long-Form Auto-Post
 # Generates, renders, and uploads a public 7–9 min YouTube video for Bible Story Garden.
 # Matt receives an email confirming what posted.
 
+# RETIRED 2026-08-30 -- see bsg-autopost.yml. Schedule removed; manual only.
+# To resume, restore:
+#   schedule:
+#     - cron: '0 15 * * 0'   # Sunday    10 AM CT
+#     - cron: '0 14 * * 2'   # Tuesday    9 AM CT
+#     - cron: '0 17 * * 5'   # Friday    12 PM CT
 on:
-  schedule:
-    - cron: '0 15 * * 0'   # Sunday    10 AM CT
-    - cron: '0 14 * * 2'   # Tuesday    9 AM CT
-    - cron: '0 17 * * 5'   # Friday    12 PM CT
   workflow_dispatch:
     inputs:
       topic:
