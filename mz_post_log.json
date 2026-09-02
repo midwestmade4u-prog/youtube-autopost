@@ -611,6 +611,16 @@
       "posted_at": "2026-08-31 20:22:16",
       "narration_sec": 96.38,
       "narration_words": 192
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "DeLorean Motor Company \u2014 Oct 19, 1982 \u2014 the founder's arrest, with the factory already failing",
+      "title": "The Arrest That Killed DeLorean",
+      "url": "https://youtu.be/04uYNBgscqA",
+      "posted_at": "2026-09-02 18:05:56",
+      "narration_sec": 85.63,
+      "narration_words": 170
     }
   ],
   "mz": [],
@@ -654,6 +664,7 @@
     "Sega \u2014 Jan 31, 2001 \u2014 leaving the hardware business after the Dreamcast",
     "Credit Suisse \u2014 Mar 19, 2023 \u2014 a 167-year-old bank sold to its rival in a weekend",
     "Thomas Cook \u2014 Sep 23, 2019 \u2014 178 years old, and 150,000 travellers wake up stranded",
-    "Fannie Mae \u2014 Sep 22, 2004 \u2014 OFHEO report alleges accounting manipulation; a $6.3B restatement follows and CEO Franklin Raines is out that December"
+    "Fannie Mae \u2014 Sep 22, 2004 \u2014 OFHEO report alleges accounting manipulation; a $6.3B restatement follows and CEO Franklin Raines is out that December",
+    "DeLorean Motor Company \u2014 Oct 19, 1982 \u2014 the founder's arrest, with the factory already failing"
   ]
 }
