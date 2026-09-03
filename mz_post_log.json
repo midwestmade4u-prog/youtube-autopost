@@ -621,6 +621,16 @@
       "posted_at": "2026-09-02 18:05:56",
       "narration_sec": 85.63,
       "narration_words": 170
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Solyndra \u2014 Aug 31, 2011 \u2014 shutting down with $535M of federal loan guarantees drawn",
+      "title": "The Board Vote That Killed Solyndra",
+      "url": "https://youtu.be/q-CHZ0CkmLE",
+      "posted_at": "2026-09-03 18:02:55",
+      "narration_sec": 80.62,
+      "narration_words": 160
     }
   ],
   "mz": [],
@@ -665,6 +675,7 @@
     "Credit Suisse \u2014 Mar 19, 2023 \u2014 a 167-year-old bank sold to its rival in a weekend",
     "Thomas Cook \u2014 Sep 23, 2019 \u2014 178 years old, and 150,000 travellers wake up stranded",
     "Fannie Mae \u2014 Sep 22, 2004 \u2014 OFHEO report alleges accounting manipulation; a $6.3B restatement follows and CEO Franklin Raines is out that December",
-    "DeLorean Motor Company \u2014 Oct 19, 1982 \u2014 the founder's arrest, with the factory already failing"
+    "DeLorean Motor Company \u2014 Oct 19, 1982 \u2014 the founder's arrest, with the factory already failing",
+    "Solyndra \u2014 Aug 31, 2011 \u2014 shutting down with $535M of federal loan guarantees drawn"
   ]
 }
