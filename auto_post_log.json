@@ -3317,6 +3317,16 @@
       "posted_at": "2026-09-03 18:02:55",
       "narration_sec": 80.62,
       "narration_words": 160
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Sun Microsystems \u2014 Apr 20, 2009 \u2014 sold to Oracle for less than it once earned in a quarter",
+      "title": "The Meeting That Killed Sun Microsystems",
+      "url": "https://youtu.be/fOnr2PHL_Jw",
+      "posted_at": "2026-09-04 17:51:16",
+      "narration_sec": 88.8,
+      "narration_words": 170
     }
   ],
   "mz_longform_topics_used": [
