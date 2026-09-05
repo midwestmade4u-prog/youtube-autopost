@@ -641,6 +641,16 @@
       "posted_at": "2026-09-04 17:51:16",
       "narration_sec": 88.8,
       "narration_words": 170
+    },
+    {
+      "channel": "mz",
+      "format": "unknown_failure",
+      "topic": "Drexel Burnham Lambert \u2014 Feb 13, 1990 \u2014 Wall Street's most profitable firm files for bankruptcy; ten weeks later junk bond king Michael Milken pleads guilty to six felonies",
+      "title": "The Bankruptcy Filing That Killed Drexel Burnham Lambert",
+      "url": "https://youtu.be/vU_97uPHLuI",
+      "posted_at": "2026-09-05 17:01:45",
+      "narration_sec": 96.98,
+      "narration_words": 189
     }
   ],
   "mz": [],
@@ -687,6 +697,8 @@
     "Fannie Mae \u2014 Sep 22, 2004 \u2014 OFHEO report alleges accounting manipulation; a $6.3B restatement follows and CEO Franklin Raines is out that December",
     "DeLorean Motor Company \u2014 Oct 19, 1982 \u2014 the founder's arrest, with the factory already failing",
     "Solyndra \u2014 Aug 31, 2011 \u2014 shutting down with $535M of federal loan guarantees drawn",
-    "Sun Microsystems \u2014 Apr 20, 2009 \u2014 sold to Oracle for less than it once earned in a quarter"
+    "Sun Microsystems \u2014 Apr 20, 2009 \u2014 sold to Oracle for less than it once earned in a quarter",
+    "Signature Bank \u2014 Mar 12, 2023 \u2014 closed by regulators two days after SVB",
+    "Drexel Burnham Lambert \u2014 Feb 13, 1990 \u2014 Wall Street's most profitable firm files for bankruptcy; ten weeks later junk bond king Michael Milken pleads guilty to six felonies"
   ]
 }
