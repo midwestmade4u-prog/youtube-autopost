@@ -651,6 +651,16 @@
       "posted_at": "2026-09-05 17:01:45",
       "narration_sec": 96.98,
       "narration_words": 189
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Robinhood \u2014 Jan 28, 2021 \u2014 restricting buys on GameStop, on the app built for buying",
+      "title": "The Buy Button That Exposed Robinhood",
+      "url": "https://youtu.be/nAg7B-60qKQ",
+      "posted_at": "2026-09-06 17:16:27",
+      "narration_sec": 86.74,
+      "narration_words": 158
     }
   ],
   "mz": [],
@@ -699,6 +709,7 @@
     "Solyndra \u2014 Aug 31, 2011 \u2014 shutting down with $535M of federal loan guarantees drawn",
     "Sun Microsystems \u2014 Apr 20, 2009 \u2014 sold to Oracle for less than it once earned in a quarter",
     "Signature Bank \u2014 Mar 12, 2023 \u2014 closed by regulators two days after SVB",
-    "Drexel Burnham Lambert \u2014 Feb 13, 1990 \u2014 Wall Street's most profitable firm files for bankruptcy; ten weeks later junk bond king Michael Milken pleads guilty to six felonies"
+    "Drexel Burnham Lambert \u2014 Feb 13, 1990 \u2014 Wall Street's most profitable firm files for bankruptcy; ten weeks later junk bond king Michael Milken pleads guilty to six felonies",
+    "Robinhood \u2014 Jan 28, 2021 \u2014 restricting buys on GameStop, on the app built for buying"
   ]
 }
