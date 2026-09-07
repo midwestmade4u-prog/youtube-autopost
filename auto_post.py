@@ -1930,7 +1930,17 @@ def post_funnel_comment(channel: str, video_id: str, longform_url: str) -> None:
              "https://www.googleapis.com/auth/youtube",
              "https://www.googleapis.com/auth/youtube.force-ssl"]  # required for commentThreads().insert()
         )
-        if creds.expired and creds.refresh_token:
+        # Always refresh here, regardless of creds.expired -- the upload step
+        # (video_app.py's _load_yt_credentials) just refreshed this SAME token
+        # file moments earlier using a narrower scope list that does NOT
+        # include youtube.force-ssl. That leaves an "unexpired" cached access
+        # token in the file that is still scope-insufficient for
+        # commentThreads().insert(). Confirmed root cause of the Sep 2026
+        # comment-posting outage (worked ~1/50 runs -- only right after a
+        # fresh interactive OAuth consent, before any upload refresh had a
+        # chance to narrow the shared token file's scope). See
+        # debug-scope-check.yml run history for the diagnostic that found this.
+        if creds.refresh_token:
             creds.refresh(Request())
             token_file.write_text(creds.to_json())
 
@@ -2043,7 +2053,11 @@ def post_channel_affiliate_comment(channel: str, video_id: str) -> None:
              "https://www.googleapis.com/auth/youtube",
              "https://www.googleapis.com/auth/youtube.force-ssl"]  # required for commentThreads().insert()
         )
-        if creds.expired and creds.refresh_token:
+        # Always refresh -- see the matching comment in post_funnel_comment()
+        # above. The upload step narrowed this shared token file's scope
+        # moments earlier; an "unexpired" cached token can still lack
+        # youtube.force-ssl.
+        if creds.refresh_token:
             creds.refresh(Request())
             token_file.write_text(creds.to_json())
 

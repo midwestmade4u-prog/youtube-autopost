@@ -1218,7 +1218,16 @@ def post_mz_channel_comment(video_id: str, topic: str = "") -> None:
             ["https://www.googleapis.com/auth/youtube.upload",
              "https://www.googleapis.com/auth/youtube",
              "https://www.googleapis.com/auth/youtube.force-ssl"])  # required for commentThreads().insert()
-        if creds.expired and creds.refresh_token:
+        # Always refresh, regardless of creds.expired -- upload_to_youtube()
+        # just refreshed this SAME token file moments earlier using a
+        # narrower 2-scope list that does NOT include youtube.force-ssl.
+        # That leaves an "unexpired" cached access token in the file that is
+        # still scope-insufficient for commentThreads().insert(). Confirmed
+        # root cause of the Sep 2026 comment-posting outage (worked ~1/50
+        # runs -- only right after a fresh interactive OAuth consent, before
+        # any upload refresh had a chance to narrow the shared token file's
+        # scope). See debug-scope-check.yml run history for the diagnostic.
+        if creds.refresh_token:
             creds.refresh(Request())
         youtube = build("youtube", "v3", credentials=creds)
         youtube.commentThreads().insert(
