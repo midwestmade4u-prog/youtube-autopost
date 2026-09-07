@@ -16,40 +16,69 @@ jobs:
           echo '${{ secrets.YT_TOKEN_TMF }}' > youtube_token_tmf.json
           echo '${{ secrets.YT_TOKEN_MZ }}' > youtube_token_mz.json
 
-      - name: Check what scopes Google actually granted (not what we requested)
+      - name: Check what scopes Google actually grants — unscoped vs production-scoped refresh
         run: |
           python3 - <<'PYEOF'
           import json, urllib.request, urllib.parse, urllib.error
 
-          def check(label, token_file):
-              print(f"\n=== {label} ({token_file}) ===")
-              d = json.load(open(token_file))
-              print("  requested/local scopes:", d.get("scopes"))
-              data = urllib.parse.urlencode({
+          # exactly what post_funnel_comment / post_channel_affiliate_comment
+          # pass to Credentials.from_authorized_user_file() in auto_post.py
+          PRODUCTION_COMMENT_SCOPES = [
+              "https://www.googleapis.com/auth/youtube.upload",
+              "https://www.googleapis.com/auth/youtube",
+              "https://www.googleapis.com/auth/youtube.force-ssl",
+          ]
+
+          def refresh(d, scope_param=None):
+              body = {
                   "client_id": d["client_id"],
                   "client_secret": d["client_secret"],
                   "refresh_token": d["refresh_token"],
                   "grant_type": "refresh_token",
-              }).encode()
+              }
+              if scope_param:
+                  body["scope"] = " ".join(scope_param)
+              data = urllib.parse.urlencode(body).encode()
               req = urllib.request.Request("https://oauth2.googleapis.com/token", data=data)
               try:
                   with urllib.request.urlopen(req, timeout=20) as resp:
-                      tok = json.loads(resp.read())
+                      return json.loads(resp.read())
               except urllib.error.HTTPError as e:
-                  print("  REFRESH FAILED:", e.code, e.read().decode()[:500])
-                  return
-              access_token = tok.get("access_token")
-              print("  refresh_response scope field:", tok.get("scope", "(none returned)"))
-              info_req = urllib.request.Request(
+                  return {"ERROR": e.code, "body": e.read().decode()[:500]}
+
+          def tokeninfo(access_token):
+              req = urllib.request.Request(
                   "https://oauth2.googleapis.com/tokeninfo?access_token=" + access_token
               )
               try:
-                  with urllib.request.urlopen(info_req, timeout=20) as resp2:
-                      info = json.loads(resp2.read())
-                  print("  >>> ACTUAL GRANTED SCOPES (tokeninfo):", info.get("scope"))
-                  print("  expires_in:", info.get("expires_in"))
+                  with urllib.request.urlopen(req, timeout=20) as resp:
+                      return json.loads(resp.read())
               except urllib.error.HTTPError as e:
-                  print("  TOKENINFO FAILED:", e.code, e.read().decode()[:500])
+                  return {"ERROR": e.code, "body": e.read().decode()[:500]}
+
+          def check(label, token_file):
+              print(f"\n========== {label} ==========")
+              d = json.load(open(token_file))
+
+              print("\n-- Unscoped refresh (no 'scope' param, like our first diagnostic) --")
+              tok1 = refresh(d)
+              if "access_token" in tok1:
+                  info1 = tokeninfo(tok1["access_token"])
+                  print("  granted scope:", info1.get("scope", info1))
+              else:
+                  print("  refresh failed:", tok1)
+
+              print("\n-- Production-style scoped refresh (scope= upload,youtube,force-ssl, like post_funnel_comment) --")
+              tok2 = refresh(d, PRODUCTION_COMMENT_SCOPES)
+              if "access_token" in tok2:
+                  print("  token endpoint returned scope field:", tok2.get("scope", "(none returned)"))
+                  info2 = tokeninfo(tok2["access_token"])
+                  print("  >>> tokeninfo actual granted scope:", info2.get("scope", info2))
+                  granted = set((info2.get("scope") or "").split())
+                  needed = "https://www.googleapis.com/auth/youtube.force-ssl"
+                  print("  >>> force-ssl present on THIS token?:", needed in granted)
+              else:
+                  print("  scoped refresh failed/rejected:", tok2)
 
           check("TMF", "youtube_token_tmf.json")
           check("MZ", "youtube_token_mz.json")
