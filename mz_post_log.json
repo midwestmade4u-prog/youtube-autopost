@@ -671,6 +671,16 @@
       "posted_at": "2026-09-07 18:56:07",
       "narration_sec": 82.8,
       "narration_words": 159
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "First Republic \u2014 May 1, 2023 \u2014 seized and sold to JPMorgan before the market opened",
+      "title": "The Call That Ended First Republic",
+      "url": "https://youtu.be/fu3Mtxpbzcw",
+      "posted_at": "2026-09-08 18:10:43",
+      "narration_sec": 87.26,
+      "narration_words": 162
     }
   ],
   "mz": [],
@@ -721,6 +731,7 @@
     "Signature Bank \u2014 Mar 12, 2023 \u2014 closed by regulators two days after SVB",
     "Drexel Burnham Lambert \u2014 Feb 13, 1990 \u2014 Wall Street's most profitable firm files for bankruptcy; ten weeks later junk bond king Michael Milken pleads guilty to six felonies",
     "Robinhood \u2014 Jan 28, 2021 \u2014 restricting buys on GameStop, on the app built for buying",
-    "Merrill Lynch \u2014 Sep 14, 2008 \u2014 sold to Bank of America over a single weekend"
+    "Merrill Lynch \u2014 Sep 14, 2008 \u2014 sold to Bank of America over a single weekend",
+    "First Republic \u2014 May 1, 2023 \u2014 seized and sold to JPMorgan before the market opened"
   ]
 }
