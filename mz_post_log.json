@@ -681,6 +681,16 @@
       "posted_at": "2026-09-08 18:10:43",
       "narration_sec": 87.26,
       "narration_words": 162
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Target \u2014 Dec 19, 2013 \u2014 40 million cards taken through an air-conditioning vendor's login",
+      "title": "The Vendor Login That Hacked 40 Million Target Cards",
+      "url": "https://youtu.be/bq1sxhy9pEI",
+      "posted_at": "2026-09-10 14:51:03",
+      "narration_sec": 91.87,
+      "narration_words": 169
     }
   ],
   "mz": [],
@@ -732,6 +742,7 @@
     "Drexel Burnham Lambert \u2014 Feb 13, 1990 \u2014 Wall Street's most profitable firm files for bankruptcy; ten weeks later junk bond king Michael Milken pleads guilty to six felonies",
     "Robinhood \u2014 Jan 28, 2021 \u2014 restricting buys on GameStop, on the app built for buying",
     "Merrill Lynch \u2014 Sep 14, 2008 \u2014 sold to Bank of America over a single weekend",
-    "First Republic \u2014 May 1, 2023 \u2014 seized and sold to JPMorgan before the market opened"
+    "First Republic \u2014 May 1, 2023 \u2014 seized and sold to JPMorgan before the market opened",
+    "Target \u2014 Dec 19, 2013 \u2014 40 million cards taken through an air-conditioning vendor's login"
   ]
 }
