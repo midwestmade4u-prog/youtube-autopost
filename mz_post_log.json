@@ -701,6 +701,16 @@
       "posted_at": "2026-09-10 17:51:35",
       "narration_sec": 81.82,
       "narration_words": 169
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Toshiba \u2014 2006 \u2014 buying Westinghouse, the deal that nearly ended the company a decade later",
+      "title": "The $5.4 Billion Bet That Nearly Killed Toshiba",
+      "url": "https://youtu.be/YrrskW460dU",
+      "posted_at": "2026-09-11 17:54:51",
+      "narration_sec": 88.18,
+      "narration_words": 168
     }
   ],
   "mz": [],
@@ -754,6 +764,7 @@
     "Merrill Lynch \u2014 Sep 14, 2008 \u2014 sold to Bank of America over a single weekend",
     "First Republic \u2014 May 1, 2023 \u2014 seized and sold to JPMorgan before the market opened",
     "Target \u2014 Dec 19, 2013 \u2014 40 million cards taken through an air-conditioning vendor's login",
-    "BlackBerry \u2014 Jan 9, 2007 \u2014 RIM's engineers watch the iPhone keynote and conclude the battery math is impossible"
+    "BlackBerry \u2014 Jan 9, 2007 \u2014 RIM's engineers watch the iPhone keynote and conclude the battery math is impossible",
+    "Toshiba \u2014 2006 \u2014 buying Westinghouse, the deal that nearly ended the company a decade later"
   ]
 }
