@@ -721,6 +721,16 @@
       "posted_at": "2026-09-12 17:22:20",
       "narration_sec": 71.54,
       "narration_words": 163
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Friendster \u2014 2003 \u2014 turning down Google's offer while the site took 40 seconds to load",
+      "title": "The Bet That Killed Friendster",
+      "url": "https://youtu.be/J5zrgdT6Z5Q",
+      "posted_at": "2026-09-13 17:33:39",
+      "narration_sec": 73.49,
+      "narration_words": 166
     }
   ],
   "mz": [],
@@ -776,6 +786,7 @@
     "Target \u2014 Dec 19, 2013 \u2014 40 million cards taken through an air-conditioning vendor's login",
     "BlackBerry \u2014 Jan 9, 2007 \u2014 RIM's engineers watch the iPhone keynote and conclude the battery math is impossible",
     "Toshiba \u2014 2006 \u2014 buying Westinghouse, the deal that nearly ended the company a decade later",
-    "Gap \u2014 Oct 4, 2010 \u2014 the new logo, withdrawn six days later"
+    "Gap \u2014 Oct 4, 2010 \u2014 the new logo, withdrawn six days later",
+    "Friendster \u2014 2003 \u2014 turning down Google's offer while the site took 40 seconds to load"
   ]
 }
