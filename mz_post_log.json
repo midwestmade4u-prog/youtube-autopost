@@ -751,6 +751,16 @@
       "posted_at": "2026-09-16 18:21:26",
       "narration_sec": 94.46,
       "narration_words": 171
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Netscape \u2014 Nov 24, 1998 \u2014 sold to AOL after deciding to rewrite the browser from scratch",
+      "title": "The Meeting That Killed Netscape",
+      "url": "https://youtu.be/oZpZj_siQn4",
+      "posted_at": "2026-09-17 18:27:31",
+      "narration_sec": 84.41,
+      "narration_words": 172
     }
   ],
   "mz": [],
@@ -809,6 +819,7 @@
     "Gap \u2014 Oct 4, 2010 \u2014 the new logo, withdrawn six days later",
     "Friendster \u2014 2003 \u2014 turning down Google's offer while the site took 40 seconds to load",
     "Tropicana \u2014 Jan 2009 \u2014 the new carton that dropped sales 20% in two months",
-    "HP \u2014 Aug 18, 2011 \u2014 one day: killing the TouchPad after 49 days and agreeing to buy Autonomy for $11B"
+    "HP \u2014 Aug 18, 2011 \u2014 one day: killing the TouchPad after 49 days and agreeing to buy Autonomy for $11B",
+    "Netscape \u2014 Nov 24, 1998 \u2014 sold to AOL after deciding to rewrite the browser from scratch"
   ]
 }
