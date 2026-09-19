@@ -771,6 +771,16 @@
       "posted_at": "2026-09-18 17:52:53",
       "narration_sec": 109.78,
       "narration_words": 210
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Terra and Luna \u2014 May 9, 2022 \u2014 the stablecoin that stopped being stable",
+      "title": "The Tweet That Killed Terra",
+      "url": "https://youtu.be/QAzYxn8Js_s",
+      "posted_at": "2026-09-19 17:26:13",
+      "narration_sec": 80.76,
+      "narration_words": 165
     }
   ],
   "mz": [],
@@ -832,6 +842,7 @@
     "HP \u2014 Aug 18, 2011 \u2014 one day: killing the TouchPad after 49 days and agreeing to buy Autonomy for $11B",
     "Netscape \u2014 Nov 24, 1998 \u2014 sold to AOL after deciding to rewrite the browser from scratch",
     "Wirecard \u2014 Jun 18, 2020 \u2014 the auditors report that \u20ac1.9B in escrow does not exist",
-    "AIG \u2014 Sep 16, 2008 \u2014 $85B federal rescue; a London unit called AIG Financial Products had written credit default swaps that dwarfed the parent company"
+    "AIG \u2014 Sep 16, 2008 \u2014 $85B federal rescue; a London unit called AIG Financial Products had written credit default swaps that dwarfed the parent company",
+    "Terra and Luna \u2014 May 9, 2022 \u2014 the stablecoin that stopped being stable"
   ]
 }
