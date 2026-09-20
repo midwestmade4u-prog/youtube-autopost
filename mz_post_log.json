@@ -781,6 +781,16 @@
       "posted_at": "2026-09-19 17:26:13",
       "narration_sec": 80.76,
       "narration_words": 165
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Nokia \u2014 Feb 11, 2011 \u2014 the 'burning platform' memo, then betting the whole company on Windows Phone",
+      "title": "The Memo That Killed Nokia",
+      "url": "https://youtu.be/zem6-WfY5rw",
+      "posted_at": "2026-09-20 17:38:08",
+      "narration_sec": 83.83,
+      "narration_words": 162
     }
   ],
   "mz": [],
@@ -843,6 +853,7 @@
     "Netscape \u2014 Nov 24, 1998 \u2014 sold to AOL after deciding to rewrite the browser from scratch",
     "Wirecard \u2014 Jun 18, 2020 \u2014 the auditors report that \u20ac1.9B in escrow does not exist",
     "AIG \u2014 Sep 16, 2008 \u2014 $85B federal rescue; a London unit called AIG Financial Products had written credit default swaps that dwarfed the parent company",
-    "Terra and Luna \u2014 May 9, 2022 \u2014 the stablecoin that stopped being stable"
+    "Terra and Luna \u2014 May 9, 2022 \u2014 the stablecoin that stopped being stable",
+    "Nokia \u2014 Feb 11, 2011 \u2014 the 'burning platform' memo, then betting the whole company on Windows Phone"
   ]
 }
