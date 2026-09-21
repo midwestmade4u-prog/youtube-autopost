@@ -791,6 +791,16 @@
       "posted_at": "2026-09-20 17:38:08",
       "narration_sec": 83.83,
       "narration_words": 162
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Juicero \u2014 Apr 19, 2017 \u2014 the video of two hands squeezing the packet",
+      "title": "The Video That Killed Juicero",
+      "url": "https://youtu.be/Y_ynDo6-iD0",
+      "posted_at": "2026-09-21 19:40:27",
+      "narration_sec": 85.73,
+      "narration_words": 171
     }
   ],
   "mz": [],
@@ -854,6 +864,7 @@
     "Wirecard \u2014 Jun 18, 2020 \u2014 the auditors report that \u20ac1.9B in escrow does not exist",
     "AIG \u2014 Sep 16, 2008 \u2014 $85B federal rescue; a London unit called AIG Financial Products had written credit default swaps that dwarfed the parent company",
     "Terra and Luna \u2014 May 9, 2022 \u2014 the stablecoin that stopped being stable",
-    "Nokia \u2014 Feb 11, 2011 \u2014 the 'burning platform' memo, then betting the whole company on Windows Phone"
+    "Nokia \u2014 Feb 11, 2011 \u2014 the 'burning platform' memo, then betting the whole company on Windows Phone",
+    "Juicero \u2014 Apr 19, 2017 \u2014 the video of two hands squeezing the packet"
   ]
 }
