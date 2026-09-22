@@ -801,6 +801,16 @@
       "posted_at": "2026-09-21 19:40:27",
       "narration_sec": 85.73,
       "narration_words": 171
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Digg \u2014 Aug 19, 2010 \u2014 the v4 redesign ships and the users leave for Reddit inside a week",
+      "title": "The Redesign That Killed Digg",
+      "url": "https://youtu.be/xT6IJXnwMvY",
+      "posted_at": "2026-09-22 18:13:48",
+      "narration_sec": 81.14,
+      "narration_words": 171
     }
   ],
   "mz": [],
@@ -865,6 +875,7 @@
     "AIG \u2014 Sep 16, 2008 \u2014 $85B federal rescue; a London unit called AIG Financial Products had written credit default swaps that dwarfed the parent company",
     "Terra and Luna \u2014 May 9, 2022 \u2014 the stablecoin that stopped being stable",
     "Nokia \u2014 Feb 11, 2011 \u2014 the 'burning platform' memo, then betting the whole company on Windows Phone",
-    "Juicero \u2014 Apr 19, 2017 \u2014 the video of two hands squeezing the packet"
+    "Juicero \u2014 Apr 19, 2017 \u2014 the video of two hands squeezing the packet",
+    "Digg \u2014 Aug 19, 2010 \u2014 the v4 redesign ships and the users leave for Reddit inside a week"
   ]
 }
