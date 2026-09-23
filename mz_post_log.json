@@ -811,6 +811,16 @@
       "posted_at": "2026-09-22 18:13:48",
       "narration_sec": 81.14,
       "narration_words": 171
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Better.com \u2014 Dec 1, 2021 \u2014 firing 900 people on one Zoom call",
+      "title": "The Zoom Call That Killed Better.com",
+      "url": "https://youtu.be/CT0KTFzCtP8",
+      "posted_at": "2026-09-23 18:31:43",
+      "narration_sec": 82.42,
+      "narration_words": 169
     }
   ],
   "mz": [],
@@ -876,6 +886,7 @@
     "Terra and Luna \u2014 May 9, 2022 \u2014 the stablecoin that stopped being stable",
     "Nokia \u2014 Feb 11, 2011 \u2014 the 'burning platform' memo, then betting the whole company on Windows Phone",
     "Juicero \u2014 Apr 19, 2017 \u2014 the video of two hands squeezing the packet",
-    "Digg \u2014 Aug 19, 2010 \u2014 the v4 redesign ships and the users leave for Reddit inside a week"
+    "Digg \u2014 Aug 19, 2010 \u2014 the v4 redesign ships and the users leave for Reddit inside a week",
+    "Better.com \u2014 Dec 1, 2021 \u2014 firing 900 people on one Zoom call"
   ]
 }
