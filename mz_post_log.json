@@ -821,6 +821,16 @@
       "posted_at": "2026-09-23 18:31:43",
       "narration_sec": 82.42,
       "narration_words": 169
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Tumblr \u2014 Dec 3, 2018 \u2014 banning adult content and losing a third of its traffic",
+      "title": "The Filter That Killed Tumblr",
+      "url": "https://youtu.be/BqIKXERa6sU",
+      "posted_at": "2026-09-24 18:34:38",
+      "narration_sec": 83.35,
+      "narration_words": 174
     }
   ],
   "mz": [],
@@ -887,6 +897,7 @@
     "Nokia \u2014 Feb 11, 2011 \u2014 the 'burning platform' memo, then betting the whole company on Windows Phone",
     "Juicero \u2014 Apr 19, 2017 \u2014 the video of two hands squeezing the packet",
     "Digg \u2014 Aug 19, 2010 \u2014 the v4 redesign ships and the users leave for Reddit inside a week",
-    "Better.com \u2014 Dec 1, 2021 \u2014 firing 900 people on one Zoom call"
+    "Better.com \u2014 Dec 1, 2021 \u2014 firing 900 people on one Zoom call",
+    "Tumblr \u2014 Dec 3, 2018 \u2014 banning adult content and losing a third of its traffic"
   ]
 }
