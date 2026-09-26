@@ -718,7 +718,13 @@ def append_to_google_sheets(title: str, url: str, format_tag: str) -> None:
 
 def mark_mz_posted(topic: str, title: str, video_url: str, format_tag: str,
                    narration_sec: float | None = None,
-                   narration_words: int | None = None) -> None:
+                   narration_words: int | None = None,
+                   script_text: str | None = None,
+                   hook_style: str | None = None,
+                   sub_cta: str | None = None,
+                   rubric: dict | None = None,
+                   description: str | None = None,
+                   hashtags: str | None = None) -> None:
     log = _load_log()
     log.setdefault("mz_topics_used", []).append(topic)
     entry = {
@@ -737,6 +743,26 @@ def mark_mz_posted(topic: str, title: str, video_url: str, format_tag: str,
         entry["narration_sec"] = round(float(narration_sec), 2)
     if narration_words is not None:
         entry["narration_words"] = int(narration_words)
+    # Sep 26 2026: store the narration itself plus the rendered hook style.
+    # The 14-day retention review had to diagnose scripts from YouTube
+    # *descriptions* because nothing kept the spoken text, and the v3 "rotate
+    # 3 hooks, let data pick the winner" plan was unexecutable because the
+    # variant was never recorded per video. Joining this to
+    # check_shorts_retention.py output is what makes either analysis possible.
+    if script_text:
+        entry["script"] = script_text.strip()
+    if hook_style:
+        entry["hook_style"] = hook_style
+    if sub_cta:
+        entry["sub_cta"] = sub_cta
+    if rubric:
+        entry["rubric"] = rubric
+    # Sep 26 2026: description + hashtags so fb_reels_post.py can write a real
+    # Reel caption instead of repeating the title.
+    if description:
+        entry["description"] = description.strip()
+    if hashtags:
+        entry["hashtags"] = hashtags.strip()
     log.setdefault("posts", []).append(entry)
     _save_log(log)
 
@@ -901,6 +927,164 @@ def mz_pexels_queries_ok(script: dict) -> tuple[bool, str]:
     return True, ""
 
 
+# ─── Retention rubric (Sep 26 2026) ──────────────────────────────────────────
+# Source: 14-day retention review of 11 MZ Shorts (avg 51.6%, 9/11 below the
+# 70% bar). With word counts nearly identical (147–172w), retention correlated
+# r=+0.75 with narration duration and r=-0.71 with words-per-second. Same voice,
+# so the speed difference is the script: edge-tts pauses at every full stop, and
+# the four worst videos (26–35%) were the four fastest, run-on reads. The four
+# also averaged ~22–27s watched, i.e. the viewer left around the setup →
+# minute_zero transition.
+#
+# The checks below are the MECHANICAL half of the rubric (sentence density,
+# number runs, hook payoff, loop callback, AI tells). The judgment half —
+# "does the protagonist make the decision", "does the reveal land mid-script"
+# — lives in the v3 prompt's RETENTION RUBRIC block and cannot be linted.
+#
+# Failure policy: rubric failures reject on attempts 1–2 and only WARN on the
+# final attempt, so a strict lint can never cost a day's post. The score is
+# logged on every post so it can be regressed against retention later.
+
+_RUBRIC_MAX_MEAN_SENTENCE  = 14.0   # words. Worst-4 descriptions ran ~30; rewrite ran 6.5
+_RUBRIC_MAX_SENTENCE       = 28     # words. Anything longer reads as one breath and chunks captions badly
+_RUBRIC_MIN_SHORT_SENTS    = 3      # sentences of <=5 words — the pauses that slow the read
+_RUBRIC_MAX_ADVERBS        = 2
+_RUBRIC_LY_WHITELIST = {
+    "only", "early", "family", "july", "supply", "apply", "reply", "rally", "italy",
+    "ally", "belly", "bully", "daily", "fly", "holy", "jelly", "likely", "lily", "lonely",
+    "monopoly", "multiply", "rely", "ugly", "unlikely", "weekly", "monthly", "yearly",
+    "friendly", "deadly", "costly", "elderly", "ally", "assembly", "anomaly", "butterfly",
+    "comply", "imply", "oly", "poly", "silly", "tally", "chilly", "hilly", "kelly", "billy",
+    "wally", "sally", "molly", "polly", "dolly", "folly", "golly", "jolly", "holly",
+}
+_RUBRIC_STOPWORDS = {
+    "the", "that", "this", "with", "from", "they", "their", "there", "were", "when",
+    "then", "than", "into", "over", "under", "about", "after", "before", "would",
+    "could", "should", "company", "companies", "years", "later", "every", "which",
+    "because", "while", "where", "these", "those", "still", "never", "again",
+    "have", "been", "some", "more", "most", "just", "only", "what", "made", "make",
+    "them", "then", "year", "days", "time", "into", "away", "back", "down", "over",
+}
+
+def _rubric_sentences(text: str) -> list[str]:
+    # Split on terminal punctuation; keep colon-terminated fragments as sentences
+    # because the TTS pauses there too.
+    parts = re.split(r"(?<=[.!?:])\s+", text.strip())
+    return [p.strip() for p in parts if p.strip()]
+
+def _rubric_has_number(sentence: str) -> bool:
+    return bool(re.search(r"\d|\$|\b(percent|million|billion|thousand|hundred)\b", sentence, re.I))
+
+def mz_retention_rubric(script: dict) -> tuple[bool, list[str], dict]:
+    """Mechanical retention checks on the narration. Returns (ok, problems, score).
+
+    `score` is a small dict logged with the post so retention can be regressed
+    against it. `problems` are phrased as instructions for the model's retry.
+    """
+    narration = (script.get("script") or "").strip()
+    sents = _rubric_sentences(narration)
+    words = narration.split()
+    if not sents or len(words) < 20:
+        return False, ["RUBRIC FAIL: narration missing or too short to evaluate."], {}
+
+    lens = [len(x.split()) for x in sents]
+    mean_len = sum(lens) / len(lens)
+    longest = max(lens)
+    shorts = sum(1 for n in lens if n <= 5)
+    problems: list[str] = []
+
+    # R1 — sentence density (the lever behind the read-speed finding)
+    if mean_len > _RUBRIC_MAX_MEAN_SENTENCE:
+        problems.append(
+            f"RUBRIC FAIL (density): average sentence is {mean_len:.1f} words; must be <= "
+            f"{_RUBRIC_MAX_MEAN_SENTENCE:.0f}. Break long sentences at every clause. The narrator "
+            f"pauses at each full stop, and the slow, clipped reads are the ones that hold viewers."
+        )
+    if longest > _RUBRIC_MAX_SENTENCE:
+        worst = max(sents, key=lambda x: len(x.split()))
+        problems.append(
+            f"RUBRIC FAIL (run-on): a sentence is {longest} words; none may exceed {_RUBRIC_MAX_SENTENCE}. "
+            f"Split this one: \"{worst[:90]}...\""
+        )
+    if shorts < _RUBRIC_MIN_SHORT_SENTS:
+        problems.append(
+            f"RUBRIC FAIL (rhythm): only {shorts} sentence(s) of 5 words or fewer; need at least "
+            f"{_RUBRIC_MIN_SHORT_SENTS}, spread across the beats (e.g. 'Not hard. Impossible.')."
+        )
+
+    # R2 — first-word payoff (v3.1 rule 13, never previously enforced)
+    first3 = " ".join(words[:3])
+    if not (re.search(r"\d|\$", first3) or any(w.isupper() and len(w) >= 3 for w in words[:3])):
+        problems.append(
+            f"RUBRIC FAIL (hook): first three spoken words are \"{first3}\" — they must contain a "
+            f"dollar figure, number, date, or an ALL-CAPS punch word. Never open on setup."
+        )
+
+    # R3 — number runs in the body (open/close beats may stack figures; the middle may not)
+    # "Body" = sentences that start between 25% and 80% of the word count, so the
+    # past_greatness stat stack and the_fall's outcome numbers are exempt however
+    # many short sentences they are cut into.
+    total_w = len(words)
+    body, cursor = [], 0
+    for sent in sents:
+        if 0.25 * total_w <= cursor < 0.80 * total_w:
+            body.append(sent)
+        cursor += len(sent.split())
+    num_run = 0
+    for a, b in zip(body, body[1:]):
+        if _rubric_has_number(a) and _rubric_has_number(b):
+            num_run += 1
+    if num_run:
+        problems.append(
+            f"RUBRIC FAIL (stat run): {num_run} place(s) in the middle of the script where two "
+            f"consecutive sentences both carry numbers. In the body, every number must be the "
+            f"consequence of a named action by the company or a person, and no two in a row."
+        )
+
+    # R4 — loop callback: last sentence shares a content word with the opening 40 words
+    last = sents[-1]
+    last_len = len(last.split())
+    def _content_words(text: str) -> set[str]:
+        out = set()
+        for w in text.split():
+            w = w.strip('.,;:!?"\'').lower()
+            if len(w) >= 4 and w not in _RUBRIC_STOPWORDS:
+                out.add(w)
+        return out
+    callback = bool(_content_words(last) & _content_words(" ".join(words[:40])))
+    if not (4 <= last_len <= 12):
+        problems.append(
+            f"RUBRIC FAIL (outro): final sentence is {last_len} words; must be 5–10 and call back "
+            f"a specific object or phrase from the opening."
+        )
+    elif not callback:
+        problems.append(
+            f"RUBRIC FAIL (outro): final sentence \"{last}\" names nothing from the opening. "
+            f"Reuse a concrete word from the first two sentences (the notebook, the memo, the room)."
+        )
+
+    # R5 — AI tells the prompt already bans (rule 14) but nothing enforced
+    adverbs = [w for w in words
+               if re.fullmatch(r"[A-Za-z]+ly[.,;:!?]?", w)
+               and w.strip('.,;:!?').lower() not in _RUBRIC_LY_WHITELIST]
+    if len(adverbs) > _RUBRIC_MAX_ADVERBS:
+        problems.append(f"RUBRIC FAIL (adverbs): cut these: {adverbs}.")
+    if "—" in narration or "–" in narration:
+        problems.append("RUBRIC FAIL (dashes): no em/en dashes in narration. Use a period.")
+
+    score = {
+        "sentences": len(sents),
+        "mean_sentence_words": round(mean_len, 1),
+        "longest_sentence": longest,
+        "short_sentences": shorts,
+        "body_number_runs": num_run,
+        "outro_callback": bool(callback),
+        "adverbs": len(adverbs),
+        "fails": len(problems),
+    }
+    return (not problems), problems, score
+
+
 # ─── Script generation (v3 prompt → JSON) ────────────────────────────────────
 
 def load_system_prompt() -> str:
@@ -1048,6 +1232,8 @@ def generate_script(topic: str, format_tag: str) -> dict:
         wc_ok, word_count, (lo, hi) = mz_script_word_count_ok(data, format_tag)
         title_ok, title_reason = mz_title_ok(data.get("title", ""))
         pexels_ok, pexels_reason = mz_pexels_queries_ok(data)
+        rubric_ok, rubric_problems, rubric_score = mz_retention_rubric(data)
+        data["rubric_score"] = rubric_score
 
         problems = []
         if not wc_ok:
@@ -1061,9 +1247,17 @@ def generate_script(topic: str, format_tag: str) -> dict:
             problems.append(f"TITLE FAIL: {title_reason}")
         if not pexels_ok:
             problems.append(pexels_reason)
+        # Rubric: hard on attempts 1–2, advisory on the last so it never skips a post.
+        if not rubric_ok:
+            if attempt < 3:
+                problems.extend(rubric_problems)
+            else:
+                print(f"  ⚠️  Rubric still failing on final attempt — accepting with score logged: "
+                      f"{' | '.join(p[:70] for p in rubric_problems)}")
 
         if not problems:
-            print(f"  ✅ Script passed validators ({word_count}w, title OK) on attempt {attempt}")
+            print(f"  ✅ Script passed validators ({word_count}w, title OK, rubric "
+                  f"{'OK' if rubric_ok else 'advisory'}) on attempt {attempt}")
             return data
 
         print(f"  ⚠️  Validator failed attempt {attempt}/3: {' | '.join(problems)}")
@@ -1101,7 +1295,11 @@ def generate_script(topic: str, format_tag: str) -> dict:
                     f"REJECTED SCRIPT:\n{rejected_script}"
                 )
 
-        trim_or_expand = "Do NOT pad or summarise." if word_count < lo else "Do NOT add new content — trim existing sentences."
+        if wc_ok:
+            trim_or_expand = ("Word count is already in band. Fix the rubric issues by restructuring "
+                              "sentences, not by adding or removing content.")
+        else:
+            trim_or_expand = "Do NOT pad or summarise." if word_count < lo else "Do NOT add new content — trim existing sentences."
         extra = (
             "\n\nIMPORTANT — your previous draft was REJECTED:\n- "
             + "\n- ".join(problems)
@@ -1548,7 +1746,13 @@ def main() -> int:
     # 5. Log
     mark_mz_posted(topic, script_data["title"], video_url, format_tag,
                    narration_sec=result.get("narration_sec"),
-                   narration_words=result.get("narration_words"))
+                   narration_words=result.get("narration_words"),
+                   script_text=script_data.get("script"),
+                   hook_style=script_data.get("selected_hook_style"),
+                   sub_cta=sub_cta_used,
+                   rubric=script_data.get("rubric_score"),
+                   description=script_data.get("description"),
+                   hashtags=script_data.get("hashtags"))
     append_to_google_sheets(script_data["title"], video_url, format_tag)
 
     # 6. Post TikTok variant (if TIKTOK_ACCESS_TOKEN is set)

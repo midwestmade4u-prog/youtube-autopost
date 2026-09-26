@@ -87,15 +87,21 @@ jobs:
             echo "FB_VIDEO_PATH=$MP4" >> $GITHUB_ENV
           fi
 
-      - name: Post Facebook video (MZ)
+      # Sep 26 2026: publish as a REEL (/{page}/video_reels), not a feed video.
+      # Feed videos reach followers only; Reels are the surface FB recommends to
+      # non-followers and the format Content Monetization pays on. Falls back to
+      # the legacy feed post if the Reel publish fails. fb_yt_crosspost.py kept
+      # for TMF/BSG until they are migrated.
+      - name: Post Facebook Reel (MZ)
         if: env.FB_VIDEO_PATH != ''
         env:
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN_MZ }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID_MZ }}
           FB_POST_LOG: "mz_post_log.json"
+          FB_REELS_DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && '1' || '0' }}
         run: |
           pip install requests -q
-          python3 fb_yt_crosspost.py
+          python3 fb_reels_post.py
         continue-on-error: true
 
       - name: Commit results
