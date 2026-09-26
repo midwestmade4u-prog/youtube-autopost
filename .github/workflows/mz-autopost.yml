@@ -119,8 +119,11 @@ jobs:
           # auto_post_mz.py the same day). Now: real rebase (never discards
           # the other side's entries) with retry, and a loud failure instead
           # of a silent one if it still can't land.
+          # Sep 26 2026: widened 5->10 retry attempts (same jittered 5-20s
+          # backoff) -- cheap insurance against the two channels' workflows
+          # landing their commits at the same moment during a long unattended run.
           git commit -m "Auto-post log (MZ) - $(date)"
-          for i in 1 2 3 4 5; do
+          for i in 1 2 3 4 5 6 7 8 9 10; do
             if git pull --rebase origin main && git push; then
               echo "Pushed dedup-log commit on attempt $i"
               exit 0
@@ -129,7 +132,7 @@ jobs:
             git rebase --abort 2>/dev/null || true
             sleep $(( (RANDOM % 15) + 5 ))
           done
-          echo "::error::MZ dedup-log commit FAILED to push after 5 attempts -- this run's post will NOT be recorded and may repeat."
+          echo "::error::MZ dedup-log commit FAILED to push after 10 attempts -- this run's post will NOT be recorded and may repeat."
           exit 1
 
       - name: Upload logs

@@ -166,6 +166,29 @@ ONE_BAD_DAY_TOPICS = [
     "Luckin Coffee — Apr 2, 2020 — disclosing that roughly $310M of its sales were invented",
     "Thomas Cook — Sep 23, 2019 — 178 years old, and 150,000 travellers wake up stranded",
     "Solyndra — Aug 31, 2011 — shutting down with $535M of federal loan guarantees drawn",
+    # ── Added Sep 26 2026 — bank refill ahead of a 30-day unattended stretch. ──
+    # Format A was down to 7 never-used/never-posted topics (~1/day burn rate);
+    # every entry below fact-checked against primary/major news sources before
+    # inclusion (CNBC, NPR, Reuters, Wikipedia, contemporaneous press).
+    "Apple — Sep 20, 1985 — the board sides with CEO John Sculley in the power struggle Steve Jobs started, and Jobs resigns from the company he co-founded",
+    "Chrysler — Nov 1979 — CEO Lee Iacocca testifies before Congress asking for $1.5 billion in loan guarantees just to keep the company from collapsing",
+    "Starbucks — Feb 26, 2008 — closes all 7,100 US stores for one afternoon to retrain baristas after Howard Schultz returns as CEO amid a stock collapse and complaints the coffee had gotten worse",
+    "Chipotle — Nov 2, 2015 — closes 43 restaurants across Washington and Oregon after an E. coli outbreak, the start of a food-safety crisis that costs the company years of lost trust",
+    "Southwest Airlines — Dec 2022 — a winter storm exposes decades-old crew-scheduling software, cascading into roughly 16,700 cancelled flights over 10 days",
+    "Six Flags — Jun 13, 2009 — files for Chapter 11 bankruptcy, undone by billions in debt taken on to fund an aggressive park-buying expansion a decade earlier",
+    "Uber — Feb 2017 — Susan Fowler's blog post detailing systemic harassment inside the company triggers an investigation that forces CEO Travis Kalanick to resign that June",
+    "Papa John's — Nov 1, 2017 — founder John Schnatter blames NFL national-anthem protests for slowing pizza sales on an earnings call, igniting a boycott that costs him his own name off the boxes within a year",
+    "Krispy Kreme — 2004 — restates earnings after an SEC investigation into its franchise buyback accounting, and the once-soaring stock collapses within the year",
+    "MoviePass — Jul 27, 2018 — the $9.95 unlimited-movie plan runs out of cash mid-month and the app goes dark nationwide until an emergency overnight loan gets it back online",
+    "Bed Bath & Beyond — Apr 23, 2023 — files for Chapter 11, undone by a debt-funded stock buyback made just before the pandemic and years of coupon-driven margins",
+    "Google — Oct 8, 2018 — announces it is shutting down the consumer version of Google+ in the same breath it discloses a bug had exposed private data on up to 500,000 users for years",
+    "Payless ShoeSource — Feb 2019 — announces it will liquidate and close all 2,500 remaining US stores, its second bankruptcy in two years",
+    "Nortel Networks — Jan 14, 2009 — files for bankruptcy protection, the largest corporate collapse in Canadian history, after years of accounting scandals and the telecom bust",
+    "Palm — 2010 — HP completes its $1.2B acquisition of Palm months after the webOS-powered Palm Pre failed to catch on against the iPhone; HP kills webOS entirely within a year",
+    "Linens 'n Things — 2008 — liquidates entirely during the financial crisis, buried under debt from a 2006 private-equity buyout",
+    "A&P (The Great Atlantic & Pacific Tea Company) — 2015 — the chain that invented the American supermarket liquidates completely after cycling through bankruptcy twice in five years",
+    "Best Buy — Apr 10, 2012 — CEO Brian Dunn resigns over a 'personal conduct' investigation, later revealed as an inappropriate relationship with a 29-year-old employee, with a $6.6M severance attached",
+    "Sports Authority — May 2016 — after filing for bankruptcy two months earlier planning to save the chain by closing 140 stores, announces it will liquidate completely instead",
 ]
 # Removed from ONE_BAD_DAY (Apr 30 2026 cleanup):
 # - Barings Bank (UK), Société Générale (France), Swissair (Switzerland),
@@ -350,7 +373,7 @@ MZ_HOUSEHOLD_BRANDS = {
     "segway", "quibi", "vine", "pets.com", "smith corona", "webvan",
     "johnson & johnson", "chipotle", "tesla", "crocs", "barnes & noble",
     "southwest airlines", "krispy kreme", "six flags", "uber", "papa john's",
-    "dell", "amd", "aig", "fannie mae", "purdue pharma",
+    "dell", "amd", "aig", "fannie mae", "purdue pharma", "google",
 }
 
 # Warn when a format's never-posted pool drops to this many topics or fewer.
