@@ -128,7 +128,33 @@ def fit_to_reel_length(src: Path, work: Path) -> Path | None:
 
 # ── Caption ───────────────────────────────────────────────────────────────────
 
+# Per-channel caption branding. Keyed by the post log's "channel" field
+# (mz / tmf / bsg) with a fallback keyed off the log filename. Sep 27 2026:
+# the first TMF Reel went out with MZ's tagline and #MinuteZero -- this fixes it.
+CHANNEL_BRAND = {
+    "mz":  {"tagline": "The moment it all broke. New one every day.",
+            "tag": "#MinuteZero",
+            "fill": ["#businesshistory", "#corporatehistory", "#truestory"]},
+    "tmf": {"tagline": "Why your mind does what it does. New one every day.",
+            "tag": "#TheMindFiles",
+            "fill": ["#psychology", "#humanbehavior", "#selfawareness"]},
+    "bsg": {"tagline": "Bible stories, told simply. New one every day.",
+            "tag": "#BibleStoryGarden",
+            "fill": ["#biblestories", "#faith", "#scripture"]},
+}
+
+def _channel_key(post: dict) -> str:
+    ch = (post.get("channel") or "").lower().strip()
+    if ch in CHANNEL_BRAND:
+        return ch
+    for k in CHANNEL_BRAND:
+        if k in POST_LOG.lower():
+            return k
+    return "mz"
+
+
 def build_caption(post: dict) -> str:
+    brand = CHANNEL_BRAND[_channel_key(post)]
     title = (post.get("title") or "").strip()
     desc  = (post.get("description") or "").strip()
     tags  = (post.get("hashtags") or "").split()
@@ -139,15 +165,16 @@ def build_caption(post: dict) -> str:
     hook = hook if 20 <= len(hook) <= 220 else ""
 
     # Drop platform-specific tags, keep the topical ones, cap at 5, add the brand.
-    drop = {"#shorts", "#one_bad_day", "#unknown_failure", "#near_death"}
-    tags = [t for t in tags if t.lower() not in drop]
-    tags = ["#MinuteZero"] + [t for t in tags if t.lower() != "#minutezero"]
-    tags = tags[:MAX_HASHTAGS]
+    drop = {"#shorts", "#one_bad_day", "#unknown_failure", "#near_death", "#reels", "#fyp"}
+    tags = [t for t in tags if t.lower() not in drop and t.lower() != brand["tag"].lower()]
+    if not tags:
+        tags = list(brand["fill"])
+    tags = ([brand["tag"]] + tags)[:MAX_HASHTAGS]
 
     parts = [title]
     if hook and hook.lower() != title.lower():
         parts.append(hook)
-    parts.append("The moment it all broke. New one every day.")
+    parts.append(brand["tagline"])
     parts.append(" ".join(tags))
     return "\n\n".join(p for p in parts if p)
 
