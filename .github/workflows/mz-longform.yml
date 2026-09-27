@@ -76,6 +76,28 @@ jobs:
           echo "Running: python3 auto_post_mz_longform.py $ARGS"
           eval "python3 auto_post_mz_longform.py $ARGS"
 
+      # Sep 27 2026: long-form -> Facebook Page video. DORMANT until the repo
+      # variable FB_LONGFORM_ENABLED contains "mz" (set it once the page has
+      # ~100 followers from Reels). Uses the same page secrets as the Shorts step.
+      - name: Find long-form video
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          MP4=$(ls -t MZ_Longform_Output/*.mp4 MZ_Longform_Output/**/*.mp4 2>/dev/null | head -1)
+          echo "FB_VIDEO_PATH=$MP4" >> $GITHUB_ENV
+          echo "Newest long-form mp4: $MP4"
+
+      - name: Post Facebook long-form video (MZ)
+        if: github.event.inputs.dry_run != 'true' && env.FB_VIDEO_PATH != ''
+        env:
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN_MZ }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID_MZ }}
+          FB_CHANNEL: "mz"
+          FB_LONGFORM_ENABLED: ${{ vars.FB_LONGFORM_ENABLED }}
+        run: |
+          pip install requests -q
+          python3 fb_longform_post.py
+        continue-on-error: true
+
       - name: Commit dedup log + post log
         if: always()
         env:
