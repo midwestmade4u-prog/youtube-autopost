@@ -841,6 +841,31 @@
       "posted_at": "2026-09-26 17:54:35",
       "narration_sec": 84.0,
       "narration_words": 168
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Payless ShoeSource \u2014 Feb 2019 \u2014 announces it will liquidate and close all 2,500 remaining US stores, its second bankruptcy in two years",
+      "title": "The $640 Stunt That Exposed Payless",
+      "url": "https://youtu.be/fNNeBl84Mow",
+      "posted_at": "2026-09-27 15:52:53",
+      "narration_sec": 88.94,
+      "narration_words": 168,
+      "script": "2,500 stores. 18,000 jobs. Payless ShoeSource ended both on February 18, 2019. For decades, Payless sold more shoes than anyone in the Western Hemisphere. Its stores filled malls in all 50 states. Families bought school shoes there every August. In 2012, a group of investors bought Payless for $2 billion and loaded it with debt. Every year, the interest came due before the shoes sold. Payless had filed for bankruptcy once. Nothing changed. In November 2018, Payless opened a boutique in Santa Monica. It called the store Palessi. The shelves held Payless shoes marked at $640. Fashion influencers walked in and raved. Some asked to place bulk orders. The debt came due, and no buyer appeared. On February 18, 2019, Payless filed for bankruptcy a second time. This time, every American store would close. Eighteen thousand people lost their jobs. By summer, the shelves were empty and the signs came down. Those $640 pumps were $20 shoes the whole time. One company. One bad day. Every day. Subscribe.",
+      "hook_style": "bold_claim",
+      "sub_cta": "One company. One bad day. Every day. Subscribe.",
+      "rubric": {
+        "sentences": 21,
+        "mean_sentence_words": 7.6,
+        "longest_sentence": 16,
+        "short_sentences": 4,
+        "body_number_runs": 0,
+        "outro_callback": true,
+        "adverbs": 0,
+        "fails": 0
+      },
+      "description": "On February 18, 2019, Payless ShoeSource filed for bankruptcy for the second time in two years and announced it would close all 2,500 of its remaining US stores, putting 18,000 people out of work. Three months earlier, the company opened a fake luxury boutique in Santa Monica called Palessi and sold its own $20 shoes for $640 to fashion influencers who never noticed. The stunt proved the product was never the problem; the debt was. If you follow business history, retail bankruptcies, and corporate failures, this channel is for you. Follow Minute Zero for a new collapse breakdown every day.",
+      "hashtags": "#shorts #one_bad_day #businessfailures #history #bankruptcy #businesshistory"
     }
   ],
   "mz": [],
@@ -911,6 +936,7 @@
     "Tumblr \u2014 Dec 3, 2018 \u2014 banning adult content and losing a third of its traffic",
     "Celsius Network \u2014 Jun 12, 2022 \u2014 freezing withdrawals for 1.7 million customers",
     "Kobe Steel \u2014 Oct 8, 2017 \u2014 admitting it had falsified strength data on metal sold for a decade",
-    "Krispy Kreme \u2014 2004 \u2014 restates earnings after an SEC investigation into its franchise buyback accounting, and the once-soaring stock collapses within the year"
+    "Krispy Kreme \u2014 2004 \u2014 restates earnings after an SEC investigation into its franchise buyback accounting, and the once-soaring stock collapses within the year",
+    "Payless ShoeSource \u2014 Feb 2019 \u2014 announces it will liquidate and close all 2,500 remaining US stores, its second bankruptcy in two years"
   ]
 }
