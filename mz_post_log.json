@@ -1041,6 +1041,31 @@
       },
       "description": "In November 1979, Chrysler CEO Lee Iacocca walked into a congressional hearing and asked the US government for $1.5 billion in loan guarantees to keep America's third-largest automaker alive. Chrysler had lost $1.1 billion that year, its banks had already cut it off, and 600,000 jobs depended on the vote. Congress approved the guarantees in December 1979, and Chrysler repaid every dollar three years later, seven years ahead of schedule. If you follow the Chrysler bailout, Lee Iacocca's testimony, and American corporate collapses, this story is for you. Follow Minute Zero for more business failure breakdowns every day.",
       "hashtags": "#shorts #onebadday #businessfailures #history #corporatehistory #businesshistory"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Southwest Airlines \u2014 Dec 2022 \u2014 a winter storm exposes decades-old crew-scheduling software, cascading into roughly 16,700 cancelled flights over 10 days",
+      "title": "The Software That Broke Southwest Airlines",
+      "url": "https://youtu.be/dsKrr--qypU",
+      "posted_at": "2026-10-04 18:23:57",
+      "narration_sec": 93.43,
+      "narration_words": 172,
+      "script": "16,700 flights. Ten days. Southwest Airlines had turned a profit for 47 straight years and carried more Americans than any airline. It flew point to point, into cities others skipped. That map had one weakness. Southwest ran its crew schedules on software from the 1990s. Every delay meant a phone call. The pilots' union warned about it. Southwest kept it running. December 21st, 2022. A winter storm shut down Denver and Chicago. Every other airline canceled flights, then reset. Southwest could not. The software could not reassign anyone. Crews sat in hotel lobbies with no assignment. Pilots called the scheduling hotline and waited on hold for 17 hours. By the morning after Christmas, the program had lost its own crews. That day, Southwest canceled 2,900 flights. Two out of three. Southwest had no hubs, so it had no reset. $1.1 billion in refunds, and a $140 million federal fine. Passengers slept on airport floors that Christmas. 16,700 flights, and one program Southwest never replaced. One company. One bad day. Every day. Subscribe.",
+      "hook_style": "bold_claim",
+      "sub_cta": "One company. One bad day. Every day. Subscribe.",
+      "rubric": {
+        "sentences": 23,
+        "mean_sentence_words": 7.1,
+        "longest_sentence": 17,
+        "short_sentences": 7,
+        "body_number_runs": 0,
+        "outro_callback": true,
+        "adverbs": 0,
+        "fails": 0
+      },
+      "description": "In December 2022, a winter storm shut down Denver and Chicago, and every airline canceled flights. Southwest Airlines canceled 16,700 of them over ten days because its crew-scheduling software, built in the 1990s, could not reassign pilots and flight attendants fast enough. The meltdown cost about $1.1 billion in refunds and lost flying, and the Transportation Department fined Southwest $140 million. If you follow business history, airline meltdowns, and corporate failures, this is the story of how one outdated system took down the largest domestic carrier in America. Follow Minute Zero for more business failure breakdowns every day.",
+      "hashtags": "#shorts #one_bad_day #businessfailures #history #corporatehistory #businesslessons"
     }
   ],
   "mz": [],
@@ -1119,6 +1144,7 @@
     "Best Buy \u2014 Apr 10, 2012 \u2014 CEO Brian Dunn resigns over a 'personal conduct' investigation, later revealed as an inappropriate relationship with a 29-year-old employee, with a $6.6M severance attached",
     "Apple \u2014 Sep 20, 1985 \u2014 the board sides with CEO John Sculley in the power struggle Steve Jobs started, and Jobs resigns from the company he co-founded",
     "Uber \u2014 Feb 2017 \u2014 Susan Fowler's blog post detailing systemic harassment inside the company triggers an investigation that forces CEO Travis Kalanick to resign that June",
-    "Chrysler \u2014 Nov 1979 \u2014 CEO Lee Iacocca testifies before Congress asking for $1.5 billion in loan guarantees just to keep the company from collapsing"
+    "Chrysler \u2014 Nov 1979 \u2014 CEO Lee Iacocca testifies before Congress asking for $1.5 billion in loan guarantees just to keep the company from collapsing",
+    "Southwest Airlines \u2014 Dec 2022 \u2014 a winter storm exposes decades-old crew-scheduling software, cascading into roughly 16,700 cancelled flights over 10 days"
   ]
 }
