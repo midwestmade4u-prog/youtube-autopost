@@ -1337,6 +1337,11 @@ MZ_SUB_CTAS = [
     "One company. One bad day. Every day. Subscribe.",
     "The next empire is already breaking. Subscribe to catch it.",
     "Somewhere, another minute zero just started. Subscribe.",
+    # Oct 4 2026: ~1 in 3 videos point the spoken outro at the money instead
+    # of the subscribe button. The description carries the link.
+    "The whole story is in a book. It's linked below.",
+    "Want the full story? The book is linked in the description.",
+    "This one has a book. Link in the description.",
 ]
 
 
@@ -1699,7 +1704,8 @@ def main() -> int:
     _aff = _mz_shorts_affiliate_footer(topic)
     description = (
         f"{script_data.get('description', '')}\n\n"
-        f"\U0001f4c9 A new business collapse every day — subscribe to Minute Zero."
+        f"\U0001f4c9 A new business collapse every day — subscribe to Minute Zero.\n\n"
+        f"\U0001f4d6 The book behind the channel: https://midwestmade4u-prog.github.io/themindf-hub/mz/?src=yt"
         f"{_aff}\n\n"
         f"{hashtags}"
     ).strip()

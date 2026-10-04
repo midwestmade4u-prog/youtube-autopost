@@ -133,9 +133,11 @@ def fit_to_reel_length(src: Path, work: Path) -> Path | None:
 # the first TMF Reel went out with MZ's tagline and #MinuteZero -- this fixes it.
 CHANNEL_BRAND = {
     "mz":  {"tagline": "The moment it all broke. New one every day.",
+            "bio_line": "The book behind the channel is in our bio.",
             "tag": "#MinuteZero",
             "fill": ["#businesshistory", "#corporatehistory", "#truestory"]},
     "tmf": {"tagline": "Why your mind does what it does. New one every day.",
+            "bio_line": "The book behind the channel + free guide: link in bio.",
             "tag": "#TheMindFiles",
             "fill": ["#psychology", "#humanbehavior", "#selfawareness"]},
     "bsg": {"tagline": "Bible stories, told simply. New one every day.",
@@ -175,6 +177,8 @@ def build_caption(post: dict) -> str:
     if hook and hook.lower() != title.lower():
         parts.append(hook)
     parts.append(brand["tagline"])
+    if brand.get("bio_line"):
+        parts.append(brand["bio_line"])
     parts.append(" ".join(tags))
     return "\n\n".join(p for p in parts if p)
 

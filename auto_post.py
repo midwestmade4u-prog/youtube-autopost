@@ -35,6 +35,15 @@ from zoneinfo import ZoneInfo
 
 # ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Paths ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 BASE_DIR = Path(__file__).parent
+
+# Sep 26 2026 (Oct 4 session): single hub link per channel, tagged by platform so
+# Associates reports show which surface converts. The hub carries the hero
+# product + lead magnet; descriptions are the only link surface proven to render
+# (see _mz_shorts_affiliate_footer in auto_post_mz.py for the Aug 30 finding).
+TMF_HUB_LINE = ("\U0001f4d6 The book behind the channel + free guide: "
+                "https://midwestmade4u-prog.github.io/themindf-hub/?src=yt\n"
+                "As an Amazon Associate I earn from qualifying purchases.")
+
 LOG_FILE     = BASE_DIR / "auto_post_log.json"
 # Per-channel dedup files ÃÂ¢ÃÂÃÂ each workflow only commits its own file, preventing
 # merge conflicts when all three channels run concurrently in GH Actions.
@@ -1649,6 +1658,7 @@ def build_yt_metadata(channel: str, title: str, topic: str = "", longform_url: s
                 f"Dark psychology and human behavior explained - brought to you by The Mind Files. "
                 f"Why do people do what they do? Explore the science behind manipulation, "
                 f"personality, and the hidden forces shaping every decision.\n\n"
+                f"{TMF_HUB_LINE}\n\n"
                 "#Psychology #DarkPsychology #HumanBehavior #MindFiles #YouTubeShorts"
             )
         else:
@@ -1657,6 +1667,7 @@ def build_yt_metadata(channel: str, title: str, topic: str = "", longform_url: s
                 f"🧠 {title}\n\n"
                 "Dark psychology and human behavior explained - brought to you by The Mind Files. "
                 "Why humans do what they do.\n\n"
+                f"{TMF_HUB_LINE}\n\n"
                 "#Psychology #DarkPsychology #HumanBehavior #MindFiles #YouTubeShorts"
             )
         tags = "psychology,dark psychology,human behavior,mind,mental health,behavioral science,YouTube Shorts,The Mind Files"
