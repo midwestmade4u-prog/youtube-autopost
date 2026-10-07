@@ -1116,6 +1116,31 @@
       },
       "description": "On November 1, 2017, Papa John's founder John Schnatter blamed NFL national anthem protests for slowing pizza sales on an earnings call. The backlash was immediate: #BoycottPapaJohns trended, sales fell, and by July 2018 the company removed Schnatter's face and name from its marketing. This is the story of how one call turned a pizza empire's founder into its biggest liability. If you follow business failures, corporate history, and brand disasters, this one is for you. Follow Minute Zero for more business failure breakdowns every day.",
       "hashtags": "#shorts #one_bad_day #businessfailures #history #truestory #businesslessons"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Google \u2014 Oct 8, 2018 \u2014 announces it is shutting down the consumer version of Google+ in the same breath it discloses a bug had exposed private data on up to 500,000 users for years",
+      "title": "The Memo That Killed Google+",
+      "url": "https://youtu.be/uQicbQhPpbo",
+      "posted_at": "2026-10-07 20:10:05",
+      "narration_sec": 78.19,
+      "narration_words": 154,
+      "script": "500,000 private profiles. Google found the hole, and said nothing.\nLarry Page bet the company on a social network. He tied staff bonuses to it. Ten million people signed up in three weeks. Then they left. By 2018, Google+ was a ghost town.\nA security review found a coding error. One flawed tool let outside developers pull names, emails, and ages from 500,000 accounts. No password needed.\nAt Google headquarters, an engineer wrote a memo. It recommended silence. Legal agreed. The bug stayed hidden.\nSeven months later, on October 8, 2018, a Wall Street Journal reporter called Google for comment. Google had hours. That morning, a company blog post went live, announcing the shutdown of Google+ for consumers and admitting the exposure in the same paragraph.\nA second, smaller bug surfaced that winter. Google killed the product in April 2019.\nThe memo is dated March. There's another collapse tomorrow. Subscribe and watch it happen.",
+      "hook_style": "bold_claim",
+      "sub_cta": "There's another collapse tomorrow. Subscribe and watch it happen.",
+      "rubric": {
+        "sentences": 20,
+        "mean_sentence_words": 7.2,
+        "longest_sentence": 23,
+        "short_sentences": 8,
+        "body_number_runs": 0,
+        "outro_callback": false,
+        "adverbs": 0,
+        "fails": 1
+      },
+      "description": "In March 2018, a Google security review found a bug that exposed the private data of up to 500,000 Google+ users: names, email addresses, and ages. Google's internal memo recommended silence, and the company told no one for seven months. On October 8, 2018, with The Wall Street Journal about to publish, Google announced the shutdown of consumer Google+ and disclosed the data exposure in the same blog post. That is the Google+ shutdown story, the data privacy scandal Google buried for seven months. Follow Minute Zero for more business failure breakdowns every day.",
+      "hashtags": "#shorts #one_bad_day #businessfailures #history #corporatehistory #documentary"
     }
   ],
   "mz": [],
@@ -1197,6 +1222,7 @@
     "Chrysler \u2014 Nov 1979 \u2014 CEO Lee Iacocca testifies before Congress asking for $1.5 billion in loan guarantees just to keep the company from collapsing",
     "Southwest Airlines \u2014 Dec 2022 \u2014 a winter storm exposes decades-old crew-scheduling software, cascading into roughly 16,700 cancelled flights over 10 days",
     "Linens 'n Things \u2014 2008 \u2014 liquidates entirely during the financial crisis, buried under debt from a 2006 private-equity buyout",
-    "Papa John's \u2014 Nov 1, 2017 \u2014 founder John Schnatter blames NFL national-anthem protests for slowing pizza sales on an earnings call, igniting a boycott that costs him his own name off the boxes within a year"
+    "Papa John's \u2014 Nov 1, 2017 \u2014 founder John Schnatter blames NFL national-anthem protests for slowing pizza sales on an earnings call, igniting a boycott that costs him his own name off the boxes within a year",
+    "Google \u2014 Oct 8, 2018 \u2014 announces it is shutting down the consumer version of Google+ in the same breath it discloses a bug had exposed private data on up to 500,000 users for years"
   ]
 }
