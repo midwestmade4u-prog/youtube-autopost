@@ -1191,6 +1191,31 @@
       },
       "description": "In March 2023, Silicon Valley Bank held $209 billion in assets and the cash of nearly half of America's venture-backed startups. On 03/08/2023 it published one press release reporting a $1.8 billion loss and a $2.25 billion capital raise. Depositors pulled $42 billion the next day, and the FDIC seized the bank before it opened on Friday. This is the story of the fastest bank run in modern American history, the collapse of SVB, and the start of the 2023 regional banking crisis. Search 'Silicon Valley Bank collapse' or 'SVB bank run 2023' for the full timeline. Follow Minute Zero for more business failure breakdowns every day.",
       "hashtags": "#shorts #one_bad_day #businessfailures #history #bankruptcy #wallstreet"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Luckin Coffee \u2014 Apr 2, 2020 \u2014 disclosing that roughly $310M of its sales were invented",
+      "title": "The Filing That Killed Luckin Coffee",
+      "url": "https://youtu.be/j6eIZWdDOKk",
+      "posted_at": "2026-10-10 18:49:48",
+      "narration_sec": 79.18,
+      "narration_words": 167,
+      "script": "$310 million in sales. None of it existed. Within two years, Luckin Coffee ran 4,500 shops and outsold Starbucks in China. It was the fastest coffee company on earth. Every cup sold under cost, and the board kept opening stores. In January 2020, a short seller called Muddy Waters published a report. It came from surveillance cameras and store receipts. Luckin denied it. April 2, 2020. Before the opening bell, Luckin's board filed a statement with US regulators. The company's own lawyers wrote it. It admitted that 2.2 billion yuan of sales were invented. Orders booked for customers who never walked in. Chief operating officer Liu Jian ran the scheme. At 9:30 that morning, the stock fell 80 percent. Trading halted. By the closing bell, the stock had lost most of its value. The exchange stopped it six times that day. Luckin paid a fine and left Nasdaq for good. The coffee kept selling. Those sales did not. This one has a book. Link in the description.",
+      "hook_style": "bold_claim",
+      "sub_cta": "This one has a book. Link in the description.",
+      "rubric": {
+        "sentences": 21,
+        "mean_sentence_words": 7.5,
+        "longest_sentence": 13,
+        "short_sentences": 7,
+        "body_number_runs": 0,
+        "outro_callback": true,
+        "adverbs": 0,
+        "fails": 0
+      },
+      "description": "On April 2, 2020, Luckin Coffee filed a statement with US regulators admitting that 2.2 billion yuan of its sales, about $310 million, had been invented. The Chinese coffee chain had opened 4,500 stores in two years and had just outsold Starbucks in China. A report from short seller Muddy Waters, built from surveillance footage and store receipts, forced the board to admit its numbers were fake, and the stock fell 80 percent in a single morning. Nasdaq delisted the company that June, and Luckin later paid a $180 million penalty to the SEC. If you follow corporate fraud, business history, and startup collapses, this Luckin Coffee fraud story is for you. Follow Minute Zero for more business failure breakdowns every day.",
+      "hashtags": "#shorts #one_bad_day #businessfailures #history #truestory #finance"
     }
   ],
   "mz": [],
@@ -1275,6 +1300,7 @@
     "Papa John's \u2014 Nov 1, 2017 \u2014 founder John Schnatter blames NFL national-anthem protests for slowing pizza sales on an earnings call, igniting a boycott that costs him his own name off the boxes within a year",
     "Google \u2014 Oct 8, 2018 \u2014 announces it is shutting down the consumer version of Google+ in the same breath it discloses a bug had exposed private data on up to 500,000 users for years",
     "Starbucks \u2014 Feb 26, 2008 \u2014 closes all 7,100 US stores for one afternoon to retrain baristas after Howard Schultz returns as CEO amid a stock collapse and complaints the coffee had gotten worse",
-    "Silicon Valley Bank \u2014 Mar 8, 2023 \u2014 announcing a $1.8B loss and a capital raise in the same press release"
+    "Silicon Valley Bank \u2014 Mar 8, 2023 \u2014 announcing a $1.8B loss and a capital raise in the same press release",
+    "Luckin Coffee \u2014 Apr 2, 2020 \u2014 disclosing that roughly $310M of its sales were invented"
   ]
 }
