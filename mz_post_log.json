@@ -1249,6 +1249,31 @@
       "title": "The Defeat Device That Killed Volkswagen's Diesel",
       "url": "https://youtu.be/gJyevfiG0MU",
       "posted_at": "2026-10-13 18:53:57"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Sports Authority \u2014 May 2016 \u2014 after filing for bankruptcy two months earlier planning to save the chain by closing 140 stores, announces it will liquidate completely instead",
+      "title": "The Auction That Killed Sports Authority",
+      "url": "https://youtu.be/VGK68EhWoZU",
+      "posted_at": "2026-10-13 20:25:36",
+      "narration_sec": 83.4,
+      "narration_words": 170,
+      "script": "463 stores. Zero bidders. Sports Authority was finished.\n\nFor 29 years, it was the biggest sporting goods chain in America. Four hundred and fifty stores across 45 states. Its name sat on the Denver Broncos stadium.\n\nIt owed $1.1 billion when it filed for bankruptcy on March 2, 2016. Executives blamed a warm winter. They closed 140 stores and promised the rest would survive.\n\nThen buyers looked at what the chain owned. Nothing worth buying. It leased every store and stocked every shelf with borrowed money. The auction opened in New York on April 27, 2016. The brand drew no offers. Liquidators came for the leases. No one bid to keep it open. Twelve days later, on May 2, it announced all 463 stores would close.\n\nBy August, the shelves held nothing. Fourteen thousand people lost jobs. The stadium lost its name. Dick's Sporting Goods bought the best leases and moved in. Four hundred sixty-three stores, one auction, and no buyers. This one has a book. Link in the description.",
+      "hook_style": "bold_claim",
+      "sub_cta": "This one has a book. Link in the description.",
+      "rubric": {
+        "sentences": 22,
+        "mean_sentence_words": 7.3,
+        "longest_sentence": 13,
+        "short_sentences": 9,
+        "body_number_runs": 0,
+        "outro_callback": true,
+        "adverbs": 0,
+        "fails": 0
+      },
+      "description": "In May 2016, Sports Authority announced it would liquidate all 463 remaining stores, two months after filing for Chapter 11 bankruptcy with a plan to close 140 stores and reorganize. At its peak the chain ran 450 sporting goods stores in 45 states and held the naming rights to the Denver Broncos stadium. A bankruptcy auction on April 27, 2016 produced no buyer willing to keep the chain open, so Dick's Sporting Goods bought the best leases and 14,000 employees lost their jobs. If you follow retail bankruptcies, big box store closures, and American business history, this is the exact moment Sports Authority ran out of options. Follow Minute Zero for more business failure breakdowns every day.",
+      "hashtags": "#shorts #one_bad_day #businessfailures #history #bankruptcy #businesshistory"
     }
   ],
   "mz": [],
@@ -1336,6 +1361,7 @@
     "Silicon Valley Bank \u2014 Mar 8, 2023 \u2014 announcing a $1.8B loss and a capital raise in the same press release",
     "Luckin Coffee \u2014 Apr 2, 2020 \u2014 disclosing that roughly $310M of its sales were invented",
     "Chipotle \u2014 Nov 2, 2015 \u2014 closes 43 restaurants across Washington and Oregon after an E. coli outbreak, the start of a food-safety crisis that costs the company years of lost trust",
-    "Volkswagen \u2014 Sep 18, 2015 \u2014 the EPA notice that named the defeat device"
+    "Volkswagen \u2014 Sep 18, 2015 \u2014 the EPA notice that named the defeat device",
+    "Sports Authority \u2014 May 2016 \u2014 after filing for bankruptcy two months earlier planning to save the chain by closing 140 stores, announces it will liquidate completely instead"
   ]
 }
