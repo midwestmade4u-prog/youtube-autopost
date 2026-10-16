@@ -4322,6 +4322,31 @@
       "title": "Why You Become Someone Else Around Everyone",
       "url": "https://www.youtube.com/shorts/GGnLkSTHtYU",
       "posted_at": "2026-10-16 17:25:51"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Equifax \u2014 Sep 7, 2017 \u2014 disclosing a breach that came through a patch skipped in March",
+      "title": "The Patch That Exposed Equifax",
+      "url": "https://youtu.be/mxRAtl5Rq-I",
+      "posted_at": "2026-10-16 18:20:09",
+      "narration_sec": 91.94,
+      "narration_words": 171,
+      "script": "147 million Social Security numbers. In one day, Equifax gave them away. Equifax decides who gets a mortgage and who gets a job. It holds a credit file on most adults. Landlords and banks check it. In March 2017, researchers found a flaw in Equifax's dispute website software. The fix came that day. Equifax ordered it installed. Their own scanner missed the server. May 13, 2017. Attackers came through that portal. Passwords sat in plain text. For ten weeks, they moved through 51 databases. Nobody stopped them. On July 29, staff saw the traffic and shut the door. Days later, its chief financial officer sold his shares. He and two colleagues took out $1.8 million. Then Equifax went silent. On September 7, Equifax published a press release. The CEO retired. The fine came to $575 million, about four dollars per stolen file. Within a year, the stock recovered. The customers had no choice. 147 million numbers. One patch from March. Every empire has a minute zero. Subscribe before the next one.",
+      "hook_style": "bold_claim",
+      "sub_cta": "Every empire has a minute zero. Subscribe before the next one.",
+      "rubric": {
+        "sentences": 25,
+        "mean_sentence_words": 6.4,
+        "longest_sentence": 12,
+        "short_sentences": 13,
+        "body_number_runs": 0,
+        "outro_callback": true,
+        "adverbs": 0,
+        "fails": 0
+      },
+      "description": "On September 7, 2017, Equifax revealed that hackers had stolen the personal records of 147 million Americans, walking in through a web portal running software that was never patched back in March. The breach began on May 13, 2017, ran for 76 days, and ended with the chief financial officer and two colleagues selling $1.8 million in stock. Equifax later paid a $575 million fine, the CEO retired, and the stock recovered within a year. If you follow credit bureau breaches, corporate data failures, and business history, this one is for you. Follow Minute Zero for more business failure breakdowns every day.",
+      "hashtags": "#shorts #one_bad_day #businessfailures #history #corporatehistory #truestory"
     }
   ],
   "mz_longform_topics_used": [
