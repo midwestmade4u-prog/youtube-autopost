@@ -1349,6 +1349,31 @@
       },
       "description": "On September 7, 2017, Equifax revealed that hackers had stolen the personal records of 147 million Americans, walking in through a web portal running software that was never patched back in March. The breach began on May 13, 2017, ran for 76 days, and ended with the chief financial officer and two colleagues selling $1.8 million in stock. Equifax later paid a $575 million fine, the CEO retired, and the stock recovered within a year. If you follow credit bureau breaches, corporate data failures, and business history, this one is for you. Follow Minute Zero for more business failure breakdowns every day.",
       "hashtags": "#shorts #one_bad_day #businessfailures #history #corporatehistory #truestory"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Mt. Gox \u2014 Feb 24, 2014 \u2014 the exchange goes dark with 850,000 bitcoin unaccounted for",
+      "title": "The Memo That Killed Mt. Gox",
+      "url": "https://youtu.be/hRsUILsiwsU",
+      "posted_at": "2026-10-17 17:25:40",
+      "narration_sec": 89.83,
+      "narration_words": 167,
+      "script": "850,000 bitcoin vanished. Mt. Gox went dark. By 2013, it was the world's largest bitcoin exchange. It held the savings of traders across the globe. Users treated it like a bank. Few asked where the coins sat. Mt. Gox stopped withdrawals. On February 7, 2014, it blamed a software bug. The site went quiet. Executives knew the books did not balance. They wrote a crisis memo. In it, they counted missing bitcoin. February 24, 2014. The Mt. Gox website loaded one last time. It went dark. The exchange stopped trading. Customers saw a blank page. They watched their balances freeze on screen. A source leaked the memo the same morning. The total: 850,000 bitcoin gone. That was all the bitcoin the exchange held. Buyers rushed to sell. Users panicked in forums. Mt. Gox filed for bankruptcy. Customers lost their savings. The exchange found 200,000 bitcoin in an old wallet. They did not find the rest. The bank had no vault. Somewhere, another minute zero just started. Subscribe.",
+      "hook_style": "bold_claim",
+      "sub_cta": "Somewhere, another minute zero just started. Subscribe.",
+      "rubric": {
+        "sentences": 33,
+        "mean_sentence_words": 4.8,
+        "longest_sentence": 9,
+        "short_sentences": 20,
+        "body_number_runs": 0,
+        "outro_callback": true,
+        "adverbs": 0,
+        "fails": 0
+      },
+      "description": "On February 24, 2014, Mt. Gox went dark with 850,000 bitcoin missing. The world's largest bitcoin exchange had frozen withdrawals weeks earlier, then filed for bankruptcy in Tokyo. The collapse became a landmark moment in crypto history and a case study in exchange risk, missing bitcoin, and corporate failure. If you follow business failures and crypto history, this story is for you. Follow Minute Zero for more business failure breakdowns every day.",
+      "hashtags": "#shorts #one_bad_day #businessfailures #history #finance #bankruptcy"
     }
   ],
   "mz": [],
@@ -1440,6 +1465,7 @@
     "Sports Authority \u2014 May 2016 \u2014 after filing for bankruptcy two months earlier planning to save the chain by closing 140 stores, announces it will liquidate completely instead",
     "Palm \u2014 2010 \u2014 HP completes its $1.2B acquisition of Palm months after the webOS-powered Palm Pre failed to catch on against the iPhone; HP kills webOS entirely within a year",
     "A&P (The Great Atlantic & Pacific Tea Company) \u2014 2015 \u2014 the chain that invented the American supermarket liquidates completely after cycling through bankruptcy twice in five years",
-    "Equifax \u2014 Sep 7, 2017 \u2014 disclosing a breach that came through a patch skipped in March"
+    "Equifax \u2014 Sep 7, 2017 \u2014 disclosing a breach that came through a patch skipped in March",
+    "Mt. Gox \u2014 Feb 24, 2014 \u2014 the exchange goes dark with 850,000 bitcoin unaccounted for"
   ]
 }
