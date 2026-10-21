@@ -1449,6 +1449,31 @@
       },
       "description": "In 2001, Qwest Communications booked fiber-optic capacity swaps with other carriers as recurring revenue, even though neither side sent a payment. CEO Joe Nacchio sold $100.8 million of his own Qwest shares near the stock's high. Federal prosecutors in Denver later built an insider trading case against him, and a jury convicted him on 19 counts. Qwest restated $2.5 billion in revenue. If you follow insider trading cases, corporate accounting fraud, and business history, this is the Qwest story in under two minutes. Follow Minute Zero for more business failure breakdowns every day.",
       "hashtags": "#shorts #unknown_failure #businessfailures #history #truestory #wallstreet"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Signature Bank \u2014 Mar 12, 2023 \u2014 closed by regulators two days after SVB",
+      "title": "The Crypto Bet That Killed Signature Bank",
+      "url": "https://youtu.be/0NynZ5K8IGM",
+      "posted_at": "2026-10-21 18:54:49",
+      "narration_sec": 80.64,
+      "narration_words": 151,
+      "script": "$110 billion. Two days. Signature Bank was gone. Signature Bank was one of America's largest commercial banks. It held $110 billion in assets and served New York law firms and crypto exchanges. It kept offices across New York. On March 10, 2023, Silicon Valley Bank failed. Depositors across regional banks panicked. Most of its $88 billion in deposits were uninsured, and clients pulled $10 billion in a day. Executives had a weekend to find a buyer. Sunday, March 12, 2023. State regulators seized Signature Bank before markets opened. They handed it to the FDIC. No buyer stood ready. The bank survived 22 years and died in 48 hours. Regulators promised to cover uninsured deposits, a power for emergencies. Signature became the third-largest bank failure in US history after clients pulled $10 billion in one day. One $10 billion day. Two days. Gone. There's another collapse tomorrow. Subscribe and watch it happen.",
+      "hook_style": "bold_claim",
+      "sub_cta": "There's another collapse tomorrow. Subscribe and watch it happen.",
+      "rubric": {
+        "sentences": 20,
+        "mean_sentence_words": 7.1,
+        "longest_sentence": 17,
+        "short_sentences": 9,
+        "body_number_runs": 0,
+        "outro_callback": true,
+        "adverbs": 0,
+        "fails": 1
+      },
+      "description": "On March 12, 2023, New York regulators seized Signature Bank, two days after Silicon Valley Bank collapsed. A $10 billion deposit run and $88 billion in uninsured deposits doomed the 22-year-old bank, making it the third-largest bank failure in US history. Signature Bank's crypto-heavy client base and New York law firms lost their main bank overnight. If you follow business history, banking failures, and corporate collapses, this one is for you. Follow Minute Zero for more business failure breakdowns every day.",
+      "hashtags": "#shorts #one_bad_day #businessfailures #history #bankruptcy #wallstreet"
     }
   ],
   "mz": [],
@@ -1493,6 +1518,7 @@
     "Crocs \u2014 Mar 2009 \u2014 files a 10-K showing a $183.6M loss for 2008 with going-concern doubt; the shoe everyone called a fad is written off as dead",
     "WorldCom \u2014 Jun 25, 2002 \u2014 internal auditor Cynthia Cooper walks into the board meeting with proof of $3.8B in fake entries; Bernie Ebbers' empire gone in one afternoon",
     "Thomas Cook \u2014 Sep 23, 2019 \u2014 178 years old, and 150,000 travellers wake up stranded",
-    "Qwest / Joe Nacchio \u2014 2002 \u2014 booking one-time capacity swaps as recurring revenue while selling his own shares"
+    "Qwest / Joe Nacchio \u2014 2002 \u2014 booking one-time capacity swaps as recurring revenue while selling his own shares",
+    "Signature Bank \u2014 Mar 12, 2023 \u2014 closed by regulators two days after SVB"
   ]
 }
