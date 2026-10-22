@@ -1474,6 +1474,31 @@
       },
       "description": "On March 12, 2023, New York regulators seized Signature Bank, two days after Silicon Valley Bank collapsed. A $10 billion deposit run and $88 billion in uninsured deposits doomed the 22-year-old bank, making it the third-largest bank failure in US history. Signature Bank's crypto-heavy client base and New York law firms lost their main bank overnight. If you follow business history, banking failures, and corporate collapses, this one is for you. Follow Minute Zero for more business failure breakdowns every day.",
       "hashtags": "#shorts #one_bad_day #businessfailures #history #bankruptcy #wallstreet"
+    },
+    {
+      "channel": "mz",
+      "format": "unknown_failure",
+      "topic": "Takata \u2014 Jan 13, 2017 \u2014 pleading guilty over airbag inflators the company knew could fire shrapnel",
+      "title": "The Lab Report That Killed Takata",
+      "url": "https://youtu.be/uPctM7wB4Z8",
+      "posted_at": "2026-10-22 18:47:44",
+      "narration_sec": 97.92,
+      "narration_words": 203,
+      "script": "$1 billion. 16 dead. Takata built the airbag that killed its own customers.\n\nFor 70 years, Takata sold one part to a third of the world's cars. Honda, Toyota, Ford, BMW all bought it. A crash was not supposed to be fatal.\n\nIn the 1990s, Takata switched propellants. Ammonium nitrate cost less than anything else on the shelf. It broke down in heat and humidity. Old propellant burns too fast for the metal around it, and Takata kept shipping it by the millions.\n\n2004. A Takata lab in Michigan. Engineers strap inflators to a rig and fire them. Casings split. Shrapnel tears through the room. The failures lead back to the ammonium nitrate. The report reaches executives, and their call is simple. Delete it.\n\nFor the next decade, Takata blamed a bad batch. Honda recalled a few thousand cars. The rest kept shipping.\n\nThen the bodies. At least 16 people died with shrapnel in their chests. Some sat in cars already recalled and never repaired.\n\nOn January 13, 2017, in a Detroit courtroom, Takata pleaded guilty to fraud. Then it filed for bankruptcy. 100 million inflators. Each one built with ammonium nitrate. Want the full story? The book is linked in the description.",
+      "hook_style": "bold_claim",
+      "sub_cta": "Want the full story? The book is linked in the description.",
+      "rubric": {
+        "sentences": 28,
+        "mean_sentence_words": 6.9,
+        "longest_sentence": 18,
+        "short_sentences": 11,
+        "body_number_runs": 0,
+        "outro_callback": true,
+        "adverbs": 0,
+        "fails": 0
+      },
+      "description": "On January 13, 2017, Takata pleaded guilty to fraud in a Detroit courtroom and agreed to pay $1 billion. The company had known since 2004 that its ammonium nitrate airbag inflators could rupture and fire shrapnel into drivers. Honda, Toyota, Ford, and BMW had all installed the same part in a third of the world's cars. The Takata airbag recall became the largest safety recall in US history, and the company filed for bankruptcy months later. Follow Minute Zero for more corporate collapse breakdowns every day.",
+      "hashtags": "#shorts #unknownfailure #businessfailures #history #truestory #corporatehistory"
     }
   ],
   "mz": [],
@@ -1519,6 +1544,8 @@
     "WorldCom \u2014 Jun 25, 2002 \u2014 internal auditor Cynthia Cooper walks into the board meeting with proof of $3.8B in fake entries; Bernie Ebbers' empire gone in one afternoon",
     "Thomas Cook \u2014 Sep 23, 2019 \u2014 178 years old, and 150,000 travellers wake up stranded",
     "Qwest / Joe Nacchio \u2014 2002 \u2014 booking one-time capacity swaps as recurring revenue while selling his own shares",
-    "Signature Bank \u2014 Mar 12, 2023 \u2014 closed by regulators two days after SVB"
+    "Signature Bank \u2014 Mar 12, 2023 \u2014 closed by regulators two days after SVB",
+    "Wirecard \u2014 Jun 18, 2020 \u2014 the auditors report that \u20ac1.9B in escrow does not exist",
+    "Takata \u2014 Jan 13, 2017 \u2014 pleading guilty over airbag inflators the company knew could fire shrapnel"
   ]
 }
