@@ -1499,6 +1499,31 @@
       },
       "description": "On January 13, 2017, Takata pleaded guilty to fraud in a Detroit courtroom and agreed to pay $1 billion. The company had known since 2004 that its ammonium nitrate airbag inflators could rupture and fire shrapnel into drivers. Honda, Toyota, Ford, and BMW had all installed the same part in a third of the world's cars. The Takata airbag recall became the largest safety recall in US history, and the company filed for bankruptcy months later. Follow Minute Zero for more corporate collapse breakdowns every day.",
       "hashtags": "#shorts #unknownfailure #businessfailures #history #truestory #corporatehistory"
+    },
+    {
+      "channel": "mz",
+      "format": "one_bad_day",
+      "topic": "Celsius Network \u2014 Jun 12, 2022 \u2014 freezing withdrawals for 1.7 million customers",
+      "title": "The Withdrawal Freeze That Killed Celsius",
+      "url": "https://youtu.be/3EJpYj_Tw8w",
+      "posted_at": "2026-10-23 18:34:21",
+      "narration_sec": 83.35,
+      "narration_words": 167,
+      "script": "June 12, 2022: Celsius Network froze 1.7 million accounts and locked $4.7 billion of customer money. At its peak, the crypto lender promised yields that beat any savings account. Customers treated it like a bank. It was not a bank. Alex Mashinsky ran Celsius from New York. He sold safety and high returns in the same pitch. In May, crypto prices fell. Celsius kept paying withdrawals and told users their assets were safe. Customers rushed to withdraw on a Sunday. On June 12, 2022, Celsius published a memo. It paused all withdrawals, swaps, and transfers between accounts. No warning. No vote. No exit. 1.7 million customers tapped withdraw and saw an error message. The company said it acted to protect its community. It gave no date to reopen. Celsius filed for bankruptcy that July with a $1.2 billion hole. Celsius turned customers into creditors. 1.7 million people lost access. Their accounts stayed closed after the memo. Want the full story? The book is linked in the description.",
+      "hook_style": "bold_claim",
+      "sub_cta": "Want the full story? The book is linked in the description.",
+      "rubric": {
+        "sentences": 22,
+        "mean_sentence_words": 7.1,
+        "longest_sentence": 13,
+        "short_sentences": 8,
+        "body_number_runs": 0,
+        "outro_callback": true,
+        "adverbs": 0,
+        "fails": 0
+      },
+      "description": "On June 12, 2022, Celsius Network froze withdrawals for 1.7 million customers and locked $4.7 billion in deposits. The crypto lender had promised high yields, then filed for Chapter 11 bankruptcy in July with a $1.2 billion hole. Alex Mashinsky built Celsius into a crypto giant, and the withdrawal freeze became the defining moment of the 2022 crypto crash. If you follow crypto failures, business history, and bankruptcy stories, this is the minute it broke. Follow Minute Zero for more business failure breakdowns every day.",
+      "hashtags": "#shorts #one_bad_day #businessfailures #history #finance #documentary"
     }
   ],
   "mz": [],
@@ -1546,6 +1571,7 @@
     "Qwest / Joe Nacchio \u2014 2002 \u2014 booking one-time capacity swaps as recurring revenue while selling his own shares",
     "Signature Bank \u2014 Mar 12, 2023 \u2014 closed by regulators two days after SVB",
     "Wirecard \u2014 Jun 18, 2020 \u2014 the auditors report that \u20ac1.9B in escrow does not exist",
-    "Takata \u2014 Jan 13, 2017 \u2014 pleading guilty over airbag inflators the company knew could fire shrapnel"
+    "Takata \u2014 Jan 13, 2017 \u2014 pleading guilty over airbag inflators the company knew could fire shrapnel",
+    "Celsius Network \u2014 Jun 12, 2022 \u2014 freezing withdrawals for 1.7 million customers"
   ]
 }
