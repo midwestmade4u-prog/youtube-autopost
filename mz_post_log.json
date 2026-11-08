@@ -1824,6 +1824,31 @@
       },
       "description": "In October 2007, federal agents arrested David Brooks, CEO of DHB Industries, the body armor maker that supplied US troops in Iraq. Prosecutors said Brooks looted $185 million from the company and charged personal bills to DHB, including a $10 million bat mitzvah at the Rainbow Room. The fraud trial ended with a conviction and a 17-year prison sentence. This is the story of the body armor empire, the party receipts, and the accounting cover-up that exposed it. Follow Minute Zero for more corporate fraud and business failure breakdowns every day.",
       "hashtags": "#shorts #unknown_failure #businessfailures #history #truestory #wallstreet"
+    },
+    {
+      "channel": "mz",
+      "format": "unknown_failure",
+      "topic": "Symbol Technologies \u2014 2004 \u2014 CEO Tomo Razmilovic flees to Sweden to avoid arrest for $230M fraud; FBI has to extradite him back",
+      "title": "$230M Buried: How Symbol Technologies Lied",
+      "url": "https://youtu.be/M6KZ3AWMiW8",
+      "posted_at": "2026-11-08 19:02:21",
+      "narration_sec": 100.75,
+      "narration_words": 211,
+      "script": "$230 million. Symbol Technologies buried it inside its own books. For a decade, the company in Holtsville, New York built the laser scanner that read the barcode at every checkout in America. Its stock tripled. But Symbol had a quarterly number to hit, and barcode scanners sell in slow cycles. Chief executive Tomo Razmilovic needed a way to hit it anyway. So he built one. Sales came in during the last week of every quarter. Each quarter, those last-week sales were bigger than the one before. The trick fit in one sentence. Symbol booked revenue the day it shipped, not the day a customer paid. Distributors took scanners nobody ordered. Auditors signed off. The board signed off. Nobody stopped it. Then in February 2002, Symbol admitted its numbers were fiction and erased years of profit. Razmilovic resigned that spring. On June 3rd, 2004, prosecutors unsealed fraud charges against his executive team. His own seat in the courtroom stayed empty. He was in Sweden. Symbol paid $37 million to settle the SEC's charges, a record penalty. It survived. Motorola bought what was left for $3.9 billion. Razmilovic stayed in Sweden and fought extradition. Every barcode in America. Nobody scanned the books. Every empire has a minute zero. Subscribe before the next one.",
+      "hook_style": "bold_claim",
+      "sub_cta": "Every empire has a minute zero. Subscribe before the next one.",
+      "rubric": {
+        "sentences": 26,
+        "mean_sentence_words": 7.7,
+        "longest_sentence": 22,
+        "short_sentences": 12,
+        "body_number_runs": 0,
+        "outro_callback": true,
+        "adverbs": 1,
+        "fails": 0
+      },
+      "description": "In June 2004, federal prosecutors unsealed fraud charges against the executive team at Symbol Technologies, the Holtsville, New York company that built the laser scanner at nearly every American checkout. Chief executive Tomo Razmilovic was already gone, living in Sweden ahead of the indictments. For years the company booked revenue the day it shipped, not the day a distributor sold, and counted future service contracts as current income. Symbol later paid a $37 million penalty, then sold itself to Motorola for $3.9 billion. If you follow corporate fraud, white-collar crime, and business history, this is the accounting collapse almost nobody remembers. Follow Minute Zero for more business failure breakdowns every day.",
+      "hashtags": "#shorts #unknown_failure #businessfailures #history #wallstreet #truecrime"
     }
   ],
   "mz": [],
@@ -1884,6 +1909,8 @@
     "Purdue Pharma \u2014 Oct 21, 2020 \u2014 agrees to plead guilty to three federal felonies over OxyContin marketing in an $8.3B resolution, while the Sackler family settles civilly for $225M and admits nothing",
     "Valeant \u2014 Oct 21, 2015 \u2014 a short-seller names the mail-order pharmacy Valeant secretly controlled",
     "Thomas Cook \u2014 Sep 23, 2019 \u2014 178 years old, and 150,000 travellers wake up stranded",
-    "Sino-Forest \u2014 Jun 2, 2011 \u2014 a short-seller reports that the timber it owns cannot be found"
+    "Sino-Forest \u2014 Jun 2, 2011 \u2014 a short-seller reports that the timber it owns cannot be found",
+    "Wirecard \u2014 Jun 18, 2020 \u2014 the auditors report that \u20ac1.9B in escrow does not exist",
+    "Symbol Technologies \u2014 2004 \u2014 CEO Tomo Razmilovic flees to Sweden to avoid arrest for $230M fraud; FBI has to extradite him back"
   ]
 }
